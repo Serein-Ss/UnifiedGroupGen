@@ -1,0 +1,4 @@
+* text=auto
+configs/*.yaml -text
+datasets/*.part* -text
+*.sh text eol=lf

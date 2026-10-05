@@ -1,0 +1,11 @@
+# Runtime versions used by the current cgdit training; install CUDA torch separately.
+torch==2.7.1
+numpy==2.2.6
+scipy==1.15.2
+pyxtal==1.1.1
+pymatgen==2025.10.7
+spglib==2.6.0
+pandas==2.3.3
+PyYAML==6.0.3
+ase==3.26.0
+pytest==8.4.2

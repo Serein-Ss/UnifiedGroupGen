@@ -1,0 +1,23 @@
+dataset: c2db_51
+kind: layer
+data_root: ../data/c2db_51
+# Inspected source writes CARTESIAN angstrom positions into CIF fractional fields.
+coordinate_mode: cartesian_in_fractional_fields
+group_column: lgnum
+symmetry_tolerance: 0.01
+max_atoms: 104
+max_orbits: 52
+property_columns:
+  formation_energy: hform
+  band_gap: gap
+  energy_above_hull: ehull
+properties:
+  formation_energy: {type: scalar}
+  band_gap: {type: scalar}
+cond_dropout: 0.1
+composition_probability: 0.5
+observation_probability: 0.25
+model: {hidden: 128, proposal_layers: 3, flow_layers: 4, heads: 4, frequencies: 8}
+learning_rate: 0.001
+batch_size: 8
+epochs: 100

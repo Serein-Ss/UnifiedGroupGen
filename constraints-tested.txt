@@ -1,0 +1,11 @@
+# Optional version constraints matching the verified Python 3.10 runtime.
+# Install the appropriate CUDA build of torch separately; this file does not select a GPU wheel.
+torch==2.6.0
+numpy==1.26.4
+scipy==1.15.3
+pyxtal==1.1.1
+pymatgen==2025.10.7
+spglib==2.6.0
+pandas==2.3.3
+PyYAML==6.0.3
+pytest==8.4.2

@@ -1,0 +1,73 @@
+dataset: joint_space_layer
+kind: space
+max_atoms: 416
+max_orbits: 52
+properties:
+  formation_energy:
+    type: scalar
+  band_gap:
+    type: scalar
+  energy_above_hull:
+    type: scalar
+  source_domain:
+    type: categorical
+    num_classes: 3
+    context: true
+cond_dropout: 0.1
+composition_probability: 0.5
+observation_probability: 0.25
+model:
+  proposal_hidden: 256
+  proposal_layers: 4
+  heads: 8
+  flow_hidden: 512
+  flow_layers: 6
+  frequencies: 128
+  checkpoint_layers: true
+  edge_chunk_size: 4096
+learning_rate: 0.0003
+batch_size: 64
+epochs: 1000
+prepared_root: artifacts/full_joint_sourcegrouped
+element_policy: training
+require_data_audit: true
+require_full_preparation: true
+data_audit: artifacts/full_joint_sourcegrouped/audit.json
+minimum_conversion_coverage: 1.0
+precision: bf16
+edge_budget: 200000
+gradient_clip: 10
+lr_patience: 10
+early_stopping_patience: 50
+loss_weights:
+  descriptor: 1.0
+  flow: 1.0
+kinds:
+- space
+- layer
+joint_split_manifest: artifacts/full_joint_sourcegrouped/manifest.json
+source_configs:
+  mp_20: configs/mp20_local.yaml
+  mpts_52: configs/mpts52_local.yaml
+  c2db_51: configs/c2db_official_local.yaml
+dataset_families:
+  mp_20: materials_project
+  mpts_52: materials_project
+  c2db_51: c2db
+dataset_domains:
+  mp_20: 0
+  mpts_52: 1
+  c2db_51: 2
+split_seed: 42
+train_files:
+- artifacts/full_joint_sourcegrouped/mp_20/train.jsonl
+- artifacts/full_joint_sourcegrouped/mpts_52/train.jsonl
+- artifacts/full_joint_sourcegrouped/c2db_51/train.jsonl
+val_files:
+- artifacts/full_joint_sourcegrouped/mp_20/val.jsonl
+- artifacts/full_joint_sourcegrouped/mpts_52/val.jsonl
+- artifacts/full_joint_sourcegrouped/c2db_51/val.jsonl
+test_files:
+- artifacts/full_joint_sourcegrouped/mp_20/test.jsonl
+- artifacts/full_joint_sourcegrouped/mpts_52/test.jsonl
+- artifacts/full_joint_sourcegrouped/c2db_51/test.jsonl

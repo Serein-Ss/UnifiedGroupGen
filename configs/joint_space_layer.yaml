@@ -1,0 +1,16 @@
+# Train with explicit --train/--val lists from MP20 and C2DB after preparing each.
+# Use this first for unconditional geometry; mixing differently computed property labels
+# requires a separate domain/calculation-fidelity condition and is not enabled here.
+dataset: joint_space_layer
+kind: space
+kinds: [space, layer]
+max_atoms: 416
+max_orbits: 52
+properties: {}
+cond_dropout: 0.1
+composition_probability: 0.5
+observation_probability: 0.25
+model: {hidden: 128, proposal_layers: 3, flow_layers: 4, heads: 4, frequencies: 8}
+learning_rate: 0.001
+batch_size: 8
+epochs: 100

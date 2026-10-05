@@ -1,0 +1,47 @@
+dataset: c2db_51
+kind: layer
+data_root: ../data/c2db_51
+coordinate_mode: cartesian_in_fractional_fields
+group_column: lgnum
+symmetry_tolerance: 0.01
+max_atoms: 104
+max_orbits: 52
+property_columns:
+  formation_energy: hform
+  band_gap: gap
+  energy_above_hull: ehull
+properties:
+  formation_energy:
+    type: scalar
+  band_gap:
+    type: scalar
+cond_dropout: 0.1
+composition_probability: 0.5
+observation_probability: 0.25
+model:
+  proposal_hidden: 256
+  proposal_layers: 4
+  heads: 8
+  flow_hidden: 256
+  flow_layers: 6
+  frequencies: 16
+  checkpoint_layers: true
+  edge_chunk_size: 4096
+learning_rate: 0.0003
+batch_size: 8
+epochs: 1000
+prepared_root: artifacts/full/c2db_51
+element_policy: training
+require_data_audit: true
+require_full_preparation: true
+data_audit: artifacts/full/c2db_51/audit_medium.json
+minimum_conversion_coverage: 0.95
+precision: bf16
+edge_budget: 200000
+gradient_clip: 10
+lr_patience: 10
+early_stopping_patience: 50
+loss_weights:
+  descriptor: 1.0
+  flow: 1.0
+source_verified: false

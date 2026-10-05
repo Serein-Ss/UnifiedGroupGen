@@ -1,0 +1,8 @@
+{
+  "kind": "space",
+  "number": 2,
+  "orbits": [
+    {"letter": "i", "atomic_number": 14},
+    {"letter": "i", "atomic_number": 8}
+  ]
+}
