@@ -22,8 +22,34 @@ python -m pytest -q
 ```
 
 PyTorch的CUDA 11.8安装命令来自[官方版本安装说明](https://pytorch.org/get-started/previous-versions/#v271)。不需要torchvision或torchaudio。
-已有`cgdit`环境也可以使用，但本项目需要PyTorch>=2.4，旧2.2环境需要升级；上面的独立环境可保留旧项目环境。
+已有`cgdit`环境也可以使用，最低PyTorch版本为2.2；训练器会自动选择对应版本的GradScaler接口。上面的版本锁定文件用于新建环境，复用已有环境请使用下面的流程。
 软件版本对应本机实际训练：Python 3.10、PyTorch 2.7.1、NumPy 2.2.6、SciPy 1.15.2。完整Linux安装及4090吞吐需要在服务器执行上述检查，尚未声称远程数值复现。
+
+### 复用已部署的cgdit环境
+
+用户提供的服务器包清单包含Python 3.10.18、PyTorch 2.2.1/CUDA 12.1、NumPy 1.26.4、PyXtal 1.1.3、pymatgen 2025.4.17及spglib 2.6.0。项目目录为`/root/private_data/rszhong/workspace/UnifiedGroupGen`。
+该环境中的`torch-scatter`等扩展绑定PyTorch 2.2，所以使用已有依赖并安装本项目：
+
+```bash
+source /public/home/achv5zyqua/miniconda3/bin/activate
+conda activate cgdit
+cd /root/private_data/rszhong/workspace/UnifiedGroupGen
+git pull --ff-only
+export MKL_THREADING_LAYER=SEQUENTIAL
+export OMP_NUM_THREADS=4
+export MKL_NUM_THREADS=4
+python -m pip install --no-deps --no-build-isolation -e ".[test]"
+python -c "import torch; assert torch.cuda.is_available(); assert torch.cuda.is_bf16_supported(); print(torch.__version__, torch.version.cuda, torch.cuda.get_device_name())"
+nvidia-smi
+python scripts/unpack_training_data.py
+python scripts/verify_training_data.py
+python -m pytest -q
+```
+
+这条流程不执行`requirements-remote.txt`，该文件锁定另一套PyTorch 2.7.1环境。上述具体服务器路径来自用户提供的本次终端输出，适用于该实例；其他实例需要使用实际项目路径。
+全部检查成功后执行下一节的`--stage all`完整训练命令；如有其他任务正在使用GPU，先确认资源足够再启动。
+
+AMP兼容验证：本机PyTorch 2.7.1/CUDA完整测试91项通过，含强制旧接口下CPU/CUDA/BF16断点续训一致性；独立PyTorch 2.2.1 CPU、NumPy 1.26.4、PyXtal 1.1.3、pymatgen 2025.4.17环境80项通过、11项CUDA测试因CPU构建跳过。该独立环境实际SciPy为1.15.2，用户提供的服务器清单为1.15.3；这是旧接口和主要依赖兼容性验证，Linux/CUDA 12.1/4090测试仍须在服务器执行。
 
 ## 2. 启动
 

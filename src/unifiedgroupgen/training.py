@@ -98,7 +98,10 @@ def run_training(args, config, records, validation, proposal, flow, train_paths,
         raise ValueError('Mixed precision requires CUDA; use fp32 for CPU diagnostics')
     if precision == 'bf16' and not torch.cuda.is_bf16_supported():
         raise ValueError('This GPU does not support bf16; use fp32 or fp16')
-    scaler = torch.amp.GradScaler('cuda', enabled=precision == 'fp16')
+    if hasattr(torch.amp, 'GradScaler'):
+        scaler = torch.amp.GradScaler('cuda', enabled=precision == 'fp16')
+    else:
+        scaler = torch.cuda.amp.GradScaler(enabled=precision == 'fp16')
     dtype = torch.bfloat16 if precision == 'bf16' else torch.float16
     hashes = {'train_split_sha256': [file_hash(p) for p in train_paths],
               'val_split_sha256': [file_hash(p) for p in val_paths]}

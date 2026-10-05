@@ -133,11 +133,14 @@ def test_preparation_resume_and_joint_orbit_reordering(tmp_path):
 
 
 @pytest.mark.parametrize('device,precision', [('cpu', 'fp32'), ('cuda', 'fp32'), ('cuda', 'bf16')])
-def test_uninterrupted_and_resumed_training_are_identical(tmp_path, device, precision):
+@pytest.mark.parametrize('legacy_amp', [False, True])
+def test_uninterrupted_and_resumed_training_are_identical(tmp_path, device, precision, legacy_amp, monkeypatch):
     if device == 'cuda' and not torch.cuda.is_available():
         pytest.skip('CUDA unavailable')
     if precision == 'bf16' and not torch.cuda.is_bf16_supported():
         pytest.skip('CUDA BF16 unavailable')
+    if legacy_amp:
+        monkeypatch.delattr(torch.amp, 'GradScaler', raising=False)
     torch.set_num_threads(1)
     config = {'groups': [('space', 2)], 'properties': {'gap': {}}, 'model': {'hidden': 16, 'proposal_layers': 1,
               'flow_layers': 1, 'heads': 4, 'frequencies': 2}, 'max_orbits': 4, 'batch_size': 2,

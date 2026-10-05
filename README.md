@@ -108,6 +108,8 @@ python -m unifiedgroupgen.cli train --config configs/joint_space_layer_large.yam
 
 本机正式训练已使用 large + batch64 的 `mp20_local.yaml` / `mpts52_local.yaml` 顺序运行，入口是 `scripts/train_local.py`；实时状态在 `artifacts/runs/local_large_seed42/runner.json`。现有 cgdit 环境的 OpenMP 修复由 runner 在 Python 导入前设置。最新独立目录验证 **88 项测试通过**（含4项迁移测试）。共享主模型约 **18,030,806** 参数，保留计算来源条件并让 CFG 只移除性质条件。
 
+已补充PyTorch 2.2旧AMP接口兼容：当前CUDA环境91项测试通过，实际PyTorch 2.2.1 CPU环境80项通过、11项CUDA测试跳过。服务器现有cgdit环境的安装、校验与完整训练命令见[复用cgdit说明](docs/REMOTE_TRAINING.md#复用已部署的cgdit环境)。
+
 `scripts/complete_pipeline.py` 编排完整来源恢复、二维准备、共享划分、等待已有三维作业、共享训练及测试/生成评价；只在数据审计通过后启动共享 GPU 训练。C2DB 全部16905条来源恢复、v7全量转换与审计已通过，零拒绝；官网缺失的 `4Nb2S3-2` 已从公开原始ASE归档精确恢复。联合划分保留全部102610条输入，修复后的完整联合审计及实际训练入口核查均已通过。`recover_c2db.py --ase-db <原数据库路径>` 按确切 UID/ASE unique_id 恢复并验证来源，不删除缺失记录。
 
 ## 已实现与边界

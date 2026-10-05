@@ -6,6 +6,8 @@
 
 服务器发布验证：在独立目录导入仓库数据包，68个文件字节校验通过，三套来源及共享模型的四个训练入口全部通过，联合记录守恒102610条；独立目录完整测试 **88 passed**。JUnit为`artifacts/distribution_check/UnifiedGroupGen/artifacts/distribution_tests.xml`，训练入口证据为同目录`artifacts/portable_training_gate.json`。新增4项测试检查路径迁移、导入幂等性、损坏文件拒绝、路径越界拒绝和完整训练计划。Linux安装/4090训练仍需服务器实测。操作见[服务器训练说明](REMOTE_TRAINING.md)。
 
+PyTorch 2.2兼容更新：训练器支持旧版`torch.cuda.amp.GradScaler`。PyTorch 2.7.1/CUDA测试 **91 passed**，JUnit `artifacts/pretrain_validation/torch22_amp_compat_current.xml`；实际PyTorch 2.2.1 CPU环境 **80 passed、11 skipped**，JUnit `artifacts/pretrain_validation/torch22_compat.xml`。跳过项均需要CUDA，不能据此声称旧版CUDA测试已通过。实际依赖记录在`artifacts/pretrain_validation/torch22_runtime.json`：NumPy 1.26.4、SciPy 1.15.2、PyXtal 1.1.3、pymatgen 2025.4.17、spglib 2.6.0。复用服务器cgdit时安装本项目使用`--no-deps --no-build-isolation`，保留已有PyTorch及其绑定扩展。
+
 最新整数索引版本完整cgdit测试 **84 passed**，JUnit `artifacts/pretrain_validation/pytest_cgdit_indexing.xml`；新增随机先验及边顺序检查、优化前后独立输出/梯度对照与交替性能测量见正式训练前准备文档末节。下面80项及更早记录保留为历史结果。
 
 ## 1. 环境
