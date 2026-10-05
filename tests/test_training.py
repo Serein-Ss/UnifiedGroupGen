@@ -144,7 +144,7 @@ def test_uninterrupted_and_resumed_training_are_identical(tmp_path, device, prec
     torch.set_num_threads(1)
     config = {'groups': [('space', 2)], 'properties': {'gap': {}}, 'model': {'hidden': 16, 'proposal_layers': 1,
               'flow_layers': 1, 'heads': 4, 'frequencies': 2}, 'max_orbits': 4, 'batch_size': 2,
-              'epochs': 2, 'early_stopping_patience': 0, 'precision': precision}
+              'epochs': 2, 'early_stopping_patience': 0, 'precision': precision, 'validation_interval': 1}
     records = [record('a'), record('b')]; validation = [record('v')]
     train_file, val_file = tmp_path/'train.jsonl', tmp_path/'val.jsonl'
     train_file.write_text('train'); val_file.write_text('val')
@@ -159,6 +159,7 @@ def test_uninterrupted_and_resumed_training_are_identical(tmp_path, device, prec
     # Older published checkpoints do not contain runtime compute options.
     legacy = torch.load(tmp_path/'resumed.pt', weights_only=False)
     legacy.pop('runtime_options')
+    legacy.pop('last_validation_epoch')
     torch.save(legacy, tmp_path/'resumed.pt')
     resumed = run(tmp_path/'resumed.pt', 2, tmp_path/'resumed.pt')
     status = json.loads((tmp_path/'resumed.status.json').read_text())
@@ -191,10 +192,87 @@ def test_runtime_tuning_is_recorded_and_restored_without_changing_resume_config(
     run(tmp_path/'resumed.pt', 1, checkpoint=False, chunk=32)
     resumed = run(tmp_path/'resumed.pt', 2, resume=tmp_path/'resumed.pt')
     assert full['config'] == resumed['config'] == config
-    assert resumed['runtime_options'] == {'checkpoint_layers': False, 'edge_chunk_size': 32}
+    assert resumed['runtime_options'] == {'checkpoint_layers': False, 'edge_chunk_size': 32, 'validation_interval': 5}
     for model in ('proposal', 'flow'):
         for key in full[model]:
             assert torch.equal(full[model][key], resumed[model][key])
+
+
+@pytest.mark.parametrize('device,precision', [('cpu', 'fp32'), ('cuda', 'bf16')])
+def test_five_epoch_validation_schedule_and_mid_interval_resume(tmp_path, monkeypatch, capsys, device, precision):
+    from unifiedgroupgen import training as module
+    if device == 'cuda' and (not torch.cuda.is_available() or not torch.cuda.is_bf16_supported()):
+        pytest.skip('CUDA BF16 unavailable')
+    torch.set_num_threads(1)
+    config = {'groups': [('space', 2)], 'properties': {'gap': {}},
+              'model': {'hidden': 8, 'proposal_layers': 1, 'flow_layers': 1, 'heads': 2, 'frequencies': 1},
+              'max_orbits': 4, 'batch_size': 2, 'epochs': 7, 'early_stopping_patience': 0, 'precision': precision}
+    records = [record('a'), record('b')]; validation = [record('v')]
+    train_file, val_file = tmp_path/'train.jsonl', tmp_path/'val.jsonl'
+    train_file.write_text('train'); val_file.write_text('val')
+    saves, original = [], module.save_checkpoint
+    interrupt = False
+    class Interrupted(Exception):
+        pass
+    def save(path, checkpoint):
+        original(path, checkpoint)
+        if path.name in ('full.pt', 'resumed.pt'):
+            saves.append((path.name, checkpoint['epoch']))
+            if interrupt and path.name == 'resumed.pt' and checkpoint['epoch'] == 2:
+                raise Interrupted
+    monkeypatch.setattr(module, 'save_checkpoint', save)
+    def run(path, resume=None):
+        random.seed(42); np.random.seed(42); torch.manual_seed(42)
+        proposal, flow = build_models(config, device)
+        args = SimpleNamespace(device=device, resume=resume, batch_size=None, epochs=None)
+        run_training(args, config, records, validation, proposal, flow, [train_file], [val_file], path)
+        return torch.load(path, weights_only=False)
+    full = run(tmp_path/'full.pt')
+    interrupt = True
+    with pytest.raises(Interrupted):
+        run(tmp_path/'resumed.pt')
+    partial = torch.load(tmp_path/'resumed.pt', weights_only=False)
+    assert partial['last_validation_epoch'] == -1 and partial['stale_epochs'] == 0
+    assert partial['scheduler']['last_epoch'] == 0
+    assert not (tmp_path/'resumed.best.pt').exists()
+    interrupt = False
+    resumed = run(tmp_path/'resumed.pt', tmp_path/'resumed.pt')
+    for name in ('full', 'resumed'):
+        history = [json.loads(line) for line in (tmp_path/f'{name}.history.jsonl').read_text().splitlines()]
+        assert [h['epoch']+1 for h in history if h['validated']] == [5, 7]
+        assert all(h['val_loss'] is None and h['val'] is None for h in history if not h['validated'])
+        assert [epoch for path, epoch in saves if path == f'{name}.pt'] == list(range(7))
+    for model in ('proposal', 'flow'):
+        for key in full[model]:
+            assert torch.equal(full[model][key], resumed[model][key])
+    assert full['scheduler'] == resumed['scheduler']
+    assert full['best_val_loss'] == resumed['best_val_loss']
+    output = capsys.readouterr().out
+    assert 'Epoch 5/7' in output and 'val=skipped' in output
+    assert '"event": "progress"' not in output and '\r' not in output
+
+
+def test_sparse_validation_preserves_patience_in_training_epochs(tmp_path, monkeypatch):
+    from unifiedgroupgen import training as module
+    config = {'groups': [('space', 2)], 'properties': {},
+              'model': {'hidden': 8, 'proposal_layers': 1, 'flow_layers': 1, 'heads': 2, 'frequencies': 1},
+              'max_orbits': 4, 'batch_size': 2, 'epochs': 30,
+              'early_stopping_patience': 10, 'lr_patience': 5, 'learning_rate': 0.001}
+    proposal, flow = build_models(config, 'cpu')
+    def constant_loss(proposal, flow, records, *args):
+        value = next(proposal.parameters()).sum()*0+1
+        return {key: value.expand(len(records)) for key in ('descriptor', 'flow', 'lattice', 'coordinates')}
+    monkeypatch.setattr(module, 'joint_loss', constant_loss)
+    train, val = tmp_path/'train.jsonl', tmp_path/'val.jsonl'
+    train.write_text('train'); val.write_text('val')
+    path = tmp_path/'model.pt'
+    args = SimpleNamespace(device='cpu', resume=None, batch_size=None, epochs=None)
+    run_training(args, config, [record('a')], [record('v')], proposal, flow, [train], [val], path)
+    checkpoint = torch.load(path, weights_only=False)
+    status = json.loads(path.with_suffix('.status.json').read_text())
+    assert status['reason'] == 'early_stopping' and status['completed_epochs'] == 15
+    assert checkpoint['stale_epochs'] == 10 and checkpoint['last_validation_epoch'] == 14
+    assert checkpoint['optimizer']['param_groups'][0]['lr'] == pytest.approx(0.0005)
 
 
 @pytest.mark.skipif(not torch.cuda.is_available(), reason='CUDA unavailable')

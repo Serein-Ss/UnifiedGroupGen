@@ -3,10 +3,12 @@
 import hashlib
 import json
 import random
+import sys
 import time
 from pathlib import Path
 import numpy as np
 import torch
+from tqdm import tqdm
 from .constraints import AffineObservation
 from .flow import flow_loss_batch
 from .symmetry import Descriptor, compile_descriptor
@@ -106,8 +108,9 @@ def run_training(args, config, records, validation, proposal, flow, train_paths,
     dtype = torch.bfloat16 if precision == 'bf16' else torch.float16
     hashes = {'train_split_sha256': [file_hash(p) for p in train_paths],
               'val_split_sha256': [file_hash(p) for p in val_paths]}
-    start_epoch, best, stale = 0, float('inf'), 0
-    runtime = {'checkpoint_layers': flow.checkpoint_layers, 'edge_chunk_size': flow.edge_chunk_size}
+    start_epoch, best, stale, last_validation = 0, float('inf'), 0, -1
+    runtime = {'checkpoint_layers': flow.checkpoint_layers, 'edge_chunk_size': flow.edge_chunk_size,
+               'validation_interval': config.get('validation_interval', 5)}
     if args.resume:
         saved = torch.load(args.resume, map_location=args.device, weights_only=False)
         if saved['config'] != config or any(saved[key] != value for key, value in hashes.items()):
@@ -120,6 +123,7 @@ def run_training(args, config, records, validation, proposal, flow, train_paths,
             scaler.load_state_dict(saved['scaler'])
         start_epoch = saved['epoch']+1
         best, stale = saved.get('best_val_loss', best), saved.get('stale_epochs', 0)
+        last_validation = saved.get('last_validation_epoch', saved['epoch'])
         random.setstate(saved['python_rng'])
         np.random.set_state(saved['numpy_rng'])
         torch.set_rng_state(saved['torch_rng'].cpu())
@@ -130,8 +134,13 @@ def run_training(args, config, records, validation, proposal, flow, train_paths,
         runtime['checkpoint_layers'] = args.checkpoint
     if getattr(args, 'edge_chunk_size', None) is not None:
         runtime['edge_chunk_size'] = args.edge_chunk_size
+    if getattr(args, 'validation_interval', None) is not None:
+        runtime['validation_interval'] = args.validation_interval
     if runtime['edge_chunk_size'] < 1:
         raise ValueError('edge_chunk_size must be positive')
+    interval = runtime['validation_interval']
+    if not isinstance(interval, int) or isinstance(interval, bool) or interval < 1:
+        raise ValueError('validation_interval must be a positive integer')
     flow.checkpoint_layers, flow.edge_chunk_size = runtime['checkpoint_layers'], runtime['edge_chunk_size']
     batch_size = args.batch_size if args.batch_size is not None else config.get('batch_size', 8)
     edge_budget = config.get('edge_budget', 200000)
@@ -159,7 +168,11 @@ def run_training(args, config, records, validation, proposal, flow, train_paths,
         batches = batch_indices(records, batch_size, edge_budget)
         save_status(output, {'state': 'running', 'phase': 'train', 'epoch': epoch,
                              'step': 0, 'steps': len(batches), 'completed_epochs': completed})
-        for step, indices in enumerate(batches, 1):
+        progress_bar = tqdm(batches, desc=f'Epoch {epoch+1}/{epochs}', file=sys.stdout,
+                            disable=not sys.stdout.isatty(), dynamic_ncols=True, ascii=True,
+                            mininterval=1, leave=False)
+        seen = 0
+        for step, indices in enumerate(progress_bar, 1):
             chunk = [records[i] for i in indices]
             optimizer.zero_grad(set_to_none=True)
             with torch.autocast(device_type=torch.device(args.device).type, dtype=dtype, enabled=precision != 'fp32'):
@@ -175,49 +188,71 @@ def run_training(args, config, records, validation, proposal, flow, train_paths,
             gradient_norms.append(float(norm))
             for key in totals:
                 totals[key] += float(losses[key].detach().sum())
+            seen += len(chunk)
+            running_loss = (weights['descriptor']*totals['descriptor']+weights['flow']*totals['flow'])/seen
+            progress_bar.set_postfix(loss=f'{running_loss:.4f}',
+                                     lr=f'{optimizer.param_groups[0]["lr"]:.2g}', refresh=False)
             if step % 25 == 0 or step == len(batches):
                 progress = {'event': 'progress', 'state': 'running', 'phase': 'train',
                             'epoch': epoch, 'step': step, 'steps': len(batches),
                             'loss': float(loss.detach()), 'seconds': time.perf_counter()-started,
                             'completed_epochs': completed}
-                print(json.dumps(progress), flush=True)
                 save_status(output, progress)
+        progress_bar.close()
         training = {key: value/len(records) for key, value in totals.items()}
-        proposal.eval(); flow.eval()
-        totals = {key: 0.0 for key in totals}
-        save_status(output, {'state': 'running', 'phase': 'validation', 'epoch': epoch,
-                             'completed_epochs': completed})
-        python_rng = random.getstate()
         devices = [torch.device(args.device).index or 0] if args.device.startswith('cuda') else []
-        with torch.random.fork_rng(devices=devices):
-            random.seed(918); torch.manual_seed(918)
-            with torch.no_grad():
-                for indices in batch_indices(validation, batch_size, edge_budget, shuffle=False):
-                    losses = joint_loss(proposal, flow, [validation[i] for i in indices], 0, 0)
-                    for key in totals:
-                        totals[key] += float(losses[key].sum())
-        random.setstate(python_rng)
-        validated = {key: value/len(validation) for key, value in totals.items()}
-        val_loss = weights['descriptor']*validated['descriptor']+weights['flow']*validated['flow']
-        if not np.isfinite(val_loss):
-            raise FloatingPointError('Nonfinite validation loss')
-        improved = val_loss < best
-        best, stale = (val_loss, 0) if improved else (best, stale+1)
-        scheduler.step(val_loss)
+        validated, val_loss, improved = None, None, False
+        if (epoch+1) % interval == 0 or epoch == epochs-1:
+            proposal.eval(); flow.eval()
+            totals = {key: 0.0 for key in totals}
+            val_batches = batch_indices(validation, batch_size, edge_budget, shuffle=False)
+            save_status(output, {'state': 'running', 'phase': 'validation', 'epoch': epoch,
+                                 'step': 0, 'steps': len(val_batches), 'completed_epochs': completed})
+            python_rng = random.getstate()
+            with torch.random.fork_rng(devices=devices):
+                random.seed(918); torch.manual_seed(918)
+                with torch.no_grad():
+                    for step, indices in enumerate(tqdm(val_batches, desc=f'Validation {epoch+1}/{epochs}',
+                                                       file=sys.stdout, disable=not sys.stdout.isatty(),
+                                                       dynamic_ncols=True, ascii=True, mininterval=1, leave=False), 1):
+                        losses = joint_loss(proposal, flow, [validation[i] for i in indices], 0, 0)
+                        for key in totals:
+                            totals[key] += float(losses[key].sum())
+                        if step % 25 == 0 or step == len(val_batches):
+                            save_status(output, {'state': 'running', 'phase': 'validation', 'epoch': epoch,
+                                                 'step': step, 'steps': len(val_batches), 'completed_epochs': completed})
+            random.setstate(python_rng)
+            validated = {key: value/len(validation) for key, value in totals.items()}
+            val_loss = weights['descriptor']*validated['descriptor']+weights['flow']*validated['flow']
+            if not np.isfinite(val_loss):
+                raise FloatingPointError('Nonfinite validation loss')
+            gap = epoch-last_validation
+            improved = val_loss < best
+            best, stale = (val_loss, 0) if improved else (best, stale+gap)
+            # Preserve patience in training epochs, rather than multiplying it by the interval.
+            if not scheduler.is_better(val_loss, scheduler.best):
+                scheduler.num_bad_epochs += gap-1
+            scheduler.step(val_loss)
+            last_validation = epoch
         if args.device.startswith('cuda'):
             torch.cuda.synchronize()
         history = {'epoch': epoch, 'train': training, 'val': validated, 'val_loss': val_loss,
-                   'best_val_loss': best, 'seconds': time.perf_counter()-started,
+                   'validated': validated is not None, 'best_val_loss': best if np.isfinite(best) else None,
+                   'seconds': time.perf_counter()-started,
                    'learning_rate': optimizer.param_groups[0]['lr'], 'gradient_norm_mean': float(np.mean(gradient_norms)),
                    'train_records': len(records), 'val_records': len(validation),
                    'runtime_options': runtime,
                    'peak_cuda_bytes': torch.cuda.max_memory_allocated() if devices else 0}
-        print(json.dumps(history), flush=True)
+        train_loss = weights['descriptor']*training['descriptor']+weights['flow']*training['flow']
+        val_text = f'{val_loss:.4f}' if val_loss is not None else 'skipped'
+        print(f'Epoch {epoch+1}/{epochs} | {len(batches)}/{len(batches)} batches | train={train_loss:.4f} '
+              f'| val={val_text} | lr={history["learning_rate"]:.2g} | time={history["seconds"]:.1f}s', flush=True)
         with output.with_suffix('.history.jsonl').open('a', encoding='utf-8') as stream:
             stream.write(json.dumps(history)+'\n')
         checkpoint = {'config': config, 'epoch': epoch, 'proposal': proposal.state_dict(), 'flow': flow.state_dict(),
                       'optimizer': optimizer.state_dict(), 'scheduler': scheduler.state_dict(), 'scaler': scaler.state_dict(),
                       'best_val_loss': best, 'stale_epochs': stale, 'python_rng': random.getstate(),
+                      'last_validation_epoch': last_validation,
                       'runtime_options': runtime,
                       'numpy_rng': np.random.get_state(), 'torch_rng': torch.get_rng_state(),
                       'cuda_rng': torch.cuda.get_rng_state_all() if devices else None, **hashes,
@@ -227,8 +262,8 @@ def run_training(args, config, records, validation, proposal, flow, train_paths,
             save_checkpoint(output.with_suffix('.best.pt'), checkpoint)
         completed = epoch+1
         save_status(output, {'state': 'running', 'phase': 'epoch_saved', 'completed_epochs': completed,
-                             'best_val_loss': best, 'last': history})
-        if patience and stale >= patience:
+                             'best_val_loss': best if np.isfinite(best) else None, 'last': history})
+        if validated is not None and patience and stale >= patience:
             print(json.dumps({'event': 'early_stop', 'epoch': epoch}), flush=True)
             reason = 'early_stopping'
             break

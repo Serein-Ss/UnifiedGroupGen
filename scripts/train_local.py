@@ -29,9 +29,12 @@ def main():
     parser.add_argument('--resume', action='store_true')
     parser.add_argument('--checkpoint', action=argparse.BooleanOptionalAction, default=None)
     parser.add_argument('--edge-chunk-size', type=int)
+    parser.add_argument('--validation-interval', type=int)
     args = parser.parse_args()
     if args.edge_chunk_size is not None and args.edge_chunk_size < 1:
         parser.error('edge-chunk-size must be positive')
+    if args.validation_interval is not None and args.validation_interval < 1:
+        parser.error('validation-interval must be positive')
     directory = ROOT/'artifacts/runs/local_large_seed42'
     directory.mkdir(parents=True, exist_ok=True)
     lock = directory/'runner.lock'
@@ -69,6 +72,8 @@ def main():
                 command += ['--checkpoint' if args.checkpoint else '--no-checkpoint']
             if args.edge_chunk_size is not None:
                 command += ['--edge-chunk-size', str(args.edge_chunk_size)]
+            if args.validation_interval is not None:
+                command += ['--validation-interval', str(args.validation_interval)]
             if args.resume and (ROOT/model_path).exists():
                 saved_status = json.loads((ROOT/model_path).with_suffix('.status.json').read_text())
                 if saved_status['state'] != 'complete':

@@ -23,6 +23,14 @@ def script(name):
     return module
 
 
+def test_remote_validation_interval_is_forwarded_to_reference_and_shared_training():
+    commands = dict(script('train_remote').jobs('all', True, validation_interval=5))
+    for name in ('references', 'joint_train'):
+        command = commands[name]
+        assert command[command.index('--validation-interval')+1] == '5'
+    assert '--validation-interval' not in commands['joint_test']
+
+
 def test_c2db_recovery_requires_matching_source_structure():
     source = DATA/'c2db_51/train.csv'
     row = pd.read_csv(source, nrows=1).iloc[0]

@@ -17,11 +17,13 @@ ROOT = Path(__file__).resolve().parents[1]
 os.environ['PYTHONPATH'] = str(ROOT / 'src')
 
 
-def jobs(stage, resume, checkpoint=None, edge_chunk_size=None):
+def jobs(stage, resume, checkpoint=None, edge_chunk_size=None, validation_interval=None):
     commands = []
     runtime = ([] if checkpoint is None else ['--checkpoint' if checkpoint else '--no-checkpoint'])
     if edge_chunk_size is not None:
         runtime += ['--edge-chunk-size', str(edge_chunk_size)]
+    if validation_interval is not None:
+        runtime += ['--validation-interval', str(validation_interval)]
     if stage in ('all', 'references'):
         commands.append(('references', ['scripts/train_local.py', *(['--resume'] if resume else []), *runtime]))
     if stage in ('all', 'main'):
@@ -88,10 +90,13 @@ def main():
     parser.add_argument('--plan', action='store_true', help='Print commands without launching training')
     parser.add_argument('--checkpoint', action=argparse.BooleanOptionalAction, default=None)
     parser.add_argument('--edge-chunk-size', type=int)
+    parser.add_argument('--validation-interval', type=int)
     args = parser.parse_args()
     if args.edge_chunk_size is not None and args.edge_chunk_size < 1:
         parser.error('edge-chunk-size must be positive')
-    commands = jobs(args.stage, args.resume, args.checkpoint, args.edge_chunk_size)
+    if args.validation_interval is not None and args.validation_interval < 1:
+        parser.error('validation-interval must be positive')
+    commands = jobs(args.stage, args.resume, args.checkpoint, args.edge_chunk_size, args.validation_interval)
     if args.plan:
         print(json.dumps([{'name': name, 'command': [sys.executable, '-u', *command]} for name, command in commands], indent=2))
         return

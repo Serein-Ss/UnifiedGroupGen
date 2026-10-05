@@ -82,13 +82,13 @@ python scripts/benchmark.py --config configs/mp20_local.yaml --records artifacts
 只使用实现优化、保留原计算设置：
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 nohup python -u scripts/train_remote.py --stage all --resume >> artifacts/runs/remote_driver.log 2>&1 &
+CUDA_VISIBLE_DEVICES=0 nohup python -u scripts/train_remote.py --stage all --resume --validation-interval 5 >> artifacts/runs/remote_driver.log 2>&1 &
 ```
 
 若上面的快速设置实际更好，可直接续训：
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 nohup python -u scripts/train_remote.py --stage all --resume --no-checkpoint --edge-chunk-size 32768 >> artifacts/runs/remote_driver.log 2>&1 &
+CUDA_VISIBLE_DEVICES=0 nohup python -u scripts/train_remote.py --stage all --resume --validation-interval 5 --no-checkpoint --edge-chunk-size 32768 >> artifacts/runs/remote_driver.log 2>&1 &
 ```
 
 两条启动命令只能选择一条。此处 `--checkpoint` 指激活检查点重计算，不是训练权重检查点。
@@ -103,5 +103,17 @@ tail -F artifacts/runs/local_large_seed42/mp20_train.stdout.log
 ```
 
 确认 `training_start` 的 `start_epoch` 接续已有检查点，`runtime_options` 符合选择；参数量和数据记录数一致。
-观察一个完整 epoch 的 `seconds`、验证损失、梯度范数及 `peak_cuda_bytes`。
-如仍明显偏慢，使用 `benchmark_profile.json` 定位剩余开销，同时检查 `nvidia-smi` 和 CPU 占用；不通过删训练样本或跳过验证制造提速。
+默认每5个epoch做完整验证，最后一轮补验证。前台为TQDM动态进度条；nohup中每轮一行摘要，例如：
+
+```text
+Epoch 1/1000 | 425/425 batches | train=32.4180 | val=skipped | lr=0.0003 | time=150.0s
+Epoch 5/1000 | 425/425 batches | train=27.6150 | val=25.8300 | lr=0.0003 | time=192.0s
+```
+
+以上数值为格式示例。早停与学习率调度只在验证轮更新；耐心参数保持按训练epoch计算。
+`model.pt` 每轮保存，`model.best.pt` 只在实际验证改善时更新。
+未验证轮的 `model.history.jsonl` 中 `validated=false`、`val=null`、`val_loss=null`，不会把旧验证结果当成新测量。
+训练/验证的实时批次进度保留在 `model.status.json`，不再每25批输出JSON到日志。
+运行选项中的 `validation_interval` 会保存并在续训时恢复；显式传入5可覆盖已有检查点的旧间隔，不改YAML。
+观察完整5轮窗口中的 `seconds`、实际验证损失、梯度范数及 `peak_cuda_bytes`，区分训练轮和带验证轮的耗时。
+如仍明显偏慢，使用 `benchmark_profile.json` 定位剩余开销，同时检查 `nvidia-smi` 和 CPU 占用。
