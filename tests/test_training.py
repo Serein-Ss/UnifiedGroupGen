@@ -156,6 +156,10 @@ def test_uninterrupted_and_resumed_training_are_identical(tmp_path, device, prec
         return torch.load(path, weights_only=False)
     full = run(tmp_path/'full.pt', 2)
     run(tmp_path/'resumed.pt', 1)
+    # Older published checkpoints do not contain runtime compute options.
+    legacy = torch.load(tmp_path/'resumed.pt', weights_only=False)
+    legacy.pop('runtime_options')
+    torch.save(legacy, tmp_path/'resumed.pt')
     resumed = run(tmp_path/'resumed.pt', 2, tmp_path/'resumed.pt')
     status = json.loads((tmp_path/'resumed.status.json').read_text())
     assert status['state'] == 'complete' and status['completed_epochs'] == 2
@@ -165,6 +169,32 @@ def test_uninterrupted_and_resumed_training_are_identical(tmp_path, device, prec
         for name in full[model]:
             assert torch.equal(full[model][name], resumed[model][name])
     assert full['best_val_loss'] == resumed['best_val_loss']
+
+
+def test_runtime_tuning_is_recorded_and_restored_without_changing_resume_config(tmp_path):
+    torch.set_num_threads(1)
+    config = {'groups': [('space', 2)], 'properties': {'gap': {}},
+              'model': {'hidden': 16, 'proposal_layers': 1, 'flow_layers': 1,
+                        'heads': 4, 'frequencies': 2, 'checkpoint_layers': True},
+              'max_orbits': 4, 'batch_size': 2, 'epochs': 2, 'early_stopping_patience': 0}
+    records = [record('a'), record('b')]; validation = [record('v')]
+    train_file, val_file = tmp_path/'train.jsonl', tmp_path/'val.jsonl'
+    train_file.write_text('train'); val_file.write_text('val')
+    def run(path, epochs, resume=None, checkpoint=None, chunk=None):
+        random.seed(42); np.random.seed(42); torch.manual_seed(42)
+        proposal, flow = build_models(config, 'cpu')
+        args = SimpleNamespace(device='cpu', resume=resume, batch_size=None, epochs=epochs,
+                               checkpoint=checkpoint, edge_chunk_size=chunk)
+        run_training(args, config, records, validation, proposal, flow, [train_file], [val_file], path)
+        return torch.load(path, weights_only=False)
+    full = run(tmp_path/'full.pt', 2, checkpoint=False, chunk=32)
+    run(tmp_path/'resumed.pt', 1, checkpoint=False, chunk=32)
+    resumed = run(tmp_path/'resumed.pt', 2, resume=tmp_path/'resumed.pt')
+    assert full['config'] == resumed['config'] == config
+    assert resumed['runtime_options'] == {'checkpoint_layers': False, 'edge_chunk_size': 32}
+    for model in ('proposal', 'flow'):
+        for key in full[model]:
+            assert torch.equal(full[model][key], resumed[model][key])
 
 
 @pytest.mark.skipif(not torch.cuda.is_available(), reason='CUDA unavailable')

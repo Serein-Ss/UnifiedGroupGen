@@ -206,6 +206,9 @@ def main():
     training.add_argument('--batch-size', type=int)
     training.add_argument('--output')
     training.add_argument('--resume')
+    training.add_argument('--checkpoint', action=argparse.BooleanOptionalAction, default=None,
+                          help='Override activation checkpointing without changing model weights or the data configuration')
+    training.add_argument('--edge-chunk-size', type=int)
     sampling = subparsers.add_parser('sample')
     sampling.add_argument('--checkpoint', required=True)
     sampling.add_argument('--device', default='cpu')

@@ -1,5 +1,6 @@
 """CGDiT-style scalar/categorical property embeddings with explicit missingness and CFG."""
 
+import math
 import torch
 from torch import nn
 
@@ -47,7 +48,35 @@ class PropertyEncoder(nn.Module):
 
     def forward_batch(self, properties, like, force_null=False, compositions=None):
         compositions = compositions or [None] * len(properties)
-        return torch.stack([self(p, like, force_null, c) for p, c in zip(properties, compositions)])
+        count = len(properties)
+        result = like.new_zeros((count, self.hidden))
+        drop = (torch.rand(count, device=like.device) < self.dropout if self.training and not force_null
+                else torch.full((count,), force_null, device=like.device, dtype=torch.bool))
+        for name, config in self.configs.items():
+            values = [p.get(name) for p in properties]
+            known = [v is not None and math.isfinite(float(v)) for v in values]
+            context = config.get('context', False)
+            if context and not all(known):
+                raise ValueError(f'Missing required context: {name}')
+            if not any(known) or (not context and (force_null or (self.training and self.dropout == 1))):
+                result = result + self.null[name]
+                continue
+            if config.get('type', 'scalar') == 'categorical':
+                if any(k and (int(v) != v or not 0 <= int(v) < config['num_classes'])
+                       for v, k in zip(values, known)):
+                    raise ValueError(f'Invalid category for {name}')
+                inputs = torch.tensor([int(v) if k else 0 for v, k in zip(values, known)], device=like.device)
+            else:
+                inputs = like.new_tensor([[(float(v)-config.get('shift', 0))/config.get('scale', 1)] if k else [0]
+                                          for v, k in zip(values, known)])
+            use = torch.tensor(known, device=like.device) & (True if context else ~drop)
+            encoded = self.encoders[name](inputs)
+            result = result + torch.where(use[:, None], encoded, self.null[name])
+        counts = [[0]*118 for _ in compositions]
+        for row, composition in zip(counts, compositions):
+            for atomic_number, number in (composition or {}).items():
+                row[int(atomic_number)-1] = int(number)
+        return result + self.composition(torch.log1p(like.new_tensor(counts)))
 
 
 def attach_dataset_domains(records, config):

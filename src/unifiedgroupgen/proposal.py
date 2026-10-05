@@ -193,23 +193,24 @@ class DescriptorTransformer(nn.Module):
         width = max(len(s)-1 for s in sequences)
         if width >= self.position.num_embeddings:
             raise ValueError("Descriptor exceeds the configured orbit budget")
-        ids = torch.full((len(sequences), width), self.vocab.index['PAD'], device=device, dtype=torch.long)
+        ids = torch.full((len(sequences), width), self.vocab.index['PAD'], dtype=torch.long)
         targets = torch.full_like(ids, -100)
         legal = torch.ones(len(sequences), width, len(self.vocab.tokens), dtype=torch.bool)
         for row, (d, sequence, composition) in enumerate(zip(descriptors, sequences, compositions)):
             length = len(sequence)-1
-            ids[row, :length] = torch.tensor(sequence[:-1], device=device)
-            targets[row, :length] = torch.tensor(sequence[1:], device=device)
+            ids[row, :length] = torch.tensor(sequence[:-1])
+            targets[row, :length] = torch.tensor(sequence[1:])
             key = (d, tuple(sorted((composition or {}).items())))
             if key not in self._mask_cache:
                 masks = torch.stack([self.legality.allowed(sequence[:i], composition, d.kind)
                                      for i in range(1, len(sequence))])
                 if not masks[torch.arange(length), torch.tensor(sequence[1:])].all():
                     raise ValueError("Training descriptor violates configured symbolic constraints")
-                if len(self._mask_cache) >= 2048:
-                    self._mask_cache.clear()
+                if len(self._mask_cache) >= 32768:
+                    self._mask_cache.pop(next(iter(self._mask_cache)))
                 self._mask_cache[key] = masks
             legal[row, :length] = self._mask_cache[key]
+        ids, targets = ids.to(device), targets.to(device)
         h = self.embedding(ids) + self.position(torch.arange(width, device=device))[None]
         h = h + self.condition.forward_batch(properties, h, compositions=compositions)[:, None]
         causal = torch.ones(width, width, device=device, dtype=torch.bool).triu(1)

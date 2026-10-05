@@ -46,6 +46,7 @@ def group_table(kind, number):
     return Group(actual, dim=3 if kind == "space" else 2)
 
 
+@lru_cache(maxsize=None)
 def wp_arrays(kind, number, letter):
     wp = next((w for w in group_table(kind, number) if w.letter == letter), None)
     if wp is None:
@@ -152,9 +153,31 @@ class CompiledDescriptor:
             start += len(a)
         self.dof = self.lattice_dof + self.coordinate_dof
         self.state_periodic = np.array([False] * self.lattice_dof + self.q_periodic)
+        self.periodic_indices = np.flatnonzero(self.state_periodic)
+        self.orbit_letters = np.array([ord(o.letter)-ord('a') if o.letter.islower()
+                                      else 26+ord(o.letter)-ord('A') for o in descriptor.orbits])
+        self.edge_index = np.array(np.nonzero(~np.eye(self.num_atoms, dtype=bool)))
+        self.padded_metric_basis = np.zeros((6, 3, 3))
+        d = self.root.shape[0]
+        self.padded_metric_basis[:self.lattice_dof, :d, :d] = self.metric_basis
+        self.padded_root = np.eye(3)
+        self.padded_root[:d, :d] = self.root
+        # Compiled arrays are immutable constants; never cache a tensor derived from a state.
+        self._constant_arrays = {id(a) for a in (self.root, self.invroot, self.metric_basis, self.b,
+                                                self.coordinate_basis, self.elements, self.atom_orbit,
+                                                self.periodic, self.state_periodic, self.periodic_indices,
+                                                self.orbit_letters, self.edge_index,
+                                                self.padded_metric_basis, self.padded_root)}
+        self._tensor_cache = {}
 
-    def tensor(self, array, like):
-        return torch.as_tensor(array, dtype=like.dtype, device=like.device)
+    def tensor(self, array, like, dtype=None):
+        dtype = like.dtype if dtype is None else dtype
+        key = (id(array), like.device, dtype)
+        if id(array) not in self._constant_arrays:
+            return torch.as_tensor(array, dtype=dtype, device=like.device)
+        if key not in self._tensor_cache:
+            self._tensor_cache[key] = torch.as_tensor(array, dtype=dtype, device=like.device)
+        return self._tensor_cache[key]
 
     def metric(self, k):
         b, root = self.tensor(self.metric_basis, k), self.tensor(self.root, k)
@@ -181,7 +204,7 @@ class CompiledDescriptor:
         q = state[self.lattice_dof:]
         coords = self.tensor(self.b, state) + torch.einsum("ijq,q->ij", self.tensor(self.coordinate_basis, state), q)
         if wrap:
-            periodic = torch.as_tensor(self.periodic, device=state.device)
+            periodic = self.tensor(self.periodic, state, torch.bool)
             coords = torch.where(periodic[None], torch.remainder(coords, 1), coords)
         h = self.metric(state[:self.lattice_dof])
         # Cholesky gives a canonical Cartesian frame; L.T @ L = H.
@@ -189,8 +212,8 @@ class CompiledDescriptor:
         if self.descriptor.kind != "space":
             top = torch.cat((l, l.new_zeros((2, 1))), dim=1)
             l = torch.cat((top, l.new_tensor([[0, 0, 1]])), dim=0)
-        return {"coordinates": coords, "lattice": l, "atomic_numbers": torch.as_tensor(self.elements, device=state.device),
-                "orbit_index": torch.as_tensor(self.atom_orbit, device=state.device)}
+        return {"coordinates": coords, "lattice": l, "atomic_numbers": self.tensor(self.elements, state, torch.long),
+                "orbit_index": self.tensor(self.atom_orbit, state, torch.long)}
 
     def coordinate_velocity(self, q_velocity):
         return torch.einsum("ijq,q->ij", self.tensor(self.coordinate_basis, q_velocity), q_velocity)
@@ -206,7 +229,7 @@ class CompiledDescriptor:
 
     def prior(self, device="cpu", dtype=torch.float32, generator=None):
         state = torch.randn(self.dof, device=device, dtype=dtype, generator=generator)
-        indices = torch.as_tensor(np.flatnonzero(self.state_periodic), device=device)
+        indices = self.tensor(self.periodic_indices, state, torch.long)
         state[indices] = torch.rand(len(indices), device=device, dtype=dtype, generator=generator)
         return state
 
@@ -253,6 +276,6 @@ class CompiledDescriptor:
         return np.concatenate(rows)
 
 
-@lru_cache(maxsize=4096)
+@lru_cache(maxsize=32768)
 def compile_descriptor(descriptor):
     return CompiledDescriptor(descriptor)

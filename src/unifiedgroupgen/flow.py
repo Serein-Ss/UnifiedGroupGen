@@ -5,6 +5,7 @@ constraints; the bare message network is not claimed to be SO(3)-equivariant.
 """
 
 import math
+import numpy as np
 import torch
 from torch import nn
 from .conditioning import PropertyEncoder
@@ -51,27 +52,23 @@ class OrbitFlow(nn.Module):
         self.layers = nn.ModuleList([MessageLayer(hidden, edge_dim) for _ in range(layers)])
         self.coordinate_head = nn.Linear(hidden, 3)
         self.lattice_head = nn.Linear(hidden, 9)
+        self.register_buffer('_time_frequencies', torch.tensor([2**i for i in range(8)]), persistent=False)
+        self.register_buffer('_coordinate_frequencies', torch.arange(1, frequencies+1), persistent=False)
 
     @staticmethod
     def group_id(descriptor):
         offset = {"space": 0, "layer": 230, "plane": 310}[descriptor.kind]
         return offset + descriptor.number
 
-    def _features(self, compiled, state, time, properties, force_null, observation, composition):
+    def _features(self, compiled, state, lattice, global_h, observation):
         # Geometry and constraint solves stay FP32/FP64 even under neural-network AMP.
         with torch.autocast(device_type=state.device.type, enabled=False):
-            structure = compiled.expand(state)
-        coords, lattice = structure["coordinates"], structure["lattice"]
+            coords = compiled.tensor(compiled.b, state) + compiled.coordinate_velocity(state[compiled.lattice_dof:])
+            coords = torch.where(compiled.tensor(compiled.periodic, state, torch.bool), torch.remainder(coords, 1), coords)
         h_metric = lattice.T @ lattice
-        phases = state.new_tensor([2**i for i in range(8)]) * math.pi * time
-        global_h = self.time_encoder(torch.cat((phases.sin(), phases.cos())))
-        global_h = global_h + self.lattice_encoder(h_metric.reshape(-1))
-        global_h = global_h + self.group_embedding(torch.tensor(self.group_id(compiled.descriptor), device=state.device))
-        global_h = global_h + self.property_encoder(properties or {}, state, force_null, composition)
-        letters = torch.tensor([ord(o.letter)-ord('a') if o.letter.islower() else 26+ord(o.letter)-ord('A')
-                                for o in compiled.descriptor.orbits], device=state.device)
-        orbit_ids = structure["orbit_index"]
-        h = self.atom_embedding(structure["atomic_numbers"]) + self.orbit_embedding(letters[orbit_ids]) + global_h
+        letters = compiled.tensor(compiled.orbit_letters, state, torch.long)
+        orbit_ids = compiled.tensor(compiled.atom_orbit, state, torch.long)
+        h = self.atom_embedding(compiled.tensor(compiled.elements, state, torch.long)) + self.orbit_embedding(letters[orbit_ids]) + global_h
         observed_base, observed_mask = (observation.features(state) if observation is not None
                                         else (torch.zeros_like(state), torch.zeros_like(state)))
         padded_k = state.new_zeros(6)
@@ -84,18 +81,16 @@ class OrbitFlow(nn.Module):
         observed_pos = torch.einsum('iaq,q->ia', a, observed_base[compiled.lattice_dof:])
         observed_site_mask = torch.einsum('iaq,q->ia', a.abs(), observed_mask[compiled.lattice_dof:])
         h = h + self.site_encoder(torch.cat((observed_pos, observed_site_mask), dim=-1))
-        n = len(h)
-        source = torch.arange(n, device=h.device).repeat_interleave(n-1)
-        target = torch.arange(n-1, device=h.device).repeat(n)
-        target = target + (target >= source).to(target.dtype)
+        edge_index = compiled.tensor(compiled.edge_index, state, torch.long)
+        source, target = edge_index
         diff = coords[target] - coords[source]
-        periodic = torch.as_tensor(compiled.periodic, device=state.device)
+        periodic = compiled.tensor(compiled.periodic, state, torch.bool)
         periodic_diff = torch.where(periodic, diff, torch.zeros_like(diff))
         nonperiodic_diff = torch.where(periodic, torch.zeros_like(diff), diff)
-        phase = periodic_diff[..., None] * state.new_tensor(range(1, self.frequencies+1)) * (2*math.pi)
+        phase = periodic_diff[..., None] * self._coordinate_frequencies.to(state) * (2*math.pi)
         edge_features = torch.cat((phase.sin().flatten(-2), phase.cos().flatten(-2),
                                    nonperiodic_diff, h_metric.reshape(1, 9).expand(len(source), -1)), dim=-1)
-        return h, edge_features, torch.stack((source, target)), lattice
+        return h, edge_features, edge_index, lattice
 
     def forward(self, compiled, state, time, properties=None, force_null=False, observation=None, composition=None):
         return self.forward_batch([compiled], [state], [time], [properties or {}], force_null,
@@ -108,8 +103,27 @@ class OrbitFlow(nn.Module):
         properties = properties or [{} for _ in compiled]
         observations = observations or [None]*count
         compositions = compositions or [None]*count
-        features = [self._features(c, z, t, p, force_null, o, comp)
-                    for c, z, t, p, o, comp in zip(compiled, states, times, properties, observations, compositions)]
+        conditions = self.property_encoder.forward_batch(properties, states[0], force_null, compositions)
+        with torch.autocast(device_type=states[0].device.type, enabled=False):
+            # A padded 3D chart also represents a layer metric with an unchanged unit normal.
+            flat = torch.cat([*states, states[0].new_zeros(1)])
+            indices, offset = [], 0
+            for c in compiled:
+                indices.append([*range(offset, offset+c.lattice_dof), *([len(flat)-1]*(6-c.lattice_dof))])
+                offset += c.dof
+            k = flat[torch.tensor(indices, device=flat.device)]
+            bases = torch.stack([c.tensor(c.padded_metric_basis, z) for c, z in zip(compiled, states)])
+            roots = torch.stack([c.tensor(c.padded_root, z) for c, z in zip(compiled, states)])
+            metrics = roots @ torch.matrix_exp(torch.einsum('bk,bkij->bij', k, bases)) @ roots
+            lattices = torch.linalg.cholesky(metrics).transpose(1, 2)
+        times = torch.stack([torch.as_tensor(t, device=flat.device, dtype=flat.dtype) for t in times])
+        phases = self._time_frequencies.to(flat)*math.pi*times[:, None]
+        global_h = self.time_encoder(torch.cat((phases.sin(), phases.cos()), -1))
+        global_h = global_h + self.lattice_encoder((lattices.transpose(1, 2) @ lattices).reshape(count, 9))
+        groups = torch.tensor([self.group_id(c.descriptor) for c in compiled], device=flat.device)
+        global_h = global_h + self.group_embedding(groups) + conditions
+        features = [self._features(c, z, lattice, context, o)
+                    for c, z, lattice, context, o in zip(compiled, states, lattices, global_h, observations)]
         h = torch.cat([f[0] for f in features])
         edges = torch.cat([f[1] for f in features])
         offsets = [0]
@@ -130,14 +144,30 @@ class OrbitFlow(nn.Module):
         proposals = self.lattice_head(pooled).reshape(count, 3, 3)
         velocities = []
         with torch.autocast(device_type=h.device.type, enabled=False):
-            for i, (c, z, feature, observation) in enumerate(zip(compiled, states, features, observations)):
-                candidate = candidates[offsets[i]:offsets[i+1]].to(z.dtype)
-                q_velocity = c.reduce_velocity(candidate, feature[3])
-                d = c.root.shape[0]
-                proposed = proposals[i, :d, :d].to(z.dtype)
-                proposed = (proposed+proposed.T)/2
-                k_velocity = torch.einsum('kij,ij->k', c.tensor(c.metric_basis, z), proposed)
-                velocity = torch.cat((k_velocity, q_velocity))
+            # Padding introduces identity equations only for unused coordinates.
+            max_atoms = max(c.num_atoms for c in compiled)
+            max_q = max(c.coordinate_dof for c in compiled)
+            q_velocities = states[0].new_zeros((count, max_q))
+            if max_q:
+                a_cpu = np.zeros((count, max_atoms, 3, max_q), dtype=np.float64)
+                node_indices = np.full((count, max_atoms), offsets[-1], dtype=np.int64)
+                for i, c in enumerate(compiled):
+                    a_cpu[i, :c.num_atoms, :, :c.coordinate_dof] = c.coordinate_basis
+                    node_indices[i, :c.num_atoms] = np.arange(offsets[i], offsets[i+1])
+                a = torch.as_tensor(a_cpu, device=flat.device, dtype=flat.dtype)
+                nodes = torch.as_tensor(node_indices, device=flat.device)
+                candidate = torch.cat((candidates.to(flat.dtype), flat.new_zeros((1, 3))))[nodes]
+                m = lattices.transpose(1, 2) @ lattices
+                gram = torch.einsum('biaq,bac,bicr->bqr', a, m, a)
+                rhs = torch.einsum('biaq,bac,bic->bq', a, m, candidate)
+                q_dofs = torch.tensor([c.coordinate_dof for c in compiled], device=flat.device)
+                unused = torch.arange(max_q, device=flat.device)[None] >= q_dofs[:, None]
+                gram = gram + torch.diag_embed(unused.to(flat.dtype))
+                q_velocities = torch.linalg.solve(gram, rhs[..., None])[..., 0]
+            proposed = proposals.to(flat.dtype)
+            k_velocities = torch.einsum('bkij,bij->bk', bases, (proposed+proposed.transpose(1, 2))/2)
+            for i, (c, observation) in enumerate(zip(compiled, observations)):
+                velocity = torch.cat((k_velocities[i, :c.lattice_dof], q_velocities[i, :c.coordinate_dof]))
                 velocities.append(observation.project(velocity) if observation is not None else velocity)
         return (velocities, [feature[3] for feature in features]) if return_lattices else velocities
 
@@ -151,7 +181,7 @@ def conditional_path(compiled, endpoint, time, observation=None, generator=None)
         # General linear combinations need a consistent lift. Independent wrapping could leave Az=b.
         displacement = endpoint-start
     else:
-        periodic = torch.as_tensor(compiled.state_periodic, device=endpoint.device)
+        periodic = compiled.tensor(compiled.state_periodic, endpoint, torch.bool)
         delta = endpoint-start
         displacement = torch.where(periodic, torch.remainder(delta+0.5, 1)-0.5, delta)
     return start + time*displacement, displacement

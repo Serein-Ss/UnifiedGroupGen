@@ -17,10 +17,13 @@ ROOT = Path(__file__).resolve().parents[1]
 os.environ['PYTHONPATH'] = str(ROOT / 'src')
 
 
-def jobs(stage, resume):
+def jobs(stage, resume, checkpoint=None, edge_chunk_size=None):
     commands = []
+    runtime = ([] if checkpoint is None else ['--checkpoint' if checkpoint else '--no-checkpoint'])
+    if edge_chunk_size is not None:
+        runtime += ['--edge-chunk-size', str(edge_chunk_size)]
     if stage in ('all', 'references'):
-        commands.append(('references', ['scripts/train_local.py', *(['--resume'] if resume else [])]))
+        commands.append(('references', ['scripts/train_local.py', *(['--resume'] if resume else []), *runtime]))
     if stage in ('all', 'main'):
         directory = 'artifacts/runs/joint_space_layer_large_seed42'
         model = f'{directory}/model.pt'
@@ -28,6 +31,7 @@ def jobs(stage, resume):
                  'configs/joint_space_layer_large.yaml', '--device', 'cuda', '--output', model]
         if resume and (ROOT / model).exists():
             train += ['--resume', model]
+        train += runtime
         commands.append(('joint_train', train))
         best = f'{directory}/model.best.pt'
         tests = [f'artifacts/full_joint_sourcegrouped/{dataset}/test.jsonl'
@@ -82,8 +86,12 @@ def main():
     parser.add_argument('--stage', choices=('all', 'main', 'references'), default='all')
     parser.add_argument('--resume', action='store_true')
     parser.add_argument('--plan', action='store_true', help='Print commands without launching training')
+    parser.add_argument('--checkpoint', action=argparse.BooleanOptionalAction, default=None)
+    parser.add_argument('--edge-chunk-size', type=int)
     args = parser.parse_args()
-    commands = jobs(args.stage, args.resume)
+    if args.edge_chunk_size is not None and args.edge_chunk_size < 1:
+        parser.error('edge-chunk-size must be positive')
+    commands = jobs(args.stage, args.resume, args.checkpoint, args.edge_chunk_size)
     if args.plan:
         print(json.dumps([{'name': name, 'command': [sys.executable, '-u', *command]} for name, command in commands], indent=2))
         return

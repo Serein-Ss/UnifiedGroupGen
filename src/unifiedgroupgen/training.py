@@ -43,9 +43,10 @@ def joint_loss(proposal, flow, records, composition_probability=0.5, observation
     descriptors = [Descriptor.from_dict(r['descriptor']) for r in records]
     compiled = [compile_descriptor(d) for d in descriptors]
     like = next(flow.parameters())
-    endpoints = [like.new_tensor(r['state']) for r in records]
+    cpu_endpoints = [torch.tensor(r['state'], dtype=like.dtype) for r in records]
+    endpoints = torch.cat(cpu_endpoints).to(like.device).split([z.numel() for z in cpu_endpoints])
     compositions, observations = [], []
-    for r, c, endpoint in zip(records, compiled, endpoints):
+    for r, c, endpoint in zip(records, compiled, cpu_endpoints):
         if endpoint.shape != (c.dof,) or not torch.isfinite(endpoint).all():
             raise ValueError(f"Invalid training state in {r['id']}")
         elements, counts = np.unique(c.elements, return_counts=True)
@@ -106,6 +107,7 @@ def run_training(args, config, records, validation, proposal, flow, train_paths,
     hashes = {'train_split_sha256': [file_hash(p) for p in train_paths],
               'val_split_sha256': [file_hash(p) for p in val_paths]}
     start_epoch, best, stale = 0, float('inf'), 0
+    runtime = {'checkpoint_layers': flow.checkpoint_layers, 'edge_chunk_size': flow.edge_chunk_size}
     if args.resume:
         saved = torch.load(args.resume, map_location=args.device, weights_only=False)
         if saved['config'] != config or any(saved[key] != value for key, value in hashes.items()):
@@ -123,6 +125,14 @@ def run_training(args, config, records, validation, proposal, flow, train_paths,
         torch.set_rng_state(saved['torch_rng'].cpu())
         if args.device.startswith('cuda') and saved.get('cuda_rng') is not None:
             torch.cuda.set_rng_state_all([state.cpu() for state in saved['cuda_rng']])
+        runtime.update(saved.get('runtime_options', {}))
+    if getattr(args, 'checkpoint', None) is not None:
+        runtime['checkpoint_layers'] = args.checkpoint
+    if getattr(args, 'edge_chunk_size', None) is not None:
+        runtime['edge_chunk_size'] = args.edge_chunk_size
+    if runtime['edge_chunk_size'] < 1:
+        raise ValueError('edge_chunk_size must be positive')
+    flow.checkpoint_layers, flow.edge_chunk_size = runtime['checkpoint_layers'], runtime['edge_chunk_size']
     batch_size = args.batch_size if args.batch_size is not None else config.get('batch_size', 8)
     edge_budget = config.get('edge_budget', 200000)
     epochs = args.epochs if args.epochs is not None else config.get('epochs', 100)
@@ -136,7 +146,7 @@ def run_training(args, config, records, validation, proposal, flow, train_paths,
                       'flow_parameters': sum(p.numel() for p in flow.parameters()), 'precision': precision,
                       'batch_size': batch_size, 'edge_budget': edge_budget,
                       'train_records': len(records), 'val_records': len(validation),
-                      'start_epoch': start_epoch, 'maximum_epochs': epochs}), flush=True)
+                      'start_epoch': start_epoch, 'maximum_epochs': epochs, 'runtime_options': runtime}), flush=True)
     completed = start_epoch
     reason = 'maximum_epochs'
     for epoch in range(start_epoch, epochs):
@@ -200,6 +210,7 @@ def run_training(args, config, records, validation, proposal, flow, train_paths,
                    'best_val_loss': best, 'seconds': time.perf_counter()-started,
                    'learning_rate': optimizer.param_groups[0]['lr'], 'gradient_norm_mean': float(np.mean(gradient_norms)),
                    'train_records': len(records), 'val_records': len(validation),
+                   'runtime_options': runtime,
                    'peak_cuda_bytes': torch.cuda.max_memory_allocated() if devices else 0}
         print(json.dumps(history), flush=True)
         with output.with_suffix('.history.jsonl').open('a', encoding='utf-8') as stream:
@@ -207,6 +218,7 @@ def run_training(args, config, records, validation, proposal, flow, train_paths,
         checkpoint = {'config': config, 'epoch': epoch, 'proposal': proposal.state_dict(), 'flow': flow.state_dict(),
                       'optimizer': optimizer.state_dict(), 'scheduler': scheduler.state_dict(), 'scaler': scaler.state_dict(),
                       'best_val_loss': best, 'stale_epochs': stale, 'python_rng': random.getstate(),
+                      'runtime_options': runtime,
                       'numpy_rng': np.random.get_state(), 'torch_rng': torch.get_rng_state(),
                       'cuda_rng': torch.cuda.get_rng_state_all() if devices else None, **hashes,
                       'verification': 'trained; material stability and property performance not certified'}
