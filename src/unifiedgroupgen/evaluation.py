@@ -14,17 +14,27 @@ def summarize_attempts(records):
               ('group_operation_closure', 'distance_valid', 'orbit_multiplicity_regular',
                'no_coincident_orbits', 'chemistry_validated', 'stability_validated', 'properties_validated')}
     identified = [r for r in reports if r.get('exact_target_group') is not None]
+    geometry_keys = ('group_operation_closure', 'distance_valid', 'orbit_multiplicity_regular', 'no_coincident_orbits')
+    geometry = [r for r in reports if all(r.get(key) for key in geometry_keys)
+                and np.isfinite(r.get('metric_residual', np.nan))]
+    exact_success = sum(bool(r['exact_target_group']) for r in identified)
     return {'attempted': total, 'generated': len(generated), 'failed': total-len(generated),
             'counts': counts, 'rates_over_all_attempts': {key: count/total if total else None for key, count in counts.items()},
             'exact_group_identified': len(identified),
-            'exact_group_success': sum(bool(r['exact_target_group']) for r in identified),
+            'exact_group_success': exact_success,
+            'exact_group_rate_over_all_attempts': exact_success/total if total else None,
             'exact_group_unidentified_generated': len(reports)-len(identified),
+            'geometry_screen_success': len(geometry),
+            'geometry_and_exact_group_success': sum(bool(r.get('exact_target_group')) for r in geometry),
+            'external_validation_performed_counts': {key: counts[key] for key in
+                ('chemistry_validated', 'stability_validated', 'properties_validated')},
             'scope': 'Distance threshold is a geometric diagnostic; chemistry, stability and property hit require external verification.'}
 
 
 def to_structure(compiled, generated, vacuum=20.0):
-    lattice = generated["lattice"].detach().cpu().numpy().copy()
-    coordinates = generated["coordinates"].detach().cpu().numpy().copy()
+    # pymatgen's partial-PBC Cython distance kernel requires double buffers.
+    lattice = generated["lattice"].detach().cpu().double().numpy().copy()
+    coordinates = generated["coordinates"].detach().cpu().double().numpy().copy()
     if compiled.descriptor.kind != "space":
         thickness = np.ptp(coordinates[:, 2])
         cell_height = max(vacuum, thickness+10)

@@ -3,6 +3,7 @@
 import argparse
 import json
 import random
+import time
 from pathlib import Path
 import numpy as np
 import torch
@@ -146,9 +147,22 @@ def sample(args):
             raise ValueError(f'No training property labels in this calculation domain for {unavailable}')
     if args.observations and fixed is None:
         raise ValueError("Chart-index observations require an explicit fixed descriptor")
+    if args.count < 1 or args.steps < 1:
+        raise ValueError('Sampling count and steps must be positive')
     output = artifact_path(args.output)
     output.mkdir(parents=True, exist_ok=True)
     records = []
+    started = time.monotonic()
+    attempts_path = output/'samples.jsonl'
+    attempts_path.write_text('', encoding='utf-8')
+    def progress(state):
+        status = {'state': state, 'attempted': len(records), 'requested': args.count,
+                  'generated': sum(r['status'] == 'generated' for r in records),
+                  'seconds': time.monotonic()-started}
+        temporary = output/'sampling.status.json.tmp'
+        temporary.write_text(json.dumps(status), encoding='utf-8')
+        temporary.replace(output/'sampling.status.json')
+    progress('running')
     generator = torch.Generator(device=args.device).manual_seed(args.seed)
     for index in range(args.count):
         try:
@@ -168,8 +182,15 @@ def sample(args):
                             'properties_requested': properties, 'validation': report, 'status': 'generated'})
         except (ValueError, RuntimeError, FloatingPointError) as error:
             records.append({'index': index, 'status': 'failed', 'reason': str(error)})
-    write_jsonl(output/'samples.jsonl', records)
+        # Persist every attempt, including failures, before advancing to the next one.
+        with attempts_path.open('a', encoding='utf-8') as stream:
+            stream.write(json.dumps(records[-1], allow_nan=False)+'\n')
+        progress('running')
+        if (index+1) % 10 == 0 or index+1 == args.count:
+            print(json.dumps({'event': 'sampling_progress', 'attempted': index+1,
+                              'requested': args.count, 'seconds': time.monotonic()-started}), flush=True)
     (output/'summary.json').write_text(json.dumps(summarize_attempts(records), indent=2), encoding='utf-8')
+    progress('complete')
     print(json.dumps({'requested': args.count, 'generated': sum(r['status']=='generated' for r in records),
                       'output': str(output), 'all_attempts_recorded': True}))
 

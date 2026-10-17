@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="420" viewBox="0 0 900 420">
+<style>text{font-family:Times New Roman, Times, Noto Serif CJK SC, Source Han Serif SC, SimSun, serif;dominant-baseline:auto} .mono{font-family:Consolas, Menlo, monospace}</style>
+<rect x="0" y="0" width="900" height="420" rx="0" fill="#FFFFFF"/>
+<text x="42.00" y="52.00" font-size="28" font-weight="820" fill="#17212B" text-anchor="start">Property-label coverage (%)</text>
+<text x="42.00" y="396.00" font-size="11" font-weight="500" fill="#5D6977" text-anchor="start">Finite labels / all source records; missing values are not zero.</text>
+<text x="298.33" y="114.00" font-size="12" font-weight="720" fill="#5D6977" text-anchor="middle">Formation energy</text>
+<text x="515.00" y="114.00" font-size="12" font-weight="720" fill="#5D6977" text-anchor="middle">Band gap</text>
+<text x="731.67" y="114.00" font-size="12" font-weight="720" fill="#5D6977" text-anchor="middle">Above-hull energy</text>
+<text x="172.00" y="165.00" font-size="12" font-weight="650" fill="#17212B" text-anchor="end">MP20</text>
+<rect x="193.00" y="135.00" width="210.67" height="50.00" rx="10.00" fill="#08519C" stroke="#FFFFFF" opacity="1.000"/>
+<text x="298.33" y="165.00" font-size="12" font-weight="760" fill="#FFFFFF" text-anchor="middle">100</text>
+<rect x="409.67" y="135.00" width="210.67" height="50.00" rx="10.00" fill="#08519C" stroke="#FFFFFF" opacity="1.000"/>
+<text x="515.00" y="165.00" font-size="12" font-weight="760" fill="#FFFFFF" text-anchor="middle">100</text>
+<rect x="626.33" y="135.00" width="210.67" height="50.00" rx="10.00" fill="#08519C" stroke="#FFFFFF" opacity="1.000"/>
+<text x="731.67" y="165.00" font-size="12" font-weight="760" fill="#FFFFFF" text-anchor="middle">100</text>
+<text x="172.00" y="221.00" font-size="12" font-weight="650" fill="#17212B" text-anchor="end">MPTS52</text>
+<rect x="193.00" y="191.00" width="210.67" height="50.00" rx="10.00" fill="#08519C" stroke="#FFFFFF" opacity="1.000"/>
+<text x="298.33" y="221.00" font-size="12" font-weight="760" fill="#FFFFFF" text-anchor="middle">100</text>
+<rect x="409.67" y="191.00" width="210.67" height="50.00" rx="10.00" fill="#F7FBFF" stroke="#FFFFFF" opacity="1.000"/>
+<text x="515.00" y="221.00" font-size="12" font-weight="760" fill="#17212B" text-anchor="middle">0</text>
+<rect x="626.33" y="191.00" width="210.67" height="50.00" rx="10.00" fill="#08519C" stroke="#FFFFFF" opacity="1.000"/>
+<text x="731.67" y="221.00" font-size="12" font-weight="760" fill="#FFFFFF" text-anchor="middle">100</text>
+<text x="172.00" y="277.00" font-size="12" font-weight="650" fill="#17212B" text-anchor="end">C2DB</text>
+<rect x="193.00" y="247.00" width="210.67" height="50.00" rx="10.00" fill="#08519C" stroke="#FFFFFF" opacity="1.000"/>
+<text x="298.33" y="277.00" font-size="12" font-weight="760" fill="#FFFFFF" text-anchor="middle">100</text>
+<rect x="409.67" y="247.00" width="210.67" height="50.00" rx="10.00" fill="#9ECAE1" stroke="#FFFFFF" opacity="1.000"/>
+<text x="515.00" y="277.00" font-size="12" font-weight="760" fill="#17212B" text-anchor="middle">51.4</text>
+<rect x="626.33" y="247.00" width="210.67" height="50.00" rx="10.00" fill="#08519C" stroke="#FFFFFF" opacity="1.000"/>
+<text x="731.67" y="277.00" font-size="12" font-weight="760" fill="#FFFFFF" text-anchor="middle">100</text>
+</svg>

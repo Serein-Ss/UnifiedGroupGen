@@ -1,0 +1,79 @@
+# 数据集统计与图注
+
+统计对象是服务器备份中实际用于预处理的MP20、MPTS52、C2DB来源记录；全量统计合并原始训练、验证、测试。联合模型采用另行分组划分，图1单独列出。
+
+所有102610条记录均核对了群表轨道重数、位置自由度、晶格自由度与state长度。这里的全量覆盖统计不能替代训练集覆盖统计。
+
+| 数据集 | 记录数 | 群覆盖 | 元素种类 | 未装饰轨道组合 | 原始/标准胞原子数中位数 | 状态维数中位数 |
+|---|---:|---:|---:|---:|---:|---:|
+| MP20 | 45,229 | 179/230 | 89 | 4110 | 10/16 | 5 |
+| MPTS52 | 40,476 | 208/230 | 89 | 6303 | 18/24 | 10 |
+| C2DB | 16,905 | 71/80 | 63 | 1059 | 8/8 | 6 |
+
+## 01_dataset_overview
+
+原始参考划分与联合重划分分别统计；总量均按来源记录计数。空间群和层群使用各自230/80的分母，编号不视为同一类别空间。
+
+![01_dataset_overview](01_dataset_overview.png)
+
+[SVG](01_dataset_overview.svg) · [PDF](01_dataset_overview.pdf)
+
+## 02_structure_complexity
+
+全102610条记录的经验累积分布，未截断尾部。ambient DOF=3N+6（三维）或3N+3（层状，含高度）；该比值仅描述参数化维数减少，不是速度提升倍数。
+
+![02_structure_complexity](02_structure_complexity.png)
+
+[SVG](02_structure_complexity.svg) · [PDF](02_structure_complexity.pdf)
+
+## 03_symmetry_distribution
+
+各自全群编号范围上的来源记录比例；空白编号表示未在此数据集出现。空间群与层群轴分别解释。
+
+![03_symmetry_distribution](03_symmetry_distribution.png)
+
+[SVG](03_symmetry_distribution.svg) · [PDF](03_symmetry_distribution.pdf)
+
+## 04_element_coverage
+
+分母为各数据集结构记录数，每种元素在每条记录中只计一次。白色表示0；非原子丰度分布，避免标准胞扩展倍数影响。
+
+![04_element_coverage](04_element_coverage.png)
+
+[SVG](04_element_coverage.svg) · [PDF](04_element_coverage.pdf)
+
+## 05_property_labels
+
+上：有限数值标签的覆盖率，缺失不补零。下：有标签记录的完整经验分布；各数据源计算流程及能量参考可能不同，叠图仅描述数据，不表示标签完全可交换。完整范围含异常长尾。
+
+![05_property_labels](05_property_labels.png)
+
+[SVG](05_property_labels.svg) · [PDF](05_property_labels.pdf)
+
+## 06_overlap_and_fixed_sites
+
+前两图为去重ID与原始CIF字节哈希的集合交集，数值为真实计数、颜色为log10(count+1)，不等于完整结构匹配。相同哈希证明原始字节相同；不同哈希不能排除等价结构。
+
+![06_overlap_and_fixed_sites](06_overlap_and_fixed_sites.png)
+
+[SVG](06_overlap_and_fixed_sites.svg) · [PDF](06_overlap_and_fixed_sites.pdf)
+
+## 07_lattice_and_layer_geometry
+
+由存档k和群相容度量解码周期测度，V或A=sqrt(det H)。3D体积/原子与2D面积/原子分开；2D层厚=max(h)-min(h)，不包含真空，也不加范德华原子半径。保留完整分布，3D体积横轴用对数。
+
+![07_lattice_and_layer_geometry](07_lattice_and_layer_geometry.png)
+
+[SVG](07_lattice_and_layer_geometry.svg) · [PDF](07_lattice_and_layer_geometry.pdf)
+
+## 可复现性与口径
+
+- `source/build_dataset_figures.py`生成所有图，`tables/`保留逐记录压缩CSV、汇总表、标签覆盖、元素频率、群分布和交集计数。
+- 轨道组合定义为群号及带重复的Wyckoff letter排序列表，不含元素或连续参数；不同晶胞设置不混用。
+- 图使用Times New Roman，PNG用于预览、PDF/SVG用于论文排版；SVG保留文字。
+- C2DB这里是本项目实际恢复的16905条记录子集，不是宣称覆盖整个实时C2DB数据库。
+- 结构数是来源记录数。MP20与MPTS52存在来源重叠，直接相加不等于独立材料总数。
+- 同一材料的群号、Wyckoff位点及原子数取决于标准胞和识别容差。配置容差为MP20 0.001 Å、MPTS52 0.01 Å、C2DB层群识别0.1 Å。
+- 形成能/凸包能单位为eV/atom、带隙为eV；分布来自存档标签，没有重新计算或统一跨来源的能量参考。
+- 图5反映记录中存储的标签，不代表每个参考配置都使用了全部标签；如MP20参考配置只条件化形成能和带隙。
+- 图6中不同数据源ID交集以精确字符串为准，MP数据源内可解释为共享材料ID；这不是原型去重或结构匹配结果。

@@ -1,0 +1,173 @@
+{
+  "matching_cifs": 128,
+  "checkpoint_sha256": "532237d8289cff24333478118ed690cf8bfe3e947a8d42e7b8ad6f1ca5dc8512",
+  "reference_split_hashes_match": true,
+  "audit_source": "artifacts/audits/mp20_generation_20261008/summary.json",
+  "modes": {
+    "unconditional": {
+      "attempted": 64,
+      "audited": 64,
+      "counts": {
+        "exact_group": 64,
+        "distance_0p6_pass": 64,
+        "radius_ratio_0p5_pass": 59,
+        "radius_ratio_0p6_pass": 56,
+        "radius_ratio_0p7_pass": 48,
+        "smact14_pass": 58,
+        "icsd24_pass": 59,
+        "diagnostic_joint_pass": 53,
+        "train_global_vpa_outside_q01_q99": 9
+      },
+      "smact_unknown": 0,
+      "group_counts": {
+        "225": 12,
+        "136": 1,
+        "12": 2,
+        "191": 3,
+        "189": 2,
+        "129": 2,
+        "221": 6,
+        "216": 1,
+        "167": 1,
+        "25": 2,
+        "186": 2,
+        "62": 2,
+        "123": 3,
+        "65": 1,
+        "139": 3,
+        "15": 1,
+        "63": 2,
+        "166": 1,
+        "199": 1,
+        "194": 6,
+        "115": 1,
+        "119": 1,
+        "156": 1,
+        "2": 1,
+        "164": 3,
+        "127": 1,
+        "43": 1,
+        "140": 1
+      },
+      "composition_unique": 64,
+      "zero_coordinate_dof": 28,
+      "primitive_atoms_above20": 0,
+      "volume_per_atom_A3": {
+        "min": 5.543447797571124,
+        "q01": 5.633974661374239,
+        "q05": 6.969628550640612,
+        "median": 19.448650419563684,
+        "q95": 53.3497943453059,
+        "q99": 84.27624866623148,
+        "max": 88.49187367458683
+      },
+      "density_g_cm3": {
+        "min": 0.8453919066285492,
+        "q01": 1.612394242874268,
+        "q05": 2.270033189253726,
+        "median": 8.42892451111713,
+        "q95": 18.35521418007922,
+        "q99": 25.66907168501363,
+        "max": 31.485398446642737
+      },
+      "minimum_distance_A": {
+        "min": 0.6153789383185526,
+        "q01": 0.6970287221301699,
+        "q05": 1.0357987915439923,
+        "median": 2.5620753821847,
+        "q95": 3.5011970069999996,
+        "q99": 4.251778735305338,
+        "max": 4.63628685542914
+      },
+      "maximum_relative_metric_residual": 1.8290587503477645e-07,
+      "maximum_export_metric_error": 9.959762938954274e-06,
+      "structure_components_scale_true": 64,
+      "structure_components_scale_false": 64,
+      "reference_matches": {
+        "train_scale_true": 34,
+        "train_scale_false": 23,
+        "val_scale_true": 1,
+        "val_scale_false": 0,
+        "test_scale_true": 0,
+        "test_scale_false": 0
+      },
+      "diagnostic_joint_pass_not_matching_local_train_scale_true": 22
+    },
+    "conditional": {
+      "attempted": 64,
+      "audited": 64,
+      "counts": {
+        "exact_group": 64,
+        "distance_0p6_pass": 61,
+        "radius_ratio_0p5_pass": 45,
+        "radius_ratio_0p6_pass": 39,
+        "radius_ratio_0p7_pass": 32,
+        "smact14_pass": 54,
+        "icsd24_pass": 58,
+        "diagnostic_joint_pass": 35,
+        "train_global_vpa_outside_q01_q99": 8
+      },
+      "smact_unknown": 0,
+      "group_counts": {
+        "156": 22,
+        "12": 2,
+        "47": 10,
+        "71": 3,
+        "2": 4,
+        "140": 3,
+        "72": 7,
+        "13": 2,
+        "79": 1,
+        "164": 3,
+        "36": 3,
+        "194": 2,
+        "84": 1,
+        "160": 1
+      },
+      "composition_unique": 40,
+      "zero_coordinate_dof": 2,
+      "primitive_atoms_above20": 0,
+      "volume_per_atom_A3": {
+        "min": 7.61377689339602,
+        "q01": 7.6536785612415965,
+        "q05": 8.751328821328489,
+        "median": 20.39016340186818,
+        "q95": 47.229152290096565,
+        "q99": 97.97966411942369,
+        "max": 156.09318161816105
+      },
+      "density_g_cm3": {
+        "min": 0.8435108631275781,
+        "q01": 1.3093747971998342,
+        "q05": 2.1064321297388777,
+        "median": 6.520404449352379,
+        "q95": 19.983112267492384,
+        "q99": 25.988755542567425,
+        "max": 29.006982964356432
+      },
+      "minimum_distance_A": {
+        "min": 0.16492479796548615,
+        "q01": 0.2670512485372285,
+        "q05": 0.6718766421851271,
+        "median": 1.9006499344296477,
+        "q95": 2.883297849354757,
+        "q99": 3.437802536545837,
+        "max": 3.508369469623328
+      },
+      "maximum_relative_metric_residual": 1.3770793079920345e-07,
+      "maximum_export_metric_error": 3.1386058134493007e-06,
+      "structure_components_scale_true": 56,
+      "structure_components_scale_false": 59,
+      "reference_matches": {
+        "train_scale_true": 6,
+        "train_scale_false": 3,
+        "val_scale_true": 0,
+        "val_scale_false": 0,
+        "test_scale_true": 0,
+        "test_scale_false": 0
+      },
+      "diagnostic_joint_pass_not_matching_local_train_scale_true": 29
+    }
+  },
+  "scope": "Historical screening reused after exact CIF, checkpoint and reference-data identity checks. No new chemistry calculation; not stability or property certification."
+}

@@ -20,6 +20,18 @@ def test_isolated_identifier_matches_direct_native_result(kind, number, letter):
     assert isolated['group_identification_error'] is None
 
 
+@pytest.mark.parametrize('kind,number,letter', [('space', 2, 'i'), ('layer', 37, 'r')])
+def test_float32_model_outputs_support_partial_periodic_geometry(kind, number, letter):
+    compiled = compile_descriptor(Descriptor(kind, number, (OrbitSpec(letter, 14),)))
+    state = compiled.prior(dtype=torch.float32)
+    output = compiled.expand(state)
+    structure = to_structure(compiled, output)
+    assert structure.lattice.matrix.dtype.name == 'float64'
+    assert structure.frac_coords.dtype.name == 'float64'
+    assert validate(compiled, output)['group_operation_closure']
+    assert output['coordinates'].dtype == torch.float32
+
+
 def test_native_exit_and_timeout_are_unknown_and_remain_in_sampling_denominator(monkeypatch):
     import unifiedgroupgen.native_identifier as native
     compiled = compile_descriptor(Descriptor('space', 2, (OrbitSpec('i', 14),)))

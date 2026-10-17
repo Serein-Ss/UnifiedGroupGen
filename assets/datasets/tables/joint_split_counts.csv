@@ -1,0 +1,10 @@
+dataset,split,records
+MP20,train,36289
+MP20,val,4480
+MP20,test,4460
+MPTS52,train,32464
+MPTS52,val,3976
+MPTS52,test,4036
+C2DB,train,13432
+C2DB,val,1734
+C2DB,test,1739
