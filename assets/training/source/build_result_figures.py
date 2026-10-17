@@ -19,8 +19,7 @@ plt.rcParams.update({'font.family':'Times New Roman','font.size':10,
 
 def export(fig,folder,name):
     folder.mkdir(exist_ok=True,parents=True)
-    for ext in ['png','pdf','svg']:
-        fig.savefig(folder/f'{name}.{ext}',dpi=260,bbox_inches='tight',facecolor='white')
+    fig.savefig(folder/f'{name}.png',dpi=260,bbox_inches='tight',facecolor='white')
     plt.close(fig)
 
 

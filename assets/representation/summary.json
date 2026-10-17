@@ -1,0 +1,566 @@
+{
+  "record_scope": "all_prepared_train_val_test",
+  "input_sha256": {
+    "artifacts\\full_joint_sourcegrouped\\mp_20\\train.jsonl": "483bf45866fe82e259a13633aed6ea92e0676d2f0f06b80f96f6915da5282877",
+    "artifacts\\full_joint_sourcegrouped\\mpts_52\\train.jsonl": "a5b708fdc9a1ae5da00812463171794a6b708fceb4c1ecfc69e87987bdb4b6b5",
+    "artifacts\\full_joint_sourcegrouped\\c2db_51\\train.jsonl": "6d1e49b173dba29530a3c386d35c4258e0e57a22a15d430919fa39f47212dda8",
+    "artifacts\\full_joint_sourcegrouped\\mp_20\\val.jsonl": "1aaab6c129d736176a5f467464b2ef8f0f86ba75d1ef12b6e1ebf100af8a5ce8",
+    "artifacts\\full_joint_sourcegrouped\\mpts_52\\val.jsonl": "f80bb2c69b6e34325fd6665f6543666fdf01575f86948f7b3f35684f435cce78",
+    "artifacts\\full_joint_sourcegrouped\\c2db_51\\val.jsonl": "e7c5c7f9412da3b1e6fe3ebadf95d6763904b8496dd8c059a18d2aa7f2edf043",
+    "artifacts\\full_joint_sourcegrouped\\mp_20\\test.jsonl": "e3e9e84b8560ac895ac82cc94ce55ce6c9bce09b5250b4fdd9370a7d85881fcf",
+    "artifacts\\full_joint_sourcegrouped\\mpts_52\\test.jsonl": "e26d326abd232395382568fdef2913694f9f3d3035481179c469683a3c009f2a",
+    "artifacts\\full_joint_sourcegrouped\\c2db_51\\test.jsonl": "59c301f824cedc1479b2ac32357963a18c811457d75118cb510dcb2e5f3bce41"
+  },
+  "records": {
+    "c2db_51": {
+      "requested": 16905,
+      "passed": 16905,
+      "statistics": {
+        "group": {
+          "count": 16905,
+          "min": 1.0,
+          "p50": 46.0,
+          "p95": 78.0,
+          "p99": 79.0,
+          "max": 80.0
+        },
+        "atoms": {
+          "count": 16905,
+          "min": 1.0,
+          "p50": 8.0,
+          "p95": 20.0,
+          "p99": 24.0,
+          "max": 64.0
+        },
+        "orbits": {
+          "count": 16905,
+          "min": 1.0,
+          "p50": 4.0,
+          "p95": 10.0,
+          "p99": 15.0,
+          "max": 51.0
+        },
+        "lattice_dof": {
+          "count": 16905,
+          "min": 1.0,
+          "p50": 2.0,
+          "p95": 3.0,
+          "p99": 3.0,
+          "max": 3.0
+        },
+        "coordinate_dof": {
+          "count": 16905,
+          "min": 0.0,
+          "p50": 5.0,
+          "p95": 27.0,
+          "p99": 42.0,
+          "max": 153.0
+        },
+        "state_dof": {
+          "count": 16905,
+          "min": 1.0,
+          "p50": 6.0,
+          "p95": 30.0,
+          "p99": 45.0,
+          "max": 156.0
+        },
+        "inverse_state_max_error": {
+          "count": 16905,
+          "min": 0.0,
+          "p50": 4.440892098500626e-16,
+          "p95": 1.7763568394002505e-15,
+          "p99": 7.656097977814983e-15,
+          "max": 1.5010215292932116e-13
+        },
+        "metric_min_eigenvalue": {
+          "count": 16905,
+          "min": 2.867840002718796,
+          "p50": 15.139246921455005,
+          "p95": 48.31749785104582,
+          "p99": 64.61999225361004,
+          "max": 134.73574155179298
+        },
+        "path_operation_residual_angstrom": {
+          "count": 16905,
+          "min": 0.0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 9.527059852132427e-16
+        },
+        "operation_residual_angstrom": {
+          "count": 16905,
+          "min": 0.0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 9.527059852132427e-16
+        },
+        "tangent_action_residual": {
+          "count": 16905,
+          "min": 0.0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0
+        },
+        "metric_relative_residual": {
+          "count": 16905,
+          "min": 0.0,
+          "p50": 0.0,
+          "p95": 3.1096776716872404e-16,
+          "p99": 6.056482248265645e-16,
+          "max": 1.2474093899186331e-15
+        },
+        "anchor_basis_rank": {
+          "count": 16905,
+          "min": 0.0,
+          "p50": 5.0,
+          "p95": 27.0,
+          "p99": 42.0,
+          "max": 153.0
+        },
+        "anchor_kernel_dimension": {
+          "count": 16905,
+          "min": 0.0,
+          "p50": 5.0,
+          "p95": 27.0,
+          "p99": 42.0,
+          "max": 153.0
+        },
+        "source_operation_residual_angstrom": {
+          "count": 16905,
+          "min": 0.0,
+          "p50": 0.00016881368514596646,
+          "p95": 0.030722248110469735,
+          "p99": 0.06967024104622249,
+          "max": 0.11207921173284335
+        },
+        "std_position_rms_angstrom": {
+          "count": 16905,
+          "min": 0.0,
+          "p50": 6.880253261460102e-05,
+          "p95": 0.010686894962603026,
+          "p99": 0.02802946104925194,
+          "max": 0.06953910817629888
+        },
+        "std_position_max_angstrom": {
+          "count": 16905,
+          "min": 0.0,
+          "p50": 0.0001260226688801581,
+          "p95": 0.019270908117161804,
+          "p99": 0.047475303922312834,
+          "max": 0.11207921173390092
+        },
+        "std_metric_relative_change": {
+          "count": 16905,
+          "min": 0.0,
+          "p50": 5.176452261005145e-16,
+          "p95": 0.0008828736314628724,
+          "p99": 0.0037706857170470183,
+          "max": 0.041289683554950454
+        },
+        "chart_fit_max_angstrom": {
+          "count": 16905,
+          "min": 0.0,
+          "p50": 8.151568222392044e-16,
+          "p95": 3.655249153337429e-15,
+          "p99": 5.329070518200751e-15,
+          "max": 0.011221289649086436
+        }
+      }
+    },
+    "mp_20": {
+      "requested": 45229,
+      "passed": 45229,
+      "statistics": {
+        "group": {
+          "count": 45229,
+          "min": 1.0,
+          "p50": 136.0,
+          "p95": 225.0,
+          "p99": 227.0,
+          "max": 229.0
+        },
+        "atoms": {
+          "count": 45229,
+          "min": 1.0,
+          "p50": 16.0,
+          "p95": 40.0,
+          "p99": 57.0,
+          "max": 80.0
+        },
+        "orbits": {
+          "count": 45229,
+          "min": 1.0,
+          "p50": 4.0,
+          "p95": 12.0,
+          "p99": 19.0,
+          "max": 20.0
+        },
+        "lattice_dof": {
+          "count": 45229,
+          "min": 1.0,
+          "p50": 2.0,
+          "p95": 6.0,
+          "p99": 6.0,
+          "max": 6.0
+        },
+        "coordinate_dof": {
+          "count": 45229,
+          "min": 0.0,
+          "p50": 3.0,
+          "p95": 27.0,
+          "p99": 54.0,
+          "max": 60.0
+        },
+        "state_dof": {
+          "count": 45229,
+          "min": 1.0,
+          "p50": 5.0,
+          "p95": 31.0,
+          "p99": 60.0,
+          "max": 66.0
+        },
+        "inverse_state_max_error": {
+          "count": 45229,
+          "min": 0.0,
+          "p50": 4.440892098500626e-16,
+          "p95": 1.0524914273446484e-13,
+          "p99": 4.4218850803190487e-13,
+          "max": 8.428813202954188e-13
+        },
+        "metric_min_eigenvalue": {
+          "count": 45229,
+          "min": 2.553405351447819,
+          "p50": 20.952142177200997,
+          "p95": 76.6506908399331,
+          "p99": 128.8461781909748,
+          "max": 180.39960466402664
+        },
+        "path_operation_residual_angstrom": {
+          "count": 45229,
+          "min": 0.0,
+          "p50": 0.0,
+          "p95": 1.1006434409194328e-15,
+          "p99": 4.862750562367375e-15,
+          "max": 2.6807940533985746e-14
+        },
+        "operation_residual_angstrom": {
+          "count": 45229,
+          "min": 0.0,
+          "p50": 0.0,
+          "p95": 1.05378763493036e-15,
+          "p99": 4.866888064178897e-15,
+          "max": 2.6807940533985746e-14
+        },
+        "tangent_action_residual": {
+          "count": 45229,
+          "min": 0.0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0
+        },
+        "metric_relative_residual": {
+          "count": 45229,
+          "min": 0.0,
+          "p50": 0.0,
+          "p95": 1.1260684285686768e-15,
+          "p99": 1.5265495985684038e-15,
+          "max": 3.1258515551232017e-15
+        },
+        "anchor_basis_rank": {
+          "count": 45229,
+          "min": 0.0,
+          "p50": 3.0,
+          "p95": 27.0,
+          "p99": 54.0,
+          "max": 60.0
+        },
+        "anchor_kernel_dimension": {
+          "count": 45229,
+          "min": 0.0,
+          "p50": 3.0,
+          "p95": 27.0,
+          "p99": 54.0,
+          "max": 60.0
+        },
+        "source_operation_residual_angstrom": {
+          "count": 0
+        },
+        "std_position_rms_angstrom": {
+          "count": 0
+        },
+        "std_position_max_angstrom": {
+          "count": 0
+        },
+        "std_metric_relative_change": {
+          "count": 0
+        },
+        "chart_fit_max_angstrom": {
+          "count": 0
+        }
+      }
+    },
+    "mpts_52": {
+      "requested": 40476,
+      "passed": 40476,
+      "statistics": {
+        "group": {
+          "count": 40476,
+          "min": 1.0,
+          "p50": 71.0,
+          "p95": 225.0,
+          "p99": 227.0,
+          "max": 229.0
+        },
+        "atoms": {
+          "count": 40476,
+          "min": 1.0,
+          "p50": 24.0,
+          "p95": 84.0,
+          "p99": 116.0,
+          "max": 208.0
+        },
+        "orbits": {
+          "count": 40476,
+          "min": 1.0,
+          "p50": 5.0,
+          "p95": 15.0,
+          "p99": 24.0,
+          "max": 52.0
+        },
+        "lattice_dof": {
+          "count": 40476,
+          "min": 1.0,
+          "p50": 3.0,
+          "p95": 6.0,
+          "p99": 6.0,
+          "max": 6.0
+        },
+        "coordinate_dof": {
+          "count": 40476,
+          "min": 0.0,
+          "p50": 7.0,
+          "p95": 39.0,
+          "p99": 66.0,
+          "max": 156.0
+        },
+        "state_dof": {
+          "count": 40476,
+          "min": 1.0,
+          "p50": 10.0,
+          "p95": 43.0,
+          "p99": 72.0,
+          "max": 162.0
+        },
+        "inverse_state_max_error": {
+          "count": 40476,
+          "min": 0.0,
+          "p50": 4.440892098500626e-16,
+          "p95": 1.7064127888488656e-13,
+          "p99": 5.182521078950231e-13,
+          "max": 1.5241141682054149e-12
+        },
+        "metric_min_eigenvalue": {
+          "count": 40476,
+          "min": 0.971799668401,
+          "p50": 27.076016788281894,
+          "p95": 91.79338620366677,
+          "p99": 148.8073181807575,
+          "max": 476.6034767614011
+        },
+        "path_operation_residual_angstrom": {
+          "count": 40476,
+          "min": 0.0,
+          "p50": 0.0,
+          "p95": 1.2739729828995083e-15,
+          "p99": 5.018447915267833e-15,
+          "max": 1.2946634672537707e-14
+        },
+        "operation_residual_angstrom": {
+          "count": 40476,
+          "min": 0.0,
+          "p50": 0.0,
+          "p95": 1.2439148632618188e-15,
+          "p99": 5.014567372748971e-15,
+          "max": 1.2946634672537707e-14
+        },
+        "tangent_action_residual": {
+          "count": 40476,
+          "min": 0.0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0
+        },
+        "metric_relative_residual": {
+          "count": 40476,
+          "min": 0.0,
+          "p50": 0.0,
+          "p95": 9.030909239365892e-16,
+          "p99": 1.5539220255579864e-15,
+          "max": 4.937937848911722e-15
+        },
+        "anchor_basis_rank": {
+          "count": 40476,
+          "min": 0.0,
+          "p50": 7.0,
+          "p95": 39.0,
+          "p99": 66.0,
+          "max": 156.0
+        },
+        "anchor_kernel_dimension": {
+          "count": 40476,
+          "min": 0.0,
+          "p50": 7.0,
+          "p95": 39.0,
+          "p99": 66.0,
+          "max": 156.0
+        },
+        "source_operation_residual_angstrom": {
+          "count": 0
+        },
+        "std_position_rms_angstrom": {
+          "count": 0
+        },
+        "std_position_max_angstrom": {
+          "count": 0
+        },
+        "std_metric_relative_change": {
+          "count": 0
+        },
+        "chart_fit_max_angstrom": {
+          "count": 0
+        }
+      }
+    }
+  },
+  "catalog": {
+    "layer": {
+      "groups": 80,
+      "orbit_types": 477,
+      "passed": 477
+    },
+    "plane": {
+      "groups": 17,
+      "orbit_types": 72,
+      "passed": 72
+    },
+    "space": {
+      "groups": 230,
+      "orbit_types": 1731,
+      "passed": 1731
+    }
+  },
+  "source_reencoding": {
+    "mp_20": {
+      "selected": 16,
+      "evaluated": 16,
+      "passed": 16,
+      "scope": "subset",
+      "statistics": {
+        "source_reencode_rms_angstrom": {
+          "count": 16,
+          "min": 0.0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0
+        },
+        "source_reencode_max_angstrom": {
+          "count": 16,
+          "min": 0.0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0
+        },
+        "source_reencode_metric_relative_error": {
+          "count": 16,
+          "min": 0.0,
+          "p50": 0.0,
+          "p95": 3.5277887926423135e-16,
+          "p99": 3.9577398561550546e-16,
+          "max": 4.0652276220332405e-16
+        }
+      }
+    },
+    "mpts_52": {
+      "selected": 16,
+      "evaluated": 16,
+      "passed": 16,
+      "scope": "subset",
+      "statistics": {
+        "source_reencode_rms_angstrom": {
+          "count": 16,
+          "min": 0.0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0
+        },
+        "source_reencode_max_angstrom": {
+          "count": 16,
+          "min": 0.0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0
+        },
+        "source_reencode_metric_relative_error": {
+          "count": 16,
+          "min": 0.0,
+          "p50": 0.0,
+          "p95": 4.566347398959613e-16,
+          "p99": 4.850439170355283e-16,
+          "max": 4.921462113204201e-16
+        }
+      }
+    },
+    "c2db_51": {
+      "selected": 16,
+      "evaluated": 16,
+      "passed": 16,
+      "scope": "subset",
+      "statistics": {
+        "source_reencode_rms_angstrom": {
+          "count": 16,
+          "min": 0.0,
+          "p50": 0.0,
+          "p95": 6.471973342011397e-16,
+          "p99": 7.790139093206386e-16,
+          "max": 8.119680531005134e-16
+        },
+        "source_reencode_max_angstrom": {
+          "count": 16,
+          "min": 0.0,
+          "p50": 0.0,
+          "p95": 1.245019428646373e-15,
+          "p99": 1.6378524634243562e-15,
+          "max": 1.7360607221188523e-15
+        },
+        "source_reencode_metric_relative_error": {
+          "count": 16,
+          "min": 0.0,
+          "p50": 8.44588656295681e-17,
+          "p95": 4.2254757009621093e-16,
+          "p99": 4.664741464024809e-16,
+          "max": 4.774557904790484e-16
+        }
+      }
+    }
+  },
+  "scope": "Catalog SG/LG/PG and prepared structural charts. Source re-encoding compares independently standardized source CIFs to stored charts, not raw-coordinate identity or physical stability. Finite orbit types do not exhaust unbounded repeated multi-orbit lists.",
+  "passed": true,
+  "parameters": {
+    "seed": 182,
+    "path_points": 3,
+    "dtype": "float64",
+    "source_limit": 16,
+    "record_limit_per_source": null,
+    "workers": 4
+  },
+  "rank_and_tangent_criteria_rechecked_over_saved_record_statistics": true
+}

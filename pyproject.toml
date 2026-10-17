@@ -11,12 +11,16 @@ dependencies = ["torch>=2.2", "numpy>=1.24", "scipy>=1.11", "pyxtal>=1.1.1", "py
 
 [project.optional-dependencies]
 test = ["pytest>=8"]
+evaluation = ["smact>=3.2", "matminer>=0.9.3", "matplotlib>=3.7"]
 
 [project.scripts]
 ugg = "unifiedgroupgen.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+unifiedgroupgen = ["benchmark_comp_scaler.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -1,0 +1,4 @@
+# Evaluation dependencies; do not use requirements-remote.txt to replace an existing CUDA runtime.
+smact==3.2.0
+matminer==0.9.3
+matplotlib==3.10.7

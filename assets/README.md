@@ -1,5 +1,7 @@
 # UnifiedGroupGen 图表与结果整理
 
+新增：[统一表示全量验证统计与PNG图](representation/README.md)，以及[标准生成评估执行说明](../docs/STANDARD_EVALUATION.md)。后续图表只输出PNG；已有PDF/SVG保留为历史文件。
+
 更新日期：2026年10月17日。服务器已停止，当前结果以下载的 `../tmp/UnifiedGroupGen.zip`（位于项目父目录的tmp）和经样本身份核验的本地MP20补充审计为准。原始日志中的running标志不再代表实时进程。
 
 ## 完成研究需要的结果与已有证据

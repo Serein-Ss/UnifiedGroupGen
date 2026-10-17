@@ -8,7 +8,6 @@ from pathlib import Path
 import argparse
 import collections
 import hashlib
-import importlib.util
 import json
 import os
 import sys
@@ -43,8 +42,7 @@ CAPTIONS = {}
 
 
 def savefig(fig, name, caption):
-    for ext in ['png', 'pdf', 'svg']:
-        fig.savefig(OUT / f'{name}.{ext}', dpi=260, bbox_inches='tight', facecolor='white')
+    fig.savefig(OUT / f'{name}.png', dpi=260, bbox_inches='tight', facecolor='white')
     plt.close(fig)
     CAPTIONS[name] = caption
 
@@ -273,15 +271,16 @@ def main():
         ax.set_ylim(0,1.02);ax.yaxis.set_major_formatter(PercentFormatter(1))
     savefig(fig,'07_lattice_and_layer_geometry','由存档k和群相容度量解码周期测度，V或A=sqrt(det H)。3D体积/原子与2D面积/原子分开；2D层厚=max(h)-min(h)，不包含真空，也不加范德华原子半径。保留完整分布，3D体积横轴用对数。')
 
-    # Supplementary recipe figure: preserve one direct CCFA recipe source/export.
-    recipe=Path.home()/'.codex/skills/ccf-visual-composer/resources/python/ccfa_plot_recipes.py'
-    if recipe.exists():
-        spec=importlib.util.spec_from_file_location('ccfa_plot_recipes',recipe)
-        module=importlib.util.module_from_spec(spec);sys.modules[spec.name]=module;spec.loader.exec_module(module)
-        svg=module.heatmap_matrix(coverage.tolist(),NAMES,['Formation energy','Band gap','Above-hull energy'],
-            title='Property-label coverage (%)',note='Finite labels / all source records; missing values are not zero.',
-            theme=module.Theme(width=900,height=420,bg='#FFFFFF'),palette=module.PALETTES['sequential_blue'])
-        (OUT/'property_coverage_recipe.svg').write_text(svg,encoding='utf-8')
+    fig,ax=plt.subplots(figsize=(8,3.4),layout='constrained')
+    ax.imshow(coverage,cmap='Blues',vmin=0,vmax=100,aspect='auto')
+    ax.set_xticks(range(3),['Formation energy','Band gap','Above-hull energy'])
+    ax.set_yticks(range(3),NAMES)
+    ax.set_title('Property-label coverage (%)')
+    for i in range(3):
+        for j in range(3):
+            ax.text(j,i,f'{coverage[i,j]:.1f}',ha='center',va='center',color='white' if coverage[i,j]>65 else '#243746')
+    fig.savefig(OUT/'property_coverage_recipe.png',dpi=260,facecolor='white')
+    plt.close(fig)
 
     metadata={'archive':str(args.archive),'source_files':source_checks,'rows':len(df),
         'validation':'All records checked: state DOF and expanded atom count match group tables.',
@@ -294,11 +293,11 @@ def main():
         '| 数据集 | 记录数 | 群覆盖 | 元素种类 | 未装饰轨道组合 | 原始/标准胞原子数中位数 | 状态维数中位数 |',
         '|---|---:|---:|---:|---:|---:|---:|']
     for r in summary:text.append(f"| {r['dataset']} | {r['records']:,} | {r['groups_observed']}/{r['groups_catalog']} | {r['unique_elements']} | {r['orbit_patterns_undecorated']} | {r['source_atoms_median']:g}/{r['expanded_atoms_median']:g} | {r['state_dof_median']:g} |")
-    for name,caption in CAPTIONS.items():text += ['',f'## {name}','',caption,'',f'![{name}]({name}.png)','',f'[SVG]({name}.svg) · [PDF]({name}.pdf)']
+    for name,caption in CAPTIONS.items():text += ['',f'## {name}','',caption,'',f'![{name}]({name}.png)']
     text += ['', '## 可复现性与口径','',
         '- `source/build_dataset_figures.py`生成所有图，`tables/`保留逐记录压缩CSV、汇总表、标签覆盖、元素频率、群分布和交集计数。',
         '- 轨道组合定义为群号及带重复的Wyckoff letter排序列表，不含元素或连续参数；不同晶胞设置不混用。',
-        '- 图使用Times New Roman，PNG用于预览、PDF/SVG用于论文排版；SVG保留文字。',
+        '- 后续绘图只输出PNG，使用Times New Roman；已存在的PDF/SVG保留为历史文件。',
         '- C2DB这里是本项目实际恢复的16905条记录子集，不是宣称覆盖整个实时C2DB数据库。',
         '- 结构数是来源记录数。MP20与MPTS52存在来源重叠，直接相加不等于独立材料总数。',
         '- 同一材料的群号、Wyckoff位点及原子数取决于标准胞和识别容差。配置容差为MP20 0.001 Å、MPTS52 0.01 Å、C2DB层群识别0.1 Å。',
