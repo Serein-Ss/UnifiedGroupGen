@@ -1,0 +1,9 @@
+,,,,,,,,,joint_valid,joint_valid,joint_valid,exact_target_group,exact_target_group,exact_target_group,valid_unique_novel_rate,valid_unique_novel_rate,valid_unique_novel_rate,cov_precision,cov_precision,cov_precision,cov_recall,cov_recall,cov_recall
+,,,,,,,,,mean,std,count,mean,std,count,mean,std,count,mean,std,count,mean,std,count
+model,dataset,mode,guidance,steps,case,target_formation_energy,target_band_gap,target_energy_above_hull,,,,,,,,,,,,,,,
+UnifiedGroupGen (shared),c2db_51,conditional,2.0,64,,-1.0,1.0,,0.921875,,1,1.0,,1,0.6796875,,1,0.89453125,,1,0.6520989074180563,,1
+UnifiedGroupGen (shared),c2db_51,unconditional,0,64,,,,,0.859375,,1,0.99609375,,1,0.77734375,,1,0.9140625,,1,0.8499137435307648,,1
+UnifiedGroupGen (shared),mp_20,conditional,2.0,64,,-1.0,1.0,,0.91015625,,1,0.9921875,,1,0.53125,,1,0.91796875,,1,0.2845291479820628,,1
+UnifiedGroupGen (shared),mp_20,unconditional,0,64,,,,,0.8515625,,1,0.99609375,,1,0.6640625,,1,0.94140625,,1,0.7840807174887893,,1
+UnifiedGroupGen (shared),mpts_52,conditional,2.0,64,,-1.0,,0.0,0.75,,1,0.984375,,1,0.46484375,,1,0.9375,,1,0.6332094175960347,,1
+UnifiedGroupGen (shared),mpts_52,unconditional,0,64,,,,,0.84765625,,1,0.98828125,,1,0.63671875,,1,0.90625,,1,0.777447335811648,,1

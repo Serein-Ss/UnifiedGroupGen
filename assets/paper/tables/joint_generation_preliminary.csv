@@ -1,0 +1,7 @@
+job,dataset,mode,attempted,generated,target_operation_closure,exact_target_group,group_unidentified,group_mismatch,distance_0p6,no_orbit_overlap,geometry_and_exact_group,unique_requested_groups,zero_coordinate_dof
+mp_20_unconditional,mp_20,unconditional,256,256,256,255,0,1,246,256,245,56,90
+mp_20_conditional,mp_20,conditional,256,256,256,255,1,0,237,254,237,16,0
+mpts_52_unconditional,mpts_52,unconditional,256,256,256,253,3,0,242,254,242,54,97
+mpts_52_conditional,mpts_52,conditional,256,256,256,252,2,2,240,254,238,43,33
+c2db_51_unconditional,c2db_51,unconditional,256,256,256,255,1,0,241,255,241,36,0
+c2db_51_conditional,c2db_51,conditional,256,256,256,256,0,0,237,256,237,19,0

@@ -1,0 +1,23 @@
+{
+  "scope": "Real encoded dataset examples; neither is a newly generated candidate.",
+  "examples": [
+    {
+      "id": "mp-2657",
+      "dataset": "mp_20",
+      "descriptor": {"kind": "space", "number": 136, "orbits": [
+        {"letter": "a", "atomic_number": 22}, {"letter": "f", "atomic_number": 8}
+      ]},
+      "state": [1.2415616737794481, -0.020637444068401928, 0.30457999999999985],
+      "source_cif_sha256": "29d92e0bc4f4756670c35cfc03d73ffde9b046b31c0d0042bea733910913c44e"
+    },
+    {
+      "id": "1MoS2-1",
+      "dataset": "c2db_51",
+      "descriptor": {"kind": "layer", "number": 78, "orbits": [
+        {"letter": "a", "atomic_number": 42}, {"letter": "f", "atomic_number": 16}
+      ]},
+      "state": [-0.03499801226744825, 1.5635562768792681],
+      "source_cif_sha256": "d4e8132c5e5c6e895c1912b675dfa4c7e85f09546143e0a6bc65d36114dadfc9"
+    }
+  ]
+}

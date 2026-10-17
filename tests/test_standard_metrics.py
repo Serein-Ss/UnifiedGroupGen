@@ -24,6 +24,37 @@ def load_script(name):
     return module
 
 
+def test_reference_metrics_parallel_matches_serial_order_and_failures():
+    """Actual spawned workers preserve 3D/2D fingerprints and a failed reference's denominator."""
+    artifacts = ROOT/'artifacts'
+    with tempfile.TemporaryDirectory(prefix='test_reference_parallel_', dir=artifacts) as folder:
+        folder = Path(folder)
+        bulk = {'id': 'bulk', 'dataset': 'fixture', 'descriptor': Descriptor('space', 1,
+            (OrbitSpec('a', 11), OrbitSpec('a', 17))).to_dict(), 'state': [0.0]*9+[.5, .5, .5]}
+        layer = {'id': 'layer', 'dataset': 'fixture', 'descriptor': Descriptor('layer', 78,
+            (OrbitSpec('a', 42), OrbitSpec('f', 16))).to_dict(), 'state': [-.035, 1.56356]}
+        broken = {**bulk, 'id': 'broken', 'state': []}
+        records = folder/'records.jsonl'
+        records.write_text(''.join(json.dumps(r)+'\n' for r in (bulk, layer, broken)), encoding='utf-8')
+        wrapper = folder/'check.py'
+        wrapper.write_text('import sys\nfrom pathlib import Path\n'
+            f'sys.path.insert(0, {str(ROOT/"scripts")!r})\n'
+            'from evaluate_generation import reference_fingerprints\n'
+            'if __name__ == "__main__":\n'
+            f'    folder = Path({str(folder)!r})\n'
+            '    first = folder/"serial"; first.mkdir()\n'
+            '    second = folder/"parallel"; second.mkdir()\n'
+            '    paths = [folder/"records.jsonl"]\n'
+            '    a = reference_fingerprints(paths, "fixture", first, True, 1)\n'
+            '    b = reference_fingerprints(paths, "fixture", second, True, 2)\n'
+            '    assert a == b\n'
+            '    assert a["requested"] == 3 and len(a["fingerprints"]) == 2\n'
+            '    assert [r["id"] for r in a["rows"]] == ["bulk", "layer", "broken"]\n'
+            '    assert "error" in a["rows"][-1]\n', encoding='utf-8')
+        result = subprocess.run([sys.executable, str(wrapper)], cwd=ROOT, capture_output=True, text=True, timeout=120)
+        assert result.returncode == 0, result.stdout+'\n'+result.stderr
+
+
 def test_representation_catalog_and_real_degrees_of_freedom():
     rows = list(audit_catalog())
     failures = [row for row in rows if not row['passed']]

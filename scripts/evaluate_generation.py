@@ -7,6 +7,7 @@ os.environ.setdefault('MKL_NUM_THREADS', '1')
 
 import argparse
 from collections import defaultdict
+from concurrent.futures import ProcessPoolExecutor
 import importlib.metadata
 import json
 from pathlib import Path
@@ -62,7 +63,26 @@ def record_structure(record):
     return layer_structure(structure) if c.descriptor.kind != 'space' else structure
 
 
-def reference_fingerprints(paths, dataset, output, enabled):
+def reference_record_metrics(payload):
+    record, enabled = payload
+    kind = record['descriptor']['kind']
+    try:
+        structure = record_structure(record)
+        row = {'id': record['id'], **geometry_metrics(structure, kind)}
+    except (ValueError, RuntimeError, TypeError, KeyError, ZeroDivisionError, np.linalg.LinAlgError) as error:
+        return {'id': record['id'], 'error': str(error)}, None
+    pair = None
+    if enabled:
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter('ignore')
+                pair = [item.tolist() for item in fingerprints(structure, kind)]
+        except (ValueError, RuntimeError, TypeError, KeyError, ZeroDivisionError, np.linalg.LinAlgError) as error:
+            row['fingerprint_error'] = str(error)
+    return row, pair
+
+
+def reference_fingerprints(paths, dataset, output, enabled, workers=1):
     versions = {name: importlib.metadata.version(name) for name in ('matminer', 'pymatgen', 'numpy')}
     identity = {'files': {str(path): file_hash(path) for path in paths}, 'dataset': dataset, 'versions': versions,
                 'fingerprints_enabled': enabled,
@@ -72,32 +92,26 @@ def reference_fingerprints(paths, dataset, output, enabled):
         saved = json.loads(cache.read_text(encoding='utf-8'))
         if saved['identity'] == identity:
             return saved
-    rows, features, requested = [], [], 0
-    for path in paths:
-        for record in read_jsonl(path):
-            if record['dataset'] != dataset:
-                continue
-            requested += 1
-            kind = record['descriptor']['kind']
-            try:
-                structure = record_structure(record)
-                row = {'id': record['id'], **geometry_metrics(structure, kind)}
-            except (ValueError, RuntimeError, TypeError, KeyError, ZeroDivisionError, np.linalg.LinAlgError) as error:
-                rows.append({'id': record['id'], 'error': str(error)})
-                continue
-            if enabled:
-                try:
-                    with warnings.catch_warnings():
-                        warnings.simplefilter('ignore')
-                        pair = fingerprints(structure, kind)
-                    features.append([item.tolist() for item in pair])
-                except (ValueError, RuntimeError, TypeError, KeyError, ZeroDivisionError, np.linalg.LinAlgError) as error:
-                    row['fingerprint_error'] = str(error)
+    records = [r for path in paths for r in read_jsonl(path) if r['dataset'] == dataset]
+    payloads = [(r, enabled) for r in records]
+    rows, features = [], []
+    pool = ProcessPoolExecutor(max_workers=workers) if workers > 1 else None
+    try:
+        results = pool.map(reference_record_metrics, payloads, chunksize=4) if pool else map(reference_record_metrics, payloads)
+        for count, (row, pair) in enumerate(results, 1):
             rows.append(row)
-            if requested % 100 == 0:
-                print(json.dumps({'phase': 'reference', 'dataset': dataset, 'records': requested}), flush=True)
-    saved = {'identity': identity, 'rows': rows, 'fingerprints': features, 'requested': requested}
-    cache.write_text(json.dumps(saved, allow_nan=False), encoding='utf-8')
+            if pair is not None:
+                features.append(pair)
+            if count % 100 == 0:
+                print(json.dumps({'phase': 'reference', 'dataset': dataset, 'records': count,
+                                  'requested': len(records), 'workers': workers}), flush=True)
+    finally:
+        if pool:
+            pool.shutdown()
+    saved = {'identity': identity, 'rows': rows, 'fingerprints': features, 'requested': len(records)}
+    temporary = cache.with_suffix('.json.tmp')
+    temporary.write_text(json.dumps(saved, allow_nan=False), encoding='utf-8')
+    temporary.replace(cache)
     return saved
 
 
@@ -258,7 +272,10 @@ def main():
     parser.add_argument('--reference-assessments', help='Same evaluator on TEST references: dataset,id,property values CSV')
     parser.add_argument('--structural-cutoff', type=float, default=0.4)
     parser.add_argument('--composition-cutoff', type=float, default=10)
+    parser.add_argument('--reference-workers', type=int, default=1, help='CPU processes for reference metrics; ordered results and identical definitions')
     args = parser.parse_args()
+    if args.reference_workers < 1:
+        parser.error('--reference-workers must be positive')
     if args.samples and not args.dataset:
         parser.error('--samples requires --dataset')
     if bool(args.assessments) != bool(args.assessment_metadata):
@@ -378,7 +395,8 @@ def main():
         kind = 'layer' if dataset == 'c2db_51' else 'space'
         print(f'[START] {name}', flush=True)
         if dataset not in references:
-            references[dataset] = reference_fingerprints(test_paths, dataset, output, not args.no_fingerprints)
+            references[dataset] = reference_fingerprints(test_paths, dataset, output, not args.no_fingerprints,
+                                                        args.reference_workers)
         rows, report = evaluate_samples(samples, references[dataset], training[kind], kind, assessments[name],
             use_fingerprints=not args.no_fingerprints, reidentify=args.reidentify,
             structural_cutoff=args.structural_cutoff, composition_cutoff=args.composition_cutoff)

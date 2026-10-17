@@ -1,0 +1,1095 @@
+{
+  "state": "complete",
+  "reference_identity": "checkpoint_and_test_bound",
+  "train_sha256": [
+    "483bf45866fe82e259a13633aed6ea92e0676d2f0f06b80f96f6915da5282877",
+    "a5b708fdc9a1ae5da00812463171794a6b708fceb4c1ecfc69e87987bdb4b6b5",
+    "6d1e49b173dba29530a3c386d35c4258e0e57a22a15d430919fa39f47212dda8"
+  ],
+  "checkpoint_sha256": "932e3849e366d6ca2dc2f7b8b36b08626c5615fc6947f4a3f35fa338e2860bfd",
+  "generation_pipeline_sha256": "1d3507e2fac7de0d89ef0639c51e33c45c2bb34928ff663cc89b79474f4b3014",
+  "evaluation_code_sha256": {
+    "evaluate_generation.py": "96ae6b76786ce36c501b6db288024c0781a72ad448137f2638d7958216b36400",
+    "standard_metrics.py": "88fe1b41e01e8d29874bd48047f7cddd75a9f40fe4aede64ba5a289eb48e088e",
+    "representation_audit.py": "4e2feeb33bcf3d77192ae1d6725cc6ff754286717626f02242de0f43e6d85415",
+    "benchmark_comp_scaler.json": "1cc01253dc63acbda5c9175186a7ce1d8220efb0c58c1463f2ee13f34193744e"
+  },
+  "test_sha256": [
+    "e3e9e84b8560ac895ac82cc94ce55ce6c9bce09b5250b4fdd9370a7d85881fcf",
+    "e26d326abd232395382568fdef2913694f9f3d3035481179c469683a3c009f2a",
+    "59c301f824cedc1479b2ac32357963a18c811457d75118cb510dcb2e5f3bce41"
+  ],
+  "assessment_provenance": null,
+  "assessments_sha256": null,
+  "reference_assessments_sha256": null,
+  "versions": {
+    "smact": "3.2.0",
+    "matminer": "0.9.3",
+    "pymatgen": "2025.4.17",
+    "numpy": "1.26.4"
+  },
+  "jobs": {
+    "mp_20_unconditional": {
+      "attempted": 256,
+      "generated": 256,
+      "legacy_structural_valid": {
+        "evaluated": 256,
+        "passed": 248,
+        "unknown": 0,
+        "rate_over_all_attempts": 0.96875,
+        "rate_on_evaluated": 0.96875
+      },
+      "periodic_distance_valid": {
+        "evaluated": 256,
+        "passed": 248,
+        "unknown": 0,
+        "rate_over_all_attempts": 0.96875,
+        "rate_on_evaluated": 0.96875
+      },
+      "radius_distance_valid": {
+        "evaluated": 256,
+        "passed": 213,
+        "unknown": 0,
+        "rate_over_all_attempts": 0.83203125,
+        "rate_on_evaluated": 0.83203125
+      },
+      "composition_valid": {
+        "evaluated": 249,
+        "passed": 224,
+        "unknown": 7,
+        "rate_over_all_attempts": 0.875,
+        "rate_on_evaluated": 0.8995983935742972
+      },
+      "joint_valid": {
+        "evaluated": 249,
+        "passed": 218,
+        "unknown": 7,
+        "rate_over_all_attempts": 0.8515625,
+        "rate_on_evaluated": 0.8755020080321285
+      },
+      "exact_target_group": {
+        "evaluated": 256,
+        "passed": 255,
+        "unknown": 0,
+        "rate_over_all_attempts": 0.99609375,
+        "rate_on_evaluated": 0.99609375
+      },
+      "unique": {
+        "evaluated": 218,
+        "passed": 218,
+        "unknown": 38,
+        "rate_over_all_attempts": 0.8515625,
+        "rate_on_evaluated": 1.0
+      },
+      "novel_against_reference": {
+        "evaluated": 218,
+        "passed": 170,
+        "unknown": 38,
+        "rate_over_all_attempts": 0.6640625,
+        "rate_on_evaluated": 0.7798165137614679
+      },
+      "kind": "space",
+      "requested_properties": {},
+      "protocol": {
+        "fingerprints_enabled": true,
+        "structural_cutoff": 0.4,
+        "composition_cutoff": 10,
+        "matcher_scale": false,
+        "geometry_cutoff_angstrom": 0.5,
+        "hull_threshold_ev_per_atom": 0.1
+      },
+      "fingerprint_protocol": "CrystalNN-ops (61), Magpie (132), prior CGDiT scaler; 2D uses h=max(24 \u00c5, thickness+12 \u00c5) auxiliary Voronoi closure, rejects nonzero normal-image chemical weights",
+      "valid_unique_novel_count": 170,
+      "valid_unique_novel_rate_over_all_attempts": 0.6640625,
+      "coverage": {
+        "status": "complete",
+        "cov_recall": 0.7840807174887893,
+        "cov_precision": 0.94140625,
+        "cov_recall_lower_bound_over_all_reference": 0.7840807174887893,
+        "amsd_recall": 0.272866383433792,
+        "amsd_precision": 0.17089817666585647,
+        "amcd_recall": 6.524203668818933,
+        "amcd_precision": 3.4148111689065646,
+        "generated_fingerprints": 248,
+        "reference_fingerprints": 4460,
+        "reference_requested": 4460,
+        "structural_cutoff": 0.4,
+        "composition_cutoff": 10,
+        "protocol": "Independent nearest structure/composition distances, matching prior CGDiT/CDVAE; COV-P uses all attempts. 2D uses auxiliary-Voronoi closure with zero normal-image chemical weights, and is a layer-adapted metric."
+      },
+      "distributions": {
+        "density_g_cm3": {
+          "wasserstein": 2.96146759293944,
+          "generated_count": 218,
+          "reference_count": 4460
+        },
+        "volume_per_atom_angstrom3": {
+          "wasserstein": 3.910547566928815,
+          "generated_count": 218,
+          "reference_count": 4460
+        },
+        "area_per_atom_angstrom2": {
+          "wasserstein": null,
+          "generated_count": 0,
+          "reference_count": 0
+        },
+        "layer_thickness_angstrom": {
+          "wasserstein": null,
+          "generated_count": 0,
+          "reference_count": 0
+        },
+        "num_elements": {
+          "wasserstein": 0.3326387460402353,
+          "generated_count": 218,
+          "reference_count": 4460
+        }
+      },
+      "external": {
+        "status": "not_evaluated",
+        "properties": {},
+        "joint_valid_property_hits": 0,
+        "joint_valid_property_hit_rate_over_all_attempts": null,
+        "stable_count": null,
+        "sun_count": null,
+        "relaxed_energy_evaluated": 0,
+        "sun_evaluated": 0,
+        "stable_rate_over_all_attempts": null,
+        "sun_rate_over_all_attempts": null,
+        "hull_threshold_ev_per_atom": 0.1
+      },
+      "scope": "Legacy validity is the prior 0.5 \u00c5 / volume protocol. Joint validity additionally includes fingerprint success when enabled. Periodic-image/radius checks are separate. Uniqueness/novelty are evaluated on joint-valid structures; novelty is against the selected same-kind TRAIN references. Layer coverage/matching are adapted metrics, not published MP20 scores. External quantities require independent assessments. Symmetry uses stored generation identification unless --reidentify is used.",
+      "samples_sha256": "e7a463bb7354f96680a4544869b934b5c85e6e822f304331601e98806082f045",
+      "dataset": "mp_20",
+      "sampling": {
+        "seed": "142",
+        "guidance": "0",
+        "steps": "64",
+        "prior": false,
+        "fixed_descriptor": false,
+        "wall_seconds": 262.60621086135507,
+        "seconds_per_attempt": 1.0258055111771682
+      },
+      "property_distributions": {
+        "formation_energy": {
+          "wasserstein": null,
+          "generated_count": 0,
+          "reference_count": 0,
+          "reference_requested": 4460,
+          "status": "not_evaluated"
+        },
+        "band_gap": {
+          "wasserstein": null,
+          "generated_count": 0,
+          "reference_count": 0,
+          "reference_requested": 4460,
+          "status": "not_evaluated"
+        },
+        "energy_above_hull": {
+          "wasserstein": null,
+          "generated_count": 0,
+          "reference_count": 0,
+          "reference_requested": 4460,
+          "status": "not_evaluated"
+        }
+      },
+      "metrics_csv_sha256": "97b62ced900981b1cd9d8ab233e52bef11f5ad36da9b6d1015cd42c5c16cf60f"
+    },
+    "mp_20_conditional": {
+      "attempted": 256,
+      "generated": 256,
+      "legacy_structural_valid": {
+        "evaluated": 254,
+        "passed": 238,
+        "unknown": 2,
+        "rate_over_all_attempts": 0.9296875,
+        "rate_on_evaluated": 0.937007874015748
+      },
+      "periodic_distance_valid": {
+        "evaluated": 254,
+        "passed": 238,
+        "unknown": 2,
+        "rate_over_all_attempts": 0.9296875,
+        "rate_on_evaluated": 0.937007874015748
+      },
+      "radius_distance_valid": {
+        "evaluated": 254,
+        "passed": 172,
+        "unknown": 2,
+        "rate_over_all_attempts": 0.671875,
+        "rate_on_evaluated": 0.6771653543307087
+      },
+      "composition_valid": {
+        "evaluated": 254,
+        "passed": 249,
+        "unknown": 2,
+        "rate_over_all_attempts": 0.97265625,
+        "rate_on_evaluated": 0.9803149606299213
+      },
+      "joint_valid": {
+        "evaluated": 256,
+        "passed": 233,
+        "unknown": 0,
+        "rate_over_all_attempts": 0.91015625,
+        "rate_on_evaluated": 0.91015625
+      },
+      "exact_target_group": {
+        "evaluated": 254,
+        "passed": 254,
+        "unknown": 2,
+        "rate_over_all_attempts": 0.9921875,
+        "rate_on_evaluated": 1.0
+      },
+      "unique": {
+        "evaluated": 233,
+        "passed": 141,
+        "unknown": 23,
+        "rate_over_all_attempts": 0.55078125,
+        "rate_on_evaluated": 0.6051502145922747
+      },
+      "novel_against_reference": {
+        "evaluated": 233,
+        "passed": 212,
+        "unknown": 23,
+        "rate_over_all_attempts": 0.828125,
+        "rate_on_evaluated": 0.9098712446351931
+      },
+      "kind": "space",
+      "requested_properties": {
+        "formation_energy": -1.0,
+        "band_gap": 1.0
+      },
+      "protocol": {
+        "fingerprints_enabled": true,
+        "structural_cutoff": 0.4,
+        "composition_cutoff": 10,
+        "matcher_scale": false,
+        "geometry_cutoff_angstrom": 0.5,
+        "hull_threshold_ev_per_atom": 0.1
+      },
+      "fingerprint_protocol": "CrystalNN-ops (61), Magpie (132), prior CGDiT scaler; 2D uses h=max(24 \u00c5, thickness+12 \u00c5) auxiliary Voronoi closure, rejects nonzero normal-image chemical weights",
+      "valid_unique_novel_count": 136,
+      "valid_unique_novel_rate_over_all_attempts": 0.53125,
+      "coverage": {
+        "status": "complete",
+        "cov_recall": 0.2845291479820628,
+        "cov_precision": 0.91796875,
+        "cov_recall_lower_bound_over_all_reference": 0.2845291479820628,
+        "amsd_recall": 0.49654854794586467,
+        "amsd_precision": 0.2512747706593674,
+        "amcd_recall": 10.167409589679151,
+        "amcd_precision": 4.453150920654951,
+        "generated_fingerprints": 238,
+        "reference_fingerprints": 4460,
+        "reference_requested": 4460,
+        "structural_cutoff": 0.4,
+        "composition_cutoff": 10,
+        "protocol": "Independent nearest structure/composition distances, matching prior CGDiT/CDVAE; COV-P uses all attempts. 2D uses auxiliary-Voronoi closure with zero normal-image chemical weights, and is a layer-adapted metric."
+      },
+      "distributions": {
+        "density_g_cm3": {
+          "wasserstein": 0.7090039959661513,
+          "generated_count": 233,
+          "reference_count": 4460
+        },
+        "volume_per_atom_angstrom3": {
+          "wasserstein": 7.609554368282043,
+          "generated_count": 233,
+          "reference_count": 4460
+        },
+        "area_per_atom_angstrom2": {
+          "wasserstein": null,
+          "generated_count": 0,
+          "reference_count": 0
+        },
+        "layer_thickness_angstrom": {
+          "wasserstein": null,
+          "generated_count": 0,
+          "reference_count": 0
+        },
+        "num_elements": {
+          "wasserstein": 0.3070853942531612,
+          "generated_count": 233,
+          "reference_count": 4460
+        }
+      },
+      "external": {
+        "status": "not_evaluated",
+        "properties": {
+          "formation_energy": {
+            "evaluated": 0,
+            "absolute_error": {
+              "count": 0
+            },
+            "mae": null,
+            "valid_hit_count": 0,
+            "valid_hit_rate_over_all_attempts": null,
+            "tolerance": 0.1
+          },
+          "band_gap": {
+            "evaluated": 0,
+            "absolute_error": {
+              "count": 0
+            },
+            "mae": null,
+            "valid_hit_count": 0,
+            "valid_hit_rate_over_all_attempts": null,
+            "tolerance": 0.2
+          }
+        },
+        "joint_valid_property_hits": 0,
+        "joint_valid_property_hit_rate_over_all_attempts": null,
+        "stable_count": null,
+        "sun_count": null,
+        "relaxed_energy_evaluated": 0,
+        "sun_evaluated": 0,
+        "stable_rate_over_all_attempts": null,
+        "sun_rate_over_all_attempts": null,
+        "hull_threshold_ev_per_atom": 0.1
+      },
+      "scope": "Legacy validity is the prior 0.5 \u00c5 / volume protocol. Joint validity additionally includes fingerprint success when enabled. Periodic-image/radius checks are separate. Uniqueness/novelty are evaluated on joint-valid structures; novelty is against the selected same-kind TRAIN references. Layer coverage/matching are adapted metrics, not published MP20 scores. External quantities require independent assessments. Symmetry uses stored generation identification unless --reidentify is used.",
+      "samples_sha256": "7c00feb4287cf47fd730e9c765ef0e7660baaa322e308b3417e94b7604d8fb8b",
+      "dataset": "mp_20",
+      "sampling": {
+        "seed": "142",
+        "guidance": "2.0",
+        "steps": "64",
+        "prior": false,
+        "fixed_descriptor": false,
+        "wall_seconds": 491.7862737737596,
+        "seconds_per_attempt": 1.9210401319287485
+      },
+      "property_distributions": {
+        "formation_energy": {
+          "wasserstein": null,
+          "generated_count": 0,
+          "reference_count": 0,
+          "reference_requested": 4460,
+          "status": "not_evaluated"
+        },
+        "band_gap": {
+          "wasserstein": null,
+          "generated_count": 0,
+          "reference_count": 0,
+          "reference_requested": 4460,
+          "status": "not_evaluated"
+        },
+        "energy_above_hull": {
+          "wasserstein": null,
+          "generated_count": 0,
+          "reference_count": 0,
+          "reference_requested": 4460,
+          "status": "not_evaluated"
+        }
+      },
+      "metrics_csv_sha256": "6acb4dbcd68098a9707f1aab87efc385c33c501e23abbbb6f2b522d166e65458"
+    },
+    "mpts_52_unconditional": {
+      "attempted": 256,
+      "generated": 256,
+      "legacy_structural_valid": {
+        "evaluated": 253,
+        "passed": 244,
+        "unknown": 3,
+        "rate_over_all_attempts": 0.953125,
+        "rate_on_evaluated": 0.9644268774703557
+      },
+      "periodic_distance_valid": {
+        "evaluated": 253,
+        "passed": 244,
+        "unknown": 3,
+        "rate_over_all_attempts": 0.953125,
+        "rate_on_evaluated": 0.9644268774703557
+      },
+      "radius_distance_valid": {
+        "evaluated": 253,
+        "passed": 204,
+        "unknown": 3,
+        "rate_over_all_attempts": 0.796875,
+        "rate_on_evaluated": 0.8063241106719368
+      },
+      "composition_valid": {
+        "evaluated": 251,
+        "passed": 223,
+        "unknown": 5,
+        "rate_over_all_attempts": 0.87109375,
+        "rate_on_evaluated": 0.8884462151394422
+      },
+      "joint_valid": {
+        "evaluated": 254,
+        "passed": 217,
+        "unknown": 2,
+        "rate_over_all_attempts": 0.84765625,
+        "rate_on_evaluated": 0.8543307086614174
+      },
+      "exact_target_group": {
+        "evaluated": 253,
+        "passed": 253,
+        "unknown": 3,
+        "rate_over_all_attempts": 0.98828125,
+        "rate_on_evaluated": 1.0
+      },
+      "unique": {
+        "evaluated": 217,
+        "passed": 217,
+        "unknown": 39,
+        "rate_over_all_attempts": 0.84765625,
+        "rate_on_evaluated": 1.0
+      },
+      "novel_against_reference": {
+        "evaluated": 217,
+        "passed": 163,
+        "unknown": 39,
+        "rate_over_all_attempts": 0.63671875,
+        "rate_on_evaluated": 0.7511520737327189
+      },
+      "kind": "space",
+      "requested_properties": {},
+      "protocol": {
+        "fingerprints_enabled": true,
+        "structural_cutoff": 0.4,
+        "composition_cutoff": 10,
+        "matcher_scale": false,
+        "geometry_cutoff_angstrom": 0.5,
+        "hull_threshold_ev_per_atom": 0.1
+      },
+      "fingerprint_protocol": "CrystalNN-ops (61), Magpie (132), prior CGDiT scaler; 2D uses h=max(24 \u00c5, thickness+12 \u00c5) auxiliary Voronoi closure, rejects nonzero normal-image chemical weights",
+      "valid_unique_novel_count": 163,
+      "valid_unique_novel_rate_over_all_attempts": 0.63671875,
+      "coverage": {
+        "status": "partial_reference_fingerprints",
+        "cov_recall": 0.777447335811648,
+        "cov_precision": 0.90625,
+        "cov_recall_lower_bound_over_all_reference": 0.7772547076313181,
+        "amsd_recall": 0.2995825799743052,
+        "amsd_precision": 0.17271951653000808,
+        "amcd_recall": 6.992966910684658,
+        "amcd_precision": 3.669841624820039,
+        "generated_fingerprints": 244,
+        "reference_fingerprints": 4035,
+        "reference_requested": 4036,
+        "structural_cutoff": 0.4,
+        "composition_cutoff": 10,
+        "protocol": "Independent nearest structure/composition distances, matching prior CGDiT/CDVAE; COV-P uses all attempts. 2D uses auxiliary-Voronoi closure with zero normal-image chemical weights, and is a layer-adapted metric."
+      },
+      "distributions": {
+        "density_g_cm3": {
+          "wasserstein": 2.794008116864952,
+          "generated_count": 217,
+          "reference_count": 4036
+        },
+        "volume_per_atom_angstrom3": {
+          "wasserstein": 5.165366152777356,
+          "generated_count": 217,
+          "reference_count": 4036
+        },
+        "area_per_atom_angstrom2": {
+          "wasserstein": null,
+          "generated_count": 0,
+          "reference_count": 0
+        },
+        "layer_thickness_angstrom": {
+          "wasserstein": null,
+          "generated_count": 0,
+          "reference_count": 0
+        },
+        "num_elements": {
+          "wasserstein": 0.529513183194567,
+          "generated_count": 217,
+          "reference_count": 4036
+        }
+      },
+      "external": {
+        "status": "not_evaluated",
+        "properties": {},
+        "joint_valid_property_hits": 0,
+        "joint_valid_property_hit_rate_over_all_attempts": null,
+        "stable_count": null,
+        "sun_count": null,
+        "relaxed_energy_evaluated": 0,
+        "sun_evaluated": 0,
+        "stable_rate_over_all_attempts": null,
+        "sun_rate_over_all_attempts": null,
+        "hull_threshold_ev_per_atom": 0.1
+      },
+      "scope": "Legacy validity is the prior 0.5 \u00c5 / volume protocol. Joint validity additionally includes fingerprint success when enabled. Periodic-image/radius checks are separate. Uniqueness/novelty are evaluated on joint-valid structures; novelty is against the selected same-kind TRAIN references. Layer coverage/matching are adapted metrics, not published MP20 scores. External quantities require independent assessments. Symmetry uses stored generation identification unless --reidentify is used.",
+      "samples_sha256": "94b47aa890f2b00da3e8d2b69d30a6303fe3a0ea87ca23ca289616cb29dc67a2",
+      "dataset": "mpts_52",
+      "sampling": {
+        "seed": "142",
+        "guidance": "0",
+        "steps": "64",
+        "prior": false,
+        "fixed_descriptor": false,
+        "wall_seconds": 285.6672102250159,
+        "seconds_per_attempt": 1.1158875399414683
+      },
+      "property_distributions": {
+        "formation_energy": {
+          "wasserstein": null,
+          "generated_count": 0,
+          "reference_count": 0,
+          "reference_requested": 4036,
+          "status": "not_evaluated"
+        },
+        "band_gap": {
+          "wasserstein": null,
+          "generated_count": 0,
+          "reference_count": 0,
+          "reference_requested": 4036,
+          "status": "not_evaluated"
+        },
+        "energy_above_hull": {
+          "wasserstein": null,
+          "generated_count": 0,
+          "reference_count": 0,
+          "reference_requested": 4036,
+          "status": "not_evaluated"
+        }
+      },
+      "metrics_csv_sha256": "053fcc0fc89a68e3cf5ddbce94db138318480b8e9ad7cfbcb72c8e2895f99aa1"
+    },
+    "mpts_52_conditional": {
+      "attempted": 256,
+      "generated": 256,
+      "legacy_structural_valid": {
+        "evaluated": 254,
+        "passed": 243,
+        "unknown": 2,
+        "rate_over_all_attempts": 0.94921875,
+        "rate_on_evaluated": 0.9566929133858267
+      },
+      "periodic_distance_valid": {
+        "evaluated": 254,
+        "passed": 243,
+        "unknown": 2,
+        "rate_over_all_attempts": 0.94921875,
+        "rate_on_evaluated": 0.9566929133858267
+      },
+      "radius_distance_valid": {
+        "evaluated": 254,
+        "passed": 190,
+        "unknown": 2,
+        "rate_over_all_attempts": 0.7421875,
+        "rate_on_evaluated": 0.7480314960629921
+      },
+      "composition_valid": {
+        "evaluated": 254,
+        "passed": 201,
+        "unknown": 2,
+        "rate_over_all_attempts": 0.78515625,
+        "rate_on_evaluated": 0.7913385826771654
+      },
+      "joint_valid": {
+        "evaluated": 256,
+        "passed": 192,
+        "unknown": 0,
+        "rate_over_all_attempts": 0.75,
+        "rate_on_evaluated": 0.75
+      },
+      "exact_target_group": {
+        "evaluated": 254,
+        "passed": 252,
+        "unknown": 2,
+        "rate_over_all_attempts": 0.984375,
+        "rate_on_evaluated": 0.9921259842519685
+      },
+      "unique": {
+        "evaluated": 192,
+        "passed": 157,
+        "unknown": 64,
+        "rate_over_all_attempts": 0.61328125,
+        "rate_on_evaluated": 0.8177083333333334
+      },
+      "novel_against_reference": {
+        "evaluated": 192,
+        "passed": 137,
+        "unknown": 64,
+        "rate_over_all_attempts": 0.53515625,
+        "rate_on_evaluated": 0.7135416666666666
+      },
+      "kind": "space",
+      "requested_properties": {
+        "formation_energy": -1.0,
+        "energy_above_hull": 0.0
+      },
+      "protocol": {
+        "fingerprints_enabled": true,
+        "structural_cutoff": 0.4,
+        "composition_cutoff": 10,
+        "matcher_scale": false,
+        "geometry_cutoff_angstrom": 0.5,
+        "hull_threshold_ev_per_atom": 0.1
+      },
+      "fingerprint_protocol": "CrystalNN-ops (61), Magpie (132), prior CGDiT scaler; 2D uses h=max(24 \u00c5, thickness+12 \u00c5) auxiliary Voronoi closure, rejects nonzero normal-image chemical weights",
+      "valid_unique_novel_count": 119,
+      "valid_unique_novel_rate_over_all_attempts": 0.46484375,
+      "coverage": {
+        "status": "partial_reference_fingerprints",
+        "cov_recall": 0.6332094175960347,
+        "cov_precision": 0.9375,
+        "cov_recall_lower_bound_over_all_reference": 0.6330525272547076,
+        "amsd_recall": 0.3236815356713895,
+        "amsd_precision": 0.18581321180391486,
+        "amcd_recall": 8.31279108717691,
+        "amcd_precision": 3.553799576636043,
+        "generated_fingerprints": 243,
+        "reference_fingerprints": 4035,
+        "reference_requested": 4036,
+        "structural_cutoff": 0.4,
+        "composition_cutoff": 10,
+        "protocol": "Independent nearest structure/composition distances, matching prior CGDiT/CDVAE; COV-P uses all attempts. 2D uses auxiliary-Voronoi closure with zero normal-image chemical weights, and is a layer-adapted metric."
+      },
+      "distributions": {
+        "density_g_cm3": {
+          "wasserstein": 3.9362327855331927,
+          "generated_count": 192,
+          "reference_count": 4036
+        },
+        "volume_per_atom_angstrom3": {
+          "wasserstein": 4.871359879060575,
+          "generated_count": 192,
+          "reference_count": 4036
+        },
+        "area_per_atom_angstrom2": {
+          "wasserstein": null,
+          "generated_count": 0,
+          "reference_count": 0
+        },
+        "layer_thickness_angstrom": {
+          "wasserstein": null,
+          "generated_count": 0,
+          "reference_count": 0
+        },
+        "num_elements": {
+          "wasserstein": 0.3255234142715561,
+          "generated_count": 192,
+          "reference_count": 4036
+        }
+      },
+      "external": {
+        "status": "not_evaluated",
+        "properties": {
+          "formation_energy": {
+            "evaluated": 0,
+            "absolute_error": {
+              "count": 0
+            },
+            "mae": null,
+            "valid_hit_count": 0,
+            "valid_hit_rate_over_all_attempts": null,
+            "tolerance": 0.1
+          },
+          "energy_above_hull": {
+            "evaluated": 0,
+            "absolute_error": {
+              "count": 0
+            },
+            "mae": null,
+            "valid_hit_count": 0,
+            "valid_hit_rate_over_all_attempts": null,
+            "tolerance": 0.05
+          }
+        },
+        "joint_valid_property_hits": 0,
+        "joint_valid_property_hit_rate_over_all_attempts": null,
+        "stable_count": null,
+        "sun_count": null,
+        "relaxed_energy_evaluated": 0,
+        "sun_evaluated": 0,
+        "stable_rate_over_all_attempts": null,
+        "sun_rate_over_all_attempts": null,
+        "hull_threshold_ev_per_atom": 0.1
+      },
+      "scope": "Legacy validity is the prior 0.5 \u00c5 / volume protocol. Joint validity additionally includes fingerprint success when enabled. Periodic-image/radius checks are separate. Uniqueness/novelty are evaluated on joint-valid structures; novelty is against the selected same-kind TRAIN references. Layer coverage/matching are adapted metrics, not published MP20 scores. External quantities require independent assessments. Symmetry uses stored generation identification unless --reidentify is used.",
+      "samples_sha256": "5a9520df6d58d654bcfdf5ca8a6814b249841a347c372c681d4183dbfeca1ec5",
+      "dataset": "mpts_52",
+      "sampling": {
+        "seed": "142",
+        "guidance": "2.0",
+        "steps": "64",
+        "prior": false,
+        "fixed_descriptor": false,
+        "wall_seconds": 527.620297677815,
+        "seconds_per_attempt": 2.0610167878039647
+      },
+      "property_distributions": {
+        "formation_energy": {
+          "wasserstein": null,
+          "generated_count": 0,
+          "reference_count": 0,
+          "reference_requested": 4036,
+          "status": "not_evaluated"
+        },
+        "band_gap": {
+          "wasserstein": null,
+          "generated_count": 0,
+          "reference_count": 0,
+          "reference_requested": 4036,
+          "status": "not_evaluated"
+        },
+        "energy_above_hull": {
+          "wasserstein": null,
+          "generated_count": 0,
+          "reference_count": 0,
+          "reference_requested": 4036,
+          "status": "not_evaluated"
+        }
+      },
+      "metrics_csv_sha256": "883f75618afbde5f2e87b74d5f2eb980f77f7b22f9a51e6af5e42c2318e5d3be"
+    },
+    "c2db_51_unconditional": {
+      "attempted": 256,
+      "generated": 256,
+      "legacy_structural_valid": {
+        "evaluated": 255,
+        "passed": 244,
+        "unknown": 1,
+        "rate_over_all_attempts": 0.953125,
+        "rate_on_evaluated": 0.9568627450980393
+      },
+      "periodic_distance_valid": {
+        "evaluated": 255,
+        "passed": 244,
+        "unknown": 1,
+        "rate_over_all_attempts": 0.953125,
+        "rate_on_evaluated": 0.9568627450980393
+      },
+      "radius_distance_valid": {
+        "evaluated": 255,
+        "passed": 201,
+        "unknown": 1,
+        "rate_over_all_attempts": 0.78515625,
+        "rate_on_evaluated": 0.788235294117647
+      },
+      "composition_valid": {
+        "evaluated": 255,
+        "passed": 230,
+        "unknown": 1,
+        "rate_over_all_attempts": 0.8984375,
+        "rate_on_evaluated": 0.9019607843137255
+      },
+      "joint_valid": {
+        "evaluated": 256,
+        "passed": 220,
+        "unknown": 0,
+        "rate_over_all_attempts": 0.859375,
+        "rate_on_evaluated": 0.859375
+      },
+      "exact_target_group": {
+        "evaluated": 255,
+        "passed": 255,
+        "unknown": 1,
+        "rate_over_all_attempts": 0.99609375,
+        "rate_on_evaluated": 1.0
+      },
+      "unique": {
+        "evaluated": 220,
+        "passed": 219,
+        "unknown": 36,
+        "rate_over_all_attempts": 0.85546875,
+        "rate_on_evaluated": 0.9954545454545455
+      },
+      "novel_against_reference": {
+        "evaluated": 220,
+        "passed": 200,
+        "unknown": 36,
+        "rate_over_all_attempts": 0.78125,
+        "rate_on_evaluated": 0.9090909090909091
+      },
+      "kind": "layer",
+      "requested_properties": {},
+      "protocol": {
+        "fingerprints_enabled": true,
+        "structural_cutoff": 0.4,
+        "composition_cutoff": 10,
+        "matcher_scale": false,
+        "geometry_cutoff_angstrom": 0.5,
+        "hull_threshold_ev_per_atom": 0.1
+      },
+      "fingerprint_protocol": "CrystalNN-ops (61), Magpie (132), prior CGDiT scaler; 2D uses h=max(24 \u00c5, thickness+12 \u00c5) auxiliary Voronoi closure, rejects nonzero normal-image chemical weights",
+      "valid_unique_novel_count": 199,
+      "valid_unique_novel_rate_over_all_attempts": 0.77734375,
+      "coverage": {
+        "status": "complete",
+        "cov_recall": 0.8499137435307648,
+        "cov_precision": 0.9140625,
+        "cov_recall_lower_bound_over_all_reference": 0.8499137435307648,
+        "amsd_recall": 0.2650666077257137,
+        "amsd_precision": 0.20016241768234394,
+        "amcd_recall": 5.276549351944211,
+        "amcd_precision": 2.8867324324501826,
+        "generated_fingerprints": 244,
+        "reference_fingerprints": 1739,
+        "reference_requested": 1739,
+        "structural_cutoff": 0.4,
+        "composition_cutoff": 10,
+        "protocol": "Independent nearest structure/composition distances, matching prior CGDiT/CDVAE; COV-P uses all attempts. 2D uses auxiliary-Voronoi closure with zero normal-image chemical weights, and is a layer-adapted metric."
+      },
+      "distributions": {
+        "density_g_cm3": {
+          "wasserstein": null,
+          "generated_count": 0,
+          "reference_count": 0
+        },
+        "volume_per_atom_angstrom3": {
+          "wasserstein": null,
+          "generated_count": 0,
+          "reference_count": 0
+        },
+        "area_per_atom_angstrom2": {
+          "wasserstein": 0.1440455220460573,
+          "generated_count": 220,
+          "reference_count": 1739
+        },
+        "layer_thickness_angstrom": {
+          "wasserstein": 0.5683410065850734,
+          "generated_count": 220,
+          "reference_count": 1739
+        },
+        "num_elements": {
+          "wasserstein": 0.4438993151759109,
+          "generated_count": 220,
+          "reference_count": 1739
+        }
+      },
+      "external": {
+        "status": "not_evaluated",
+        "properties": {},
+        "joint_valid_property_hits": 0,
+        "joint_valid_property_hit_rate_over_all_attempts": null,
+        "stable_count": null,
+        "sun_count": null,
+        "relaxed_energy_evaluated": 0,
+        "sun_evaluated": 0,
+        "stable_rate_over_all_attempts": null,
+        "sun_rate_over_all_attempts": null,
+        "hull_threshold_ev_per_atom": 0.1
+      },
+      "scope": "Legacy validity is the prior 0.5 \u00c5 / volume protocol. Joint validity additionally includes fingerprint success when enabled. Periodic-image/radius checks are separate. Uniqueness/novelty are evaluated on joint-valid structures; novelty is against the selected same-kind TRAIN references. Layer coverage/matching are adapted metrics, not published MP20 scores. External quantities require independent assessments. Symmetry uses stored generation identification unless --reidentify is used.",
+      "samples_sha256": "eb4483d71db7cf9baccb065d33553b7e8535fdefd3c055d21cd3dffc52ca07c8",
+      "dataset": "c2db_51",
+      "sampling": {
+        "seed": "142",
+        "guidance": "0",
+        "steps": "64",
+        "prior": false,
+        "fixed_descriptor": false,
+        "wall_seconds": 397.2988124489784,
+        "seconds_per_attempt": 1.551948486128822
+      },
+      "property_distributions": {
+        "formation_energy": {
+          "wasserstein": null,
+          "generated_count": 0,
+          "reference_count": 0,
+          "reference_requested": 1739,
+          "status": "not_evaluated"
+        },
+        "band_gap": {
+          "wasserstein": null,
+          "generated_count": 0,
+          "reference_count": 0,
+          "reference_requested": 1739,
+          "status": "not_evaluated"
+        },
+        "energy_above_hull": {
+          "wasserstein": null,
+          "generated_count": 0,
+          "reference_count": 0,
+          "reference_requested": 1739,
+          "status": "not_evaluated"
+        }
+      },
+      "metrics_csv_sha256": "37bc518d62f2576fc819fccb7271db91fe7ddfa2478249f959317b2625bfb174"
+    },
+    "c2db_51_conditional": {
+      "attempted": 256,
+      "generated": 256,
+      "legacy_structural_valid": {
+        "evaluated": 256,
+        "passed": 239,
+        "unknown": 0,
+        "rate_over_all_attempts": 0.93359375,
+        "rate_on_evaluated": 0.93359375
+      },
+      "periodic_distance_valid": {
+        "evaluated": 256,
+        "passed": 239,
+        "unknown": 0,
+        "rate_over_all_attempts": 0.93359375,
+        "rate_on_evaluated": 0.93359375
+      },
+      "radius_distance_valid": {
+        "evaluated": 256,
+        "passed": 214,
+        "unknown": 0,
+        "rate_over_all_attempts": 0.8359375,
+        "rate_on_evaluated": 0.8359375
+      },
+      "composition_valid": {
+        "evaluated": 256,
+        "passed": 253,
+        "unknown": 0,
+        "rate_over_all_attempts": 0.98828125,
+        "rate_on_evaluated": 0.98828125
+      },
+      "joint_valid": {
+        "evaluated": 256,
+        "passed": 236,
+        "unknown": 0,
+        "rate_over_all_attempts": 0.921875,
+        "rate_on_evaluated": 0.921875
+      },
+      "exact_target_group": {
+        "evaluated": 256,
+        "passed": 256,
+        "unknown": 0,
+        "rate_over_all_attempts": 1.0,
+        "rate_on_evaluated": 1.0
+      },
+      "unique": {
+        "evaluated": 236,
+        "passed": 178,
+        "unknown": 20,
+        "rate_over_all_attempts": 0.6953125,
+        "rate_on_evaluated": 0.7542372881355932
+      },
+      "novel_against_reference": {
+        "evaluated": 236,
+        "passed": 232,
+        "unknown": 20,
+        "rate_over_all_attempts": 0.90625,
+        "rate_on_evaluated": 0.9830508474576272
+      },
+      "kind": "layer",
+      "requested_properties": {
+        "formation_energy": -1.0,
+        "band_gap": 1.0
+      },
+      "protocol": {
+        "fingerprints_enabled": true,
+        "structural_cutoff": 0.4,
+        "composition_cutoff": 10,
+        "matcher_scale": false,
+        "geometry_cutoff_angstrom": 0.5,
+        "hull_threshold_ev_per_atom": 0.1
+      },
+      "fingerprint_protocol": "CrystalNN-ops (61), Magpie (132), prior CGDiT scaler; 2D uses h=max(24 \u00c5, thickness+12 \u00c5) auxiliary Voronoi closure, rejects nonzero normal-image chemical weights",
+      "valid_unique_novel_count": 174,
+      "valid_unique_novel_rate_over_all_attempts": 0.6796875,
+      "coverage": {
+        "status": "complete",
+        "cov_recall": 0.6520989074180563,
+        "cov_precision": 0.89453125,
+        "cov_recall_lower_bound_over_all_reference": 0.6520989074180563,
+        "amsd_recall": 0.31423954398117343,
+        "amsd_precision": 0.2830090055447506,
+        "amcd_recall": 7.829039962657799,
+        "amcd_precision": 5.148511062046707,
+        "generated_fingerprints": 239,
+        "reference_fingerprints": 1739,
+        "reference_requested": 1739,
+        "structural_cutoff": 0.4,
+        "composition_cutoff": 10,
+        "protocol": "Independent nearest structure/composition distances, matching prior CGDiT/CDVAE; COV-P uses all attempts. 2D uses auxiliary-Voronoi closure with zero normal-image chemical weights, and is a layer-adapted metric."
+      },
+      "distributions": {
+        "density_g_cm3": {
+          "wasserstein": null,
+          "generated_count": 0,
+          "reference_count": 0
+        },
+        "volume_per_atom_angstrom3": {
+          "wasserstein": null,
+          "generated_count": 0,
+          "reference_count": 0
+        },
+        "area_per_atom_angstrom2": {
+          "wasserstein": 0.5140750444674053,
+          "generated_count": 236,
+          "reference_count": 1739
+        },
+        "layer_thickness_angstrom": {
+          "wasserstein": 0.6118713311639642,
+          "generated_count": 236,
+          "reference_count": 1739
+        },
+        "num_elements": {
+          "wasserstein": 0.5499483435833958,
+          "generated_count": 236,
+          "reference_count": 1739
+        }
+      },
+      "external": {
+        "status": "not_evaluated",
+        "properties": {
+          "formation_energy": {
+            "evaluated": 0,
+            "absolute_error": {
+              "count": 0
+            },
+            "mae": null,
+            "valid_hit_count": 0,
+            "valid_hit_rate_over_all_attempts": null,
+            "tolerance": 0.1
+          },
+          "band_gap": {
+            "evaluated": 0,
+            "absolute_error": {
+              "count": 0
+            },
+            "mae": null,
+            "valid_hit_count": 0,
+            "valid_hit_rate_over_all_attempts": null,
+            "tolerance": 0.2
+          }
+        },
+        "joint_valid_property_hits": 0,
+        "joint_valid_property_hit_rate_over_all_attempts": null,
+        "stable_count": null,
+        "sun_count": null,
+        "relaxed_energy_evaluated": 0,
+        "sun_evaluated": 0,
+        "stable_rate_over_all_attempts": null,
+        "sun_rate_over_all_attempts": null,
+        "hull_threshold_ev_per_atom": 0.1
+      },
+      "scope": "Legacy validity is the prior 0.5 \u00c5 / volume protocol. Joint validity additionally includes fingerprint success when enabled. Periodic-image/radius checks are separate. Uniqueness/novelty are evaluated on joint-valid structures; novelty is against the selected same-kind TRAIN references. Layer coverage/matching are adapted metrics, not published MP20 scores. External quantities require independent assessments. Symmetry uses stored generation identification unless --reidentify is used.",
+      "samples_sha256": "c3166bdad1ac02911c4e3ce28151877e740cee51200ba3c15939662bc0c6c17e",
+      "dataset": "c2db_51",
+      "sampling": {
+        "seed": "142",
+        "guidance": "2.0",
+        "steps": "64",
+        "prior": false,
+        "fixed_descriptor": false,
+        "wall_seconds": 511.07135999947786,
+        "seconds_per_attempt": 1.9963724999979604
+      },
+      "property_distributions": {
+        "formation_energy": {
+          "wasserstein": null,
+          "generated_count": 0,
+          "reference_count": 0,
+          "reference_requested": 1739,
+          "status": "not_evaluated"
+        },
+        "band_gap": {
+          "wasserstein": null,
+          "generated_count": 0,
+          "reference_count": 0,
+          "reference_requested": 1739,
+          "status": "not_evaluated"
+        },
+        "energy_above_hull": {
+          "wasserstein": null,
+          "generated_count": 0,
+          "reference_count": 0,
+          "reference_requested": 1739,
+          "status": "not_evaluated"
+        }
+      },
+      "metrics_csv_sha256": "35b489a4d3f7daea5a40271daed70305cd6c67a2b9d54d859288c6497ec82440"
+    }
+  }
+}

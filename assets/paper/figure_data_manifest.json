@@ -1,0 +1,36 @@
+{
+  "input_sha256": {
+    "assets/paper/source/build_manuscript_figures.py": "577f7315dfd78e8c19224858b9aa7e1ffd236e94963f42cdc9275d77a1202152",
+    "assets/paper/source/material_examples.json": "db8736431f0e005e59095fc6b745e259c174f80b07fb96fe9c9e7fcf6ac5b6aa",
+    "scripts/build_paper_results.py": "25237210c6b07378ce219fde2ecc88bd2de041b7f3995715e5a9d884fc70f01b",
+    "assets/representation/summary.json": "ca1a3ef6a6c066732a6c6b58d5de527a403a4201a35b5ae646b748b80ab0cadd",
+    "assets/representation/records.csv.gz": "34403a589bb3720556cac5dea45a0109745c91d4745547ca0aea0507f50cde05",
+    "assets/representation/catalog.csv": "2c3f075062c3e671da2be51aecc5ab06bed351609cbae09e7588d976dcc218c1",
+    "assets/representation/source_reencoding.csv": "bcb48e30df5ef9c03f727d7d6b675b5c8f433738deea997dcd86c15b1da32514"
+  },
+  "input_hash_scope": "Text authoring inputs use LF-normalized SHA256 for cross-platform replay; compressed inputs and imported metric artifacts retain exact-byte SHA256.",
+  "representation": {
+    "prepared_records": 102610,
+    "passed": 102610,
+    "single_orbit_catalog_types": 2280,
+    "source_reencoded": 48,
+    "source_reencoded_passed": 48
+  },
+  "completed_remote_jobs_reported_by_user": [
+    "test",
+    "mp_20_unconditional",
+    "mp_20_conditional",
+    "mpts_52_unconditional",
+    "mpts_52_conditional",
+    "c2db_51_unconditional",
+    "c2db_51_conditional"
+  ],
+  "remote_outcome_metrics_imported": true,
+  "joint_outcome_summary": "assets/paper/tables/joint_preliminary_summary.json",
+  "standard_outcome": {
+    "summary": "assets/paper/tables/joint_standard_summary.json",
+    "summary_sha256": "a6294185299a7b29dbdd95d718a20cc124dcdbbf08bc4280dbfdbbbdfef0270e",
+    "jobs": 6
+  },
+  "scope": "Representation uses audited local records. Joint outcome values, when supplied, are verified against archived attempt files. Encoded examples are not generated candidates; symmetry and distance screens do not certify physical stability or target properties."
+}

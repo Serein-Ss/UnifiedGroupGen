@@ -61,6 +61,8 @@ def collect(manifest):
                    'cov_precision': report['coverage'].get('cov_precision'),
                    'cov_recall': report['coverage'].get('cov_recall'),
                    'coverage_status': report['coverage'].get('status'),
+                   'reference_fingerprints': report['coverage'].get('reference_fingerprints'),
+                   'reference_requested': report['coverage'].get('reference_requested'),
                    'valid_unique_novel_rate': report['valid_unique_novel_rate_over_all_attempts'],
                    'stable_rate': report['external'].get('stable_rate_over_all_attempts'),
                    'sun_rate': report['external'].get('sun_rate_over_all_attempts')}
@@ -156,6 +158,11 @@ def render(table, samples, output):
                 for _, row in rows.iterrows():
                     ax.scatter(np.arange(3)+(i-.5)*.1, [row[k] for k in keys], s=25,
                                color=COLORS[i % len(COLORS)], label=model)
+                    if (row.get('coverage_status') != 'complete' and pd.notna(row.get('reference_fingerprints'))
+                            and pd.notna(row.get('reference_requested'))):
+                        ax.annotate(f'Reference fingerprints: {int(row.reference_fingerprints)}/{int(row.reference_requested)}',
+                                    (1+(i-.5)*.1, row.cov_recall), xytext=(0, 10), textcoords='offset points',
+                                    ha='center', fontsize=7)
             ax.set_xticks(range(3), ['COV-P', 'COV-R', 'Valid unique novel'], rotation=12)
             ax.set_ylim(-.02, 1.04); ax.set_ylabel('Rate (each point = one sampling job)'); ax.set_title(dataset)
             handles, labels = ax.get_legend_handles_labels()

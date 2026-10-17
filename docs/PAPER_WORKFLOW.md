@@ -36,6 +36,7 @@ nohup python -u scripts/verify_representation.py --workers 4 \
 ```bash
 python scripts/evaluate_generation.py \
   --run artifacts/evaluations/joint_best_seed142 \
+  --reference-workers 8 \
   --output artifacts/evaluations/joint_best_seed142_metrics \
   --figures assets/generation_metrics/joint_best_seed142
 ```
@@ -61,11 +62,14 @@ CUDA_VISIBLE_DEVICES=0 nohup python -u scripts/evaluate_joint.py \
 
 ```bash
 python scripts/evaluate_generation.py --run artifacts/evaluations/paper_unconditional4096 \
+  --reference-workers 8 \
   --output artifacts/evaluations/paper_unconditional4096_metrics \
   --figures assets/generation_metrics/paper_unconditional4096
 ```
 
 若需要独立采样重复，用新的协议目录和 --seeds 143 144。它们只是同一个检查点的采样重复；独立训练重复需要不同训练种子和新检查点。估计时间应使用已完成任务的 sampling.status.json 中 seconds/attempted × 新预算，分来源计算，再另加指纹、匹配及独立计算成本，不按显卡峰值算力估计。
+
+参考指纹支持 --reference-workers N 的CPU进程并行，默认1。多进程结果保持输入顺序、失败计数和评价定义；使用8进程前确认CPU与内存预算，并把OMP_NUM_THREADS、MKL_NUM_THREADS设为1避免每个进程再启动多线程。缓存以完整文件原子替换，便于重复评价复用。
 
 ## 4. 条件和连续对照：先准备，再顺序执行
 
@@ -200,3 +204,27 @@ python scripts/build_paper_results.py --manifest artifacts/paper_results_manifes
 ```
 
 输出主表、按群/自由度分层表、精确设置下的重复统计、可追踪输入指纹和PNG。缺少独立性质/稳定性值时对应图标记pending。Wilson区间仅描述该批尝试；同描述、同检查点的样本相关性及单模型种子不被它消除。
+
+## 8. 现有文章、图1–6与本轮结果
+
+正文统一维护在 [UNIFIEDGROUPGEN_MANUSCRIPT_ZH.md](UNIFIEDGROUPGEN_MANUSCRIPT_ZH.md)。图1为TiO₂/MoS₂与统一模型流程，图2为表示检查，图3为本轮共享生成；图4–6的缺失实验明确占位。剩余证据见正文附录E。
+
+将已经完成的标准结果导入论文图表时，使用实际服务器结果目录：
+
+```bash
+python assets/paper/source/build_manuscript_figures.py \
+  --joint-run artifacts/evaluations/joint_best_seed142 \
+  --standard-metrics artifacts/evaluations/joint_best_seed142_metrics/summary.json
+```
+
+程序核对检查点、生成pipeline、测试划分、六组尝试数和逐样本表指纹；不接受运行中的结果。论文目录保存数值汇总及逐样本CSV，Git保留其原始字节，避免换行转换破坏指纹。生成CIF、完整权重及参考指纹缓存仍位于artifacts。
+
+已提交的本轮标准图可直接从论文数据表重画，无需重新采样或计算参考指纹：
+
+```bash
+python scripts/build_paper_results.py \
+  --manifest assets/paper/source/standard_results_manifest.json \
+  --output assets/paper/standard
+```
+
+图像仅保存PNG。更新到服务器后可直接阅读已提交文章与图表；新增正式实验继续使用前述新任务目录，完成后再替换相应占位和正文数值。

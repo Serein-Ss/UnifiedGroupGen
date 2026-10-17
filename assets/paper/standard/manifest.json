@@ -1,0 +1,48 @@
+{
+  "manifest_sha256": "f59bfa211bd869e584ffc358aa5e1367c76cb8135095708de8f6bebb9edd6dfe",
+  "inputs": [
+    {
+      "metrics": "assets\\paper\\tables\\joint_standard_summary.json",
+      "sha256": "a6294185299a7b29dbdd95d718a20cc124dcdbbf08bc4280dbfdbbbdfef0270e",
+      "label": "UnifiedGroupGen (shared)",
+      "model_seed": 42,
+      "checkpoint_sha256": "932e3849e366d6ca2dc2f7b8b36b08626c5615fc6947f4a3f35fa338e2860bfd",
+      "train_sha256": [
+        "483bf45866fe82e259a13633aed6ea92e0676d2f0f06b80f96f6915da5282877",
+        "a5b708fdc9a1ae5da00812463171794a6b708fceb4c1ecfc69e87987bdb4b6b5",
+        "6d1e49b173dba29530a3c386d35c4258e0e57a22a15d430919fa39f47212dda8"
+      ],
+      "test_sha256": [
+        "e3e9e84b8560ac895ac82cc94ce55ce6c9bce09b5250b4fdd9370a7d85881fcf",
+        "e26d326abd232395382568fdef2913694f9f3d3035481179c469683a3c009f2a",
+        "59c301f824cedc1479b2ac32357963a18c811457d75118cb510dcb2e5f3bce41"
+      ],
+      "evaluation_code_sha256": {
+        "evaluate_generation.py": "96ae6b76786ce36c501b6db288024c0781a72ad448137f2638d7958216b36400",
+        "standard_metrics.py": "88fe1b41e01e8d29874bd48047f7cddd75a9f40fe4aede64ba5a289eb48e088e",
+        "representation_audit.py": "4e2feeb33bcf3d77192ae1d6725cc6ff754286717626f02242de0f43e6d85415",
+        "benchmark_comp_scaler.json": "1cc01253dc63acbda5c9175186a7ce1d8220efb0c58c1463f2ee13f34193744e"
+      },
+      "versions": {
+        "smact": "3.2.0",
+        "matminer": "0.9.3",
+        "pymatgen": "2025.4.17",
+        "numpy": "1.26.4"
+      },
+      "assessment_provenance": null
+    }
+  ],
+  "png_files": [
+    "03_shared_generation_validity.png",
+    "03_shared_generation_coverage.png",
+    "03_shared_generation_by_dof.png"
+  ],
+  "attempts": 1536,
+  "metric_jobs": 6,
+  "pending": [
+    "conditional property assessment",
+    "physical relaxation/hull assessment",
+    "matched continuous controls"
+  ],
+  "scope": "Wilson intervals are descriptive per-attempt binomial intervals; correlated same-descriptor samples are not independent materials or model replicates. Repeat means/std summarize listed jobs; compare equal budgets and distinguish sampling from training seeds. Pooling is only within source/mode; no 2D/3D density pooling. Raw provenance is retained for comparison review; collecting files does not establish matched splits or fair external baseline settings."
+}
