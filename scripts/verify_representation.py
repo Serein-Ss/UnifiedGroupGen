@@ -83,6 +83,7 @@ def check_sources(candidates, config, folder, workers):
     from unifiedgroupgen.data import _prepare_worker
     rows, items = [], []
     for dataset, chosen in candidates.items():
+        print(json.dumps({'phase': 'source_lookup', 'dataset': dataset, 'selected': len(chosen)}), flush=True)
         source_config = yaml.safe_load(root_path(config['source_configs'][dataset]).read_text(encoding='utf-8'))
         source_root = root_path(source_config['data_root'])
         portable = ROOT/'raw_data'/dataset
@@ -118,7 +119,7 @@ def check_sources(candidates, config, folder, workers):
          multiprocessing.get_context('spawn').Pool(workers, initializer=_prepare_worker, maxtasksperchild=128) as pool:
         # imap bounds worker state; get(timeout) turns a native abort/hang into a visible failure.
         pending = pool.imap(source_worker, items, chunksize=1)
-        for _ in items:
+        for processed, _ in enumerate(items, 1):
             result = pending.next(timeout=120)
             index = result['row']
             row = work_rows[index]
@@ -131,6 +132,9 @@ def check_sources(candidates, config, folder, workers):
                 row.update(source_reencode_passed=False, reason=str(error))
             stream.write(json.dumps(row, allow_nan=False)+'\n')
             stream.flush()
+            if processed % 100 == 0 or processed == len(items):
+                print(json.dumps({'phase': 'source_reencoding', 'evaluated': processed,
+                                  'requested': len(items)}), flush=True)
         for row in rows:
             if row.get('source_reencode_passed') is None:
                 stream.write(json.dumps(row)+'\n')
