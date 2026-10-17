@@ -1,0 +1,60 @@
+{
+  "passed": true,
+  "decoded_video_frames": 3168,
+  "encoded_video_metadata": {
+    "ffmpeg_version": "7.1-essentials_build-www.gyan.dev built with gcc 14.2.0 (Rev1, Built by MSYS2 project)",
+    "codec": "h264",
+    "pix_fmt": "yuv420p(progressive)",
+    "fps": 12.0,
+    "source_size": [
+      1600,
+      900
+    ],
+    "size": [
+      1600,
+      900
+    ],
+    "rotate": 0,
+    "duration": 264.0
+  },
+  "trajectory_states_checked": 260,
+  "trajectories": [
+    {
+      "example": "mp-2657",
+      "mode": "fixed_generation",
+      "states_checked": 65,
+      "operation_residual_angstrom": 0.0,
+      "tangent_action_residual": 0.0,
+      "metric_relative_residual": 0.0
+    },
+    {
+      "example": "mp-2657",
+      "mode": "full_generation",
+      "states_checked": 65,
+      "operation_residual_angstrom": 0.0,
+      "tangent_action_residual": 0.0,
+      "metric_relative_residual": 0.0
+    },
+    {
+      "example": "1MoS2-1",
+      "mode": "fixed_generation",
+      "states_checked": 65,
+      "operation_residual_angstrom": 0.0,
+      "tangent_action_residual": 0.0,
+      "metric_relative_residual": 3.3903108948406757e-16
+    },
+    {
+      "example": "1MoS2-1",
+      "mode": "full_generation",
+      "states_checked": 65,
+      "operation_residual_angstrom": 0.0,
+      "tangent_action_residual": 0.0,
+      "metric_relative_residual": 4.4121704410497083e-16
+    }
+  ],
+  "maximum_projection_normal_equation_error": 1.9777565940515274e-07,
+  "training_targets_and_feature_shapes_checked": true,
+  "optimizer_updates": 0,
+  "video_sha256": "a35f32898163e7fe0ead6b259dff2e69834c3e474a0f20c7b1d368c3f9d407fa",
+  "scope": "Numerical playback and complete video decode; no chemical or physical certification."
+}

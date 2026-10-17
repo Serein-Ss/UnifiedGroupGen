@@ -1,0 +1,71 @@
+{
+  "width": 1600,
+  "height": 900,
+  "fps": 12,
+  "duration_seconds": 264,
+  "frames": 3168,
+  "video_sha256": "a35f32898163e7fe0ead6b259dff2e69834c3e474a0f20c7b1d368c3f9d407fa",
+  "trace_sha256": "e7da5e621b23c179d8c1c111542a47626ee398843050fa1dcb74afb4bccadc38",
+  "chapters": [
+    {
+      "start_seconds": 0,
+      "duration_seconds": 16,
+      "title": "从真实材料到合法结构生成"
+    },
+    {
+      "start_seconds": 16,
+      "duration_seconds": 24,
+      "title": "01  真实输入数据是什么"
+    },
+    {
+      "start_seconds": 40,
+      "duration_seconds": 24,
+      "title": "02  群—轨道编译器：减少自由度"
+    },
+    {
+      "start_seconds": 64,
+      "duration_seconds": 22,
+      "title": "03  描述 Transformer 如何学习规则"
+    },
+    {
+      "start_seconds": 86,
+      "duration_seconds": 26,
+      "title": "04  一次训练样本的流匹配路径"
+    },
+    {
+      "start_seconds": 112,
+      "duration_seconds": 24,
+      "title": "05  同一个网络内部发生了什么"
+    },
+    {
+      "start_seconds": 136,
+      "duration_seconds": 22,
+      "title": "06  候选速度如何变成合法速度"
+    },
+    {
+      "start_seconds": 158,
+      "duration_seconds": 18,
+      "title": "07  损失函数与反向传播"
+    },
+    {
+      "start_seconds": 176,
+      "duration_seconds": 20,
+      "title": "08  历史训练过程：真实日志"
+    },
+    {
+      "start_seconds": 196,
+      "duration_seconds": 28,
+      "title": "09  固定规则的真实连续生成"
+    },
+    {
+      "start_seconds": 224,
+      "duration_seconds": 24,
+      "title": "10  从组成到规则再到几何"
+    },
+    {
+      "start_seconds": 248,
+      "duration_seconds": 16,
+      "title": "11  最终输出与证据边界"
+    }
+  ]
+}

@@ -8,6 +8,8 @@
 
 ## 文档
 
+- [真实模型全过程视频（4分24秒）](assets/videos/model_walkthrough/README.md)：TiO2/MoS2输入、训练路径、真实中间特征与速度、历史曲线、连续生成及输出检验。
+
 - [中文论文长稿与当前结果](docs/UNIFIEDGROUPGEN_MANUSCRIPT_ZH.md)：统一理论、实际模型、TiO₂/MoS₂示例、实测结果和图1–6的证据缺口。
 
 - [统一表示验证与标准生成评估](docs/STANDARD_EVALUATION.md)：全数据/全群目录、来源重编码、3D/2D有效性、覆盖、分布、去重、新颖性及独立性质接口；新图只输出PNG。
