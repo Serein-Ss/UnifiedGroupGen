@@ -175,11 +175,22 @@ def sample(args):
                 data = json.loads(root_path(args.observations).read_text(encoding='utf-8'))
                 observation = (AffineObservation(data['matrix'], data['values']) if 'matrix' in data
                                else AffineObservation.fixed(compiled.dof, data['indices'], data['values']))
-            generated = sample_flow(flow, compiled, properties, args.steps, args.guidance, observation, composition, generator)
+            if args.prior:
+                state = compiled.prior(args.device, next(flow.parameters()).dtype, generator)
+                if observation is not None:
+                    state = observation.retract(state)
+                generated = compiled.expand(state)
+                generated['state'] = state
+            else:
+                generated = sample_flow(flow, compiled, properties, args.steps, args.guidance, observation, composition, generator)
             report = validate(compiled, generated, isolate_identifier=True)
+            if observation is not None:
+                a, b = observation._tensors(generated['state'])
+                report['observation_max_residual'] = float((a @ generated['state'] - b).abs().max())
             to_structure(compiled, generated).to(filename=str(output/f'sample_{index:05d}.cif'))
             records.append({'index': index, 'descriptor': descriptor.to_dict(), 'state': generated['state'].cpu().tolist(),
-                            'properties_requested': properties, 'validation': report, 'status': 'generated'})
+                            'properties_requested': properties, 'validation': report, 'status': 'generated',
+                            'generator': 'legal_prior' if args.prior else 'learned_flow'})
         except (ValueError, RuntimeError, FloatingPointError) as error:
             records.append({'index': index, 'status': 'failed', 'reason': str(error)})
         # Persist every attempt, including failures, before advancing to the next one.
@@ -239,6 +250,7 @@ def main():
     sampling.add_argument('--composition')
     sampling.add_argument('--descriptor')
     sampling.add_argument('--observations')
+    sampling.add_argument('--prior', action='store_true', help='Legal random chart prior; bypass the trained continuous flow')
     sampling.add_argument('--guidance', type=float, default=1.0)
     sampling.add_argument('--temperature', type=float, default=1.0)
     sampling.add_argument('--steps', type=int, default=64)

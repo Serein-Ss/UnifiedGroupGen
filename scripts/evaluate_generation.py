@@ -36,14 +36,19 @@ def relaxed_metrics(path, training, unique, kind):
         structure = CifParser(path, frac_tolerance=0).parse_structures(primitive=False)[0]
     geometry = geometry_metrics(structure, kind)
     chemistry, _ = composition_validity(structure)
+    from unifiedgroupgen.native_identifier import identify_isolated
+    identified = identify_isolated(layer_structure(structure) if kind == 'layer' else structure, kind)
+    physical = {'relaxed_recovered_group': identified['number'],
+                'relaxed_group_identifier_error': identified.get('error'),
+                'relaxed_minimum_pair_distance_angstrom': geometry.get('minimum_pair_distance_angstrom')}
     formula = structure.composition.reduced_formula
     if not geometry['legacy_structural_valid'] or not chemistry:
-        return {'relaxed_joint_valid': False, 'relaxed_unique': False,
+        return {**physical, 'relaxed_joint_valid': False, 'relaxed_unique': False,
                 'relaxed_novel_against_reference': False, 'relaxed_cif_sha256': file_hash(path)}
     is_unique = not any(structure_match(structure, old, kind) for old in unique[formula])
     if is_unique:
         unique[formula].append(structure)
-    return {'relaxed_joint_valid': bool(geometry['legacy_structural_valid'] and chemistry),
+    return {**physical, 'relaxed_joint_valid': bool(geometry['legacy_structural_valid'] and chemistry),
             'relaxed_unique': is_unique,
             'relaxed_novel_against_reference': not any(structure_match(structure, old, kind)
                                                        for old in training.get(formula, [])),
@@ -112,9 +117,18 @@ def evaluate_samples(samples, references, training, kind, assessments=None, tole
                 raise ValueError('A metrics job must have fixed requested property targets')
             requested_properties = target
         row = {'index': record['index'], 'generated': record['status'] == 'generated', 'joint_valid': None}
+        row.update({f'target_{key}': value for key, value in target.items()})
+        row.update({f'predicted_{key}': value for key, value in (assessments or {}).get(record['index'], {}).items()
+                    if key in ('formation_energy', 'band_gap', 'energy_above_hull')})
         description, validation = record.get('descriptor', {}), record.get('validation', {})
         row.update(target_kind=kind, target_group=description.get('number'),
-                   coordinate_dof=validation.get('coordinate_dof'), lattice_dof=validation.get('lattice_dof'))
+                   coordinate_dof=validation.get('coordinate_dof'), lattice_dof=validation.get('lattice_dof'),
+                   observation_max_residual=validation.get('observation_max_residual'),
+                   recovered_group=validation.get(f'recovered_{kind}_group'),
+                   target_group_containment=validation.get('group_operation_closure'),
+                   metric_residual=validation.get('metric_residual'),
+                   orbit_multiplicity_regular=validation.get('orbit_multiplicity_regular'),
+                   no_coincident_orbits=validation.get('no_coincident_orbits'))
         if not row['generated']:
             row['reason'] = record.get('reason')
             rows.append(row)
@@ -134,8 +148,9 @@ def evaluate_samples(samples, references, training, kind, assessments=None, tole
             if reidentify:
                 from unifiedgroupgen.native_identifier import identify_isolated
                 identified = identify_isolated(layer_structure(structure) if kind != 'space' else structure, kind)
-                row['exact_target_group'] = (identified['number'] == record['descriptor']['number']
-                                            if identified['number'] is not None else None)
+                row['recovered_group'] = identified['number']
+                row['exact_target_group'] = (identified['number'] == description['number']
+                    if identified['number'] is not None and description.get('number') is not None else None)
                 row['identifier_error'] = identified.get('error')
             if use_fingerprints and row['legacy_structural_valid']:
                 try:
@@ -170,6 +185,10 @@ def evaluate_samples(samples, references, training, kind, assessments=None, tole
             print(json.dumps({'phase': 'generated', 'attempted': len(rows), 'requested': len(records)}), flush=True)
     report = validity_summary(rows)
     report['kind'] = kind
+    report['requested_properties'] = requested_properties
+    report['protocol'] = {'fingerprints_enabled': use_fingerprints, 'structural_cutoff': structural_cutoff,
+                          'composition_cutoff': composition_cutoff, 'matcher_scale': False,
+                          'geometry_cutoff_angstrom': 0.5, 'hull_threshold_ev_per_atom': 0.1}
     report['fingerprint_protocol'] = ('CrystalNN-ops (61), Magpie (132), prior CGDiT scaler; '
         '2D uses h=max(24 Å, thickness+12 Å) auxiliary Voronoi closure, rejects nonzero normal-image chemical weights')
     report['valid_unique_novel_count'] = sum(bool(r.get('joint_valid') and r.get('unique')
@@ -251,7 +270,7 @@ def main():
     output.mkdir(parents=True, exist_ok=True); figures.mkdir(parents=True, exist_ok=True)
     train_paths = [root_path(path) for path in config['train_files']]
     test_paths = [root_path(path) for path in config['test_files']]
-    jobs, identity = [], 'user_selected_references'
+    jobs, identity, sampling_settings = [], 'user_selected_references', {}
     if args.run:
         run = root_path(args.run)
         state = json.loads((run/'pipeline.json').read_text(encoding='utf-8'))
@@ -277,6 +296,11 @@ def main():
                     raise ValueError(f'Generation artifact changed: {name}/{file}')
             dataset = next(d for d in config['dataset_domains'] if name.startswith(d+'_'))
             jobs.append((name, dataset, directory/'samples.jsonl'))
+            command = job.get('command', [])
+            sampling_settings[name] = {key: command[command.index('--'+key)+1] for key in
+                ('seed', 'guidance', 'steps') if '--'+key in command}
+            sampling_settings[name]['prior'] = '--prior' in command
+            sampling_settings[name]['fixed_descriptor'] = '--descriptor' in command
     else:
         jobs = [(args.dataset+'_explicit', args.dataset, root_path(args.samples))]
     assessments, provenance = defaultdict(dict), None
@@ -290,19 +314,28 @@ def main():
         if values.duplicated(['job', 'index']).any():
             raise ValueError('Duplicate independent assessment keys')
         attempts = {name: {r['index'] for r in read_jsonl(path)} for name, _, path in jobs}
+        sample_folders = {name: path.parent for name, _, path in jobs}
         for _, row in values.iterrows():
             if row['job'] not in attempts or int(row['index']) not in attempts[row['job']]:
                 raise ValueError('Assessment key does not correspond to a requested generation attempt')
+            if pd.notna(row.get('input_cif_sha256')):
+                cif = sample_folders[row['job']]/f"sample_{int(row['index']):05d}.cif"
+                if file_hash(cif) != row['input_cif_sha256']:
+                    raise ValueError('Assessment input CIF differs from the evaluated sample')
             item = {key: float(row[key]) for key in ('formation_energy', 'band_gap', 'energy_above_hull')
                     if key in row and pd.notna(row[key]) and np.isfinite(row[key])}
             item['relaxation_success'] = str(row.get('relaxation_success', '')).lower() in ('true', '1', '1.0')
             if 'relaxed_cif' in row and pd.notna(row['relaxed_cif']):
                 item['relaxed_cif'] = str(row['relaxed_cif'])
+                if pd.notna(row.get('relaxed_cif_sha256')) and file_hash(root_path(item['relaxed_cif'])) != row['relaxed_cif_sha256']:
+                    raise ValueError('Relaxed CIF changed after independent assessment')
             assessments[row['job']][int(row['index'])] = item
     reference_predictions = defaultdict(dict)
     if args.reference_assessments:
         if provenance.get('reference_evaluator') != provenance['evaluator']:
             raise ValueError('Property Wasserstein distances require the same generated/reference evaluator')
+        if provenance.get('reference_test_sha256') is not None and provenance['reference_test_sha256'] != [file_hash(p) for p in test_paths]:
+            raise ValueError('Independent reference predictions used a different test split')
         predictions = pd.read_csv(root_path(args.reference_assessments), dtype={'id': str})
         if predictions.duplicated(['dataset', 'id']).any():
             raise ValueError('Duplicate test reference prediction keys')
@@ -329,7 +362,8 @@ def main():
     if train_failures:
         (output/'reference_failures.json').write_text(json.dumps(train_failures, indent=2))
         raise ValueError('Novelty references could not all be expanded; refusing incomplete novelty evaluation')
-    reports = {'reference_identity': identity, 'train_sha256': [file_hash(p) for p in train_paths],
+    reports = {'state': 'running', 'reference_identity': identity, 'train_sha256': [file_hash(p) for p in train_paths],
+               'checkpoint_sha256': file_hash(root_path(args.checkpoint)) if args.run else None,
                'generation_pipeline_sha256': file_hash(root_path(args.run)/'pipeline.json') if args.run else None,
                'evaluation_code_sha256': {path.name: file_hash(path) for path in
                    (Path(__file__), ROOT/'src/unifiedgroupgen/standard_metrics.py',
@@ -349,10 +383,19 @@ def main():
             use_fingerprints=not args.no_fingerprints, reidentify=args.reidentify,
             structural_cutoff=args.structural_cutoff, composition_cutoff=args.composition_cutoff)
         report['samples_sha256'] = file_hash(samples)
+        report['dataset'] = dataset
+        report['sampling'] = sampling_settings.get(name, {})
+        status_path = samples.parent/'sampling.status.json'
+        if status_path.exists():
+            timing = json.loads(status_path.read_text(encoding='utf-8'))
+            if timing.get('state') == 'complete' and timing.get('attempted') == report['attempted']:
+                report['sampling']['wall_seconds'] = timing['seconds']
+                report['sampling']['seconds_per_attempt'] = timing['seconds']/report['attempted']
         report['property_distributions'] = property_distances(rows, assessments[name], reference_predictions[dataset],
                                                              references[dataset]['requested'])
         reports['jobs'][name] = report
         pd.DataFrame(rows).to_csv(output/f'{name}.csv', index=False)
+        report['metrics_csv_sha256'] = file_hash(output/f'{name}.csv')
         grouped = pd.DataFrame(rows).groupby('target_group', dropna=False).agg(
             attempted=('index', 'count'), generated=('generated', 'sum'),
             joint_valid=('joint_valid', lambda x: int(x.fillna(False).astype(bool).sum())),
@@ -368,6 +411,8 @@ def main():
               'cov_recall': report['coverage'].get('cov_recall'), 'cov_precision': report['coverage'].get('cov_precision')}
              for name, report in reports['jobs'].items()]
     pd.DataFrame(table).to_csv(output/'summary.csv', index=False)
+    reports['state'] = 'complete'
+    (output/'summary.json').write_text(json.dumps(reports, indent=2, allow_nan=False), encoding='utf-8')
     print(f'[COMPLETE] {output}/summary.json', flush=True)
 
 

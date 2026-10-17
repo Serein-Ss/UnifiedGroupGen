@@ -119,6 +119,8 @@ python -m unifiedgroupgen.cli train --config configs/joint_space_layer_large.yam
 
 ## 已实现与边界
 
+论文补充实验及图表路线见 [论文证据计划](docs/PAPER_EVIDENCE_PLAN.md) 与 [服务器执行流程](docs/PAPER_WORKFLOW.md)。支持按TRAIN性质分位数准备CFG扫描、同描述的先验/学习流/固定晶格对照、同分组划分的分来源重训配置、外部基线完整尝试导入，以及独立ASE计算器评估和PNG汇总。程序可执行不代表相应的正式采样、对照训练或物理计算结果已经取得。
+
 | 项目 | 状态 |
 |---|---|
 | 230 SG / 80 LG / 17 PG 的共同编译接口 | 已实现，群表来源 PyXtal |

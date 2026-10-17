@@ -305,6 +305,7 @@ def external_metrics(rows, requested, assessments, tolerances, hull_threshold=0.
     total = len(rows)
     return {'status': 'provided_independent_assessments' if assessments else 'not_evaluated',
             'properties': {name: {'evaluated': known[name], 'absolute_error': quantiles(errors[name]),
+                'mae': float(np.mean(errors[name])) if errors[name] else None,
                 'valid_hit_count': hits[name], 'valid_hit_rate_over_all_attempts': hits[name]/total if known[name] and total else None,
                 'tolerance': tolerances[name]} for name in requested},
             'joint_valid_property_hits': combined,

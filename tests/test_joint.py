@@ -131,6 +131,15 @@ def test_joint_lineage_detects_geometry_or_label_changes_even_with_updated_file_
               'prepared_root': 'joint', 'joint_split_manifest': 'joint/manifest.json'}
     manifest = joint.prepare_joint(config)
     assert joint.check_joint_lineage(config)['input_records'] == 6
+    subset = {**config, 'joint_split_datasets': ['mp_20']}
+    selected_paths = {split: [Path(item['path']) for item in manifest['outputs']
+                             if item['split'] == split and item['dataset'] == 'mp_20']
+                      for split in ('train', 'val', 'test')}
+    assert joint.check_joint_lineage(subset, selected_paths)['input_records'] == 6
+    with pytest.raises(ValueError, match='Requested joint splits'):
+        joint.check_joint_lineage(config, selected_paths)
+    with pytest.raises(ValueError, match='Unknown source'):
+        joint.check_joint_lineage({**config, 'joint_split_datasets': ['unknown']}, selected_paths)
     item = next(item for item in manifest['outputs'] if item['records'])
     path = Path(item['path'])
     rows = [json.loads(line) for line in path.read_text().splitlines()]

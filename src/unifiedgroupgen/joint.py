@@ -166,6 +166,13 @@ def check_joint_lineage(config, paths=None):
         actual_paths[item['split']].append(str(Path(item['path']).resolve()))
     if inventory_hash(originals) != manifest['inventory_sha256'] or inventory_hash(outputs) != manifest['inventory_sha256']:
         raise ValueError('Joint data do not preserve every source record exactly once')
+    if config.get('joint_split_datasets'):
+        selected = set(config['joint_split_datasets'])
+        if not selected <= set(manifest['sources']):
+            raise ValueError('Unknown source in joint_split_datasets')
+        actual_paths = {split: [str(Path(item['path']).resolve()) for item in manifest['outputs']
+                               if item['split'] == split and item['dataset'] in selected]
+                        for split in actual_paths}
     if paths and any(sorted(str(Path(p).resolve()) for p in files) != sorted(actual_paths[split])
                      for split, files in paths.items()):
         raise ValueError('Requested joint splits differ from the verified manifest')

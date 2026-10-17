@@ -44,6 +44,35 @@ def save_json(path, value):
 def plan(args, test_files):
     jobs = [('test', ['scripts/evaluate_checkpoint.py', '--checkpoint', args.checkpoint,
                      '--device', args.device, '--records', *test_files])]
+    if getattr(args, 'skip_test', False):
+        jobs = []
+    if getattr(args, 'campaign', None):
+        campaign = json.loads(Path(args.campaign).read_text(encoding='utf-8'))
+        if campaign.get('schema') != 1 or not campaign.get('jobs'):
+            raise ValueError('Campaign requires schema=1 and a nonempty jobs list')
+        names = set()
+        for item in campaign['jobs']:
+            dataset, domain, kind, _ = next(t for t in TARGETS if t[0] == item['dataset'])
+            name = item['name']
+            if not name.startswith(dataset+'_') or not name.replace('_', '').isalnum() or name in names:
+                raise ValueError('Campaign names must be unique safe names prefixed by their dataset')
+            names.add(name)
+            if item['count'] < 1 or item['steps'] < 1:
+                raise ValueError('Campaign count and steps must be positive')
+            properties = {'source_domain': domain, **item.get('properties', {})}
+            if properties['source_domain'] != domain:
+                raise ValueError('Campaign source domain does not match dataset')
+            command = ['-m', 'unifiedgroupgen.cli', '--seed', str(item['seed']), 'sample',
+                '--checkpoint', args.checkpoint, '--device', args.device, '--kind', kind,
+                '--properties', json.dumps(properties), '--guidance', str(item['guidance']),
+                '--count', str(item['count']), '--steps', str(item['steps'])]
+            for field in ('descriptor', 'observations', 'composition'):
+                if item.get(field):
+                    command += ['--'+field, str(item[field])]
+            if item.get('prior'):
+                command.append('--prior')
+            jobs.append((name, command))
+        return jobs
     for dataset, domain, kind, target in TARGETS:
         for mode in ('unconditional', 'conditional'):
             properties = {'source_domain': domain, **(target if mode == 'conditional' else {})}
@@ -115,8 +144,12 @@ def main():
     parser.add_argument('--seed', type=int, default=142)
     parser.add_argument('--guidance', type=float, default=2.0)
     parser.add_argument('--resume', action='store_true')
+    parser.add_argument('--campaign', help='JSON jobs produced by prepare_paper_experiments.py')
+    parser.add_argument('--skip-test', action='store_true', help='Generation only; held-out input audit still applies')
     parser.add_argument('--plan', action='store_true', help='Print the seven jobs without loading weights or launching work')
     args = parser.parse_args()
+    if args.campaign:
+        args.campaign = str((ROOT/args.campaign).resolve())
     if args.count < 1 or args.steps < 1:
         parser.error('count and steps must be positive')
     if args.plan:
@@ -130,21 +163,41 @@ def main():
     checkpoint_hash = digest(checkpoint_path)
     saved = torch.load(checkpoint_path, map_location='cpu', weights_only=False)
     config = saved['config']
-    if config.get('dataset_domains') != {dataset: domain for dataset, domain, *_ in TARGETS}:
-        raise ValueError('This runner requires the three-domain shared model checkpoint')
+    expected_domains = {dataset: domain for dataset, domain, *_ in TARGETS}
+    domains = config.get('dataset_domains', {})
+    if not domains or any(expected_domains.get(key) != value for key, value in domains.items()):
+        raise ValueError('Checkpoint calculation domains do not match the evaluated sources')
+    if domains != expected_domains and not args.campaign:
+        raise ValueError('A separate-source matched model requires an explicit campaign for its trained domain')
     paths = [root_path(path) for path in config['test_files']]
     audit = check_heldout_inputs(saved, paths)
     if audit is None:
         raise ValueError('Shared evaluation requires an audited checkpoint and complete held-out files')
+    if args.campaign:
+        campaign = json.loads(Path(args.campaign).read_text(encoding='utf-8'))
+        hashes = campaign.get('train_sha256', {})
+        if not hashes or list(hashes.values()) != saved['train_split_sha256']:
+            raise ValueError('Campaign targets/cases were not derived from this checkpoint training split')
+        if any(digest(root_path(path)) != checksum for path, checksum in hashes.items()):
+            raise ValueError('Campaign training files changed')
     checkpoint_epoch = saved['epoch']
     del saved
     commands = plan(args, [str(path) for path in paths])
+    if any(name != 'test' and not any(name.startswith(dataset+'_') for dataset in domains)
+           for name, _ in commands):
+        raise ValueError('Campaign requests a source domain outside this checkpoint training data')
     code_paths = sorted((ROOT/'src/unifiedgroupgen').glob('*.py')) + [Path(__file__), ROOT/'scripts/evaluate_checkpoint.py']
     identity = {'checkpoint_sha256': checkpoint_hash,
                 'test_sha256': [digest(path) for path in paths],
                 'code_sha256': {str(path.relative_to(ROOT)): digest(path) for path in code_paths},
                 'commands': [[name, command] for name, command in commands],
                 'versions': {name: importlib.metadata.version(name) for name in ('torch', 'numpy', 'pyxtal', 'spglib', 'pymatgen')}}
+    auxiliary = {Path(args.campaign)} if args.campaign else set()
+    for _, command in commands:
+        for flag in ('--descriptor', '--observations'):
+            if flag in command:
+                auxiliary.add((ROOT/command[command.index(flag)+1]).resolve())
+    identity['auxiliary_sha256'] = {str(path): digest(path) for path in sorted(auxiliary)}
     output = artifact_path(args.output)
     output.mkdir(parents=True, exist_ok=True)
     status_path = output/'pipeline.json'
@@ -169,7 +222,8 @@ def main():
         for name, command in commands:
             previous = state['jobs'].get(name)
             if previous and previous['state'] == 'complete':
-                actual = completed_outputs(output/previous['directory'], name, args.count)
+                count = int(command[command.index('--count')+1]) if name != 'test' else args.count
+                actual = completed_outputs(output/previous['directory'], name, count)
                 if actual != previous['output_sha256']:
                     raise ValueError(f'Completed outputs changed for {name}; use a new output directory')
                 print(f'[REUSE] {name}', flush=True)
@@ -202,7 +256,8 @@ def main():
             if code:
                 job.update(state='failed', exit_code=code)
                 raise RuntimeError(f'{name} exited with {code}; inspect {directory}/stderr.log')
-            job['output_sha256'] = completed_outputs(directory, name, args.count)
+            count = int(command[command.index('--count')+1]) if name != 'test' else args.count
+            job['output_sha256'] = completed_outputs(directory, name, count)
             job.update(state='complete', exit_code=0)
             save_json(status_path, state)
             print(f'[DONE] {name}', flush=True)
