@@ -55,6 +55,6 @@
   "maximum_projection_normal_equation_error": 1.9777565940515274e-07,
   "training_targets_and_feature_shapes_checked": true,
   "optimizer_updates": 0,
-  "video_sha256": "a35f32898163e7fe0ead6b259dff2e69834c3e474a0f20c7b1d368c3f9d407fa",
+  "video_sha256": "f7e1f708e314e9d125d196258ac66a5ea21a645ff1242677e61e52cb725a1ff3",
   "scope": "Numerical playback and complete video decode; no chemical or physical certification."
 }

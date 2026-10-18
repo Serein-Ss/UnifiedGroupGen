@@ -4,8 +4,10 @@
   "fps": 12,
   "duration_seconds": 264,
   "frames": 3168,
-  "video_sha256": "a35f32898163e7fe0ead6b259dff2e69834c3e474a0f20c7b1d368c3f9d407fa",
+  "video_sha256": "f7e1f708e314e9d125d196258ac66a5ea21a645ff1242677e61e52cb725a1ff3",
   "trace_sha256": "e7da5e621b23c179d8c1c111542a47626ee398843050fa1dcb74afb4bccadc38",
+  "structure_style": "Reference matched: VESTA, matte 0.5 A spheres, translucent coordination hulls, split-color visual contacts and axis compass",
+  "structure_renderer_sha256": "fd3bd084d70413794f54bc8c787892703f362b2f1e640630916d57798d5e5fa1",
   "chapters": [
     {
       "start_seconds": 0,

@@ -67,3 +67,7 @@ python scripts/build_model_walkthrough.py --stage verify
 ```
 
 `data/model_trace.json`保留实际输入、模型配置、随机种子、源代码哈希、编译基底、真实token概率、全部特征、速度、梯度、历史日志和四条积分轨迹。`data/video_manifest.json`记录章节与文件哈希。
+
+## 统一结构显示
+
+视频的结构画面已与论文数值结构图使用同一个渲染器，采用 VESTA 元素配色、均一半径的哑光球体、半透明配位多面体、分色显示键、细灰晶胞边框和三色方向轴。原模型轨迹 JSON、梯度探针与 CIF 未修改；视频清单记录渲染器 SHA256，完整解码和 260 个轨迹状态已经重新检查。显示连线的定义见 [结构图说明](../../structures/README.md)。

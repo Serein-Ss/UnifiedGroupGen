@@ -17,3 +17,11 @@ Change the two schematic output labels in panel (b) from “3D TiO2” and “2D
 ## Export and QA
 
 Rendered through the built-in image_gen interface, whose backend model identifier is not exposed. The concept outputs in panel (b) were corrected to “3D crystal” and “2D layer”; TiO₂/MoS₂ identities are reserved for the actual encoded examples in panel (c). Final output is fig01_unified_method.png. The separate fig01_material_examples.png is a reproducible plot from the stored dataset states, and is the authoritative source for numerical atom positions and cell dimensions. Both are PNG; no vector editability is claimed. Checks covered module depths/widths, compiler conditioning edges, Heun feedback origin, lattice square-root formula, and 3D/2D independent dimensions. No complete manuscript or result archive was sent to the image tool.
+
+## 2026-10-18 结构显示风格统一
+
+在原 PNG 上仅调整材料插图为 Crystal Toolkit 风格：白底、光照球体、VESTA 配色、细灰晶胞边框与分色显示键。已核对模块、参数量级标注、方程和 Heun 反馈路径。插图保持方法示意用途；原子坐标与晶格数值以可复现的 fig01_material_examples.png 为准。参考图仅使用本项目已有公开方法图和从已保存状态绘制的结构图，没有发送检查点、原始数据集、训练日志或完整文稿。
+
+### 用户导出图确认后的样式
+
+用户随后提供了实际 Crystal Toolkit 导出 PNG。最终风格据此调整为柔和哑光球体、半透明配位多面体、细灰边框和三色方向轴。独立数值结构图导出透明 PNG；方法图和视频保留白色排版背景。颜色、独立状态与真实轨迹保持原值，参考图只用于外观，不采用其材料坐标。原始参考 PNG 留在用户本地，未纳入仓库。

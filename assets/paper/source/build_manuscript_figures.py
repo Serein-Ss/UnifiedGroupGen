@@ -2,7 +2,6 @@
 
 import argparse
 import hashlib
-from itertools import product
 import json
 from pathlib import Path
 import shutil
@@ -30,75 +29,36 @@ def save(fig, name):
     plt.close(fig)
 
 
-def draw_cell(axis, matrix, origin=None, periodic=3):
-    origin = np.zeros(3) if origin is None else np.asarray(origin)
-    for corner in product((0, 1), repeat=periodic):
-        p = origin+np.asarray(corner) @ matrix[:periodic]
-        for j in range(periodic):
-            if corner[j] == 0:
-                q = p+matrix[j]
-                axis.plot(*np.vstack([p, q]).T, color='#9ba5af', lw=.9, zorder=1)
-
-
 def examples():
+    from unifiedgroupgen.structure_rendering import render_structure, element_color
     records = json.loads((Path(__file__).parent/'material_examples.json').read_text(encoding='utf-8'))['examples']
     fig = plt.figure(figsize=(12, 6.5), layout='constrained')
     grid = fig.add_gridspec(2, 2, height_ratios=[4.4, 1.8])
     for column, record in enumerate(records):
         c = compiled_chart(Descriptor.from_dict(record['descriptor']))
         lattice, coords, _ = expand_numpy(c, record['state'])
-        coords[:, :3 if column == 0 else 2] %= 1
-        axis = fig.add_subplot(grid[0, column], projection='3d')
-        cell = lattice.T.copy()
+        axis = fig.add_subplot(grid[0, column])
+        basis = c.coordinate_basis.reshape(c.num_atoms, 3, c.coordinate_dof)
+        motion = np.einsum('ijq,q->ij', basis, [.07 if column == 0 else .6]) @ lattice.T
+        image = render_structure(lattice.T, coords, c.elements, periodic=tuple(c.periodic),
+            repeat=(1, 1, 1) if column == 0 else (2, 2, 1), size=(1350, 850), vectors=4*motion, vector_color='#167d8d')
+        axis.imshow(image); axis.set_axis_off()
+        symbols = [('Ti', 22), ('O', 8)] if column == 0 else [('Mo', 42), ('S', 16)]
+        for symbol, number in symbols:
+            axis.scatter([], [], color=np.array(element_color(number))/255, s=65, label=symbol)
+        axis.legend(loc='upper right', frameon=False, fontsize=10)
         if column == 0:
-            cart = coords @ lattice.T
-            draw_cell(axis, cell)
-            colors = ['#437da6' if z == 22 else '#ce6d51' for z in c.elements]
-            sizes = [140 if z == 22 else 90 for z in c.elements]
-            axis.scatter(*cart.T, c=colors, s=sizes, edgecolors='white', linewidths=.6, depthshade=False)
-            for label, color in [('Ti', '#437da6'), ('O', '#ce6d51')]:
-                axis.scatter([], [], [], color=color, s=65, label=label)
-            axis.legend(loc='upper right', frameon=False, fontsize=10)
-            for i, j in product(range(len(cart)), repeat=2):
-                if i < j and c.elements[i] != c.elements[j] and np.linalg.norm(cart[i]-cart[j]) < 2.35:
-                    axis.plot(*np.vstack([cart[i], cart[j]]).T, color='#a9afb7', lw=1.5)
-            q_basis = c.coordinate_basis.reshape(c.num_atoms, 3, c.coordinate_dof)
-            motion = np.einsum('ijq,q->ij', q_basis, [.07]) @ lattice.T
-            for p, v, z in zip(cart, motion, c.elements):
-                if z == 8:
-                    axis.quiver(*p, *v, color='#167d8d', arrow_length_ratio=.25, lw=1.7)
-            axis.set_box_aspect([1, 1, .8]); axis.view_init(elev=23, azim=-57)
             axis.set_title('(a) Rutile TiO$_2$ · MP20 mp-2657', loc='left', fontsize=13)
             text = ('SG 136 · Ti 2a + O 4f · (d, p) = (3, 3)\n'
                     r'$z=(k_1,k_2,u)$: 2 lattice + 1 coordinate DOF'+'\n'
                     r'$a=b=4.6533\ \AA,\ c=2.9692\ \AA,\ u=0.30458$'+'\n'
-                    '6 atoms; oxygen displacements are linked by symmetry')
+                    '6 atoms per cell; closed-face periodic images shown')
         else:
-            cart = coords @ lattice.T
-            cartesian, elements = [], []
-            for i, j in product(range(2), repeat=2):
-                cartesian.extend(cart+i*cell[0]+j*cell[1])
-                elements.extend(c.elements)
-            cartesian = np.array(cartesian)
-            for i, j in product(range(len(cartesian)), repeat=2):
-                if i < j and elements[i] != elements[j] and np.linalg.norm(cartesian[i]-cartesian[j]) < 2.65:
-                    axis.plot(*np.vstack([cartesian[i], cartesian[j]]).T, color='#a9afb7', lw=1.3)
-            for z, color, size in [(42, '#536d87', 135), (16, '#d7b34d', 100)]:
-                selected = cartesian[np.array(elements) == z]
-                axis.scatter(*selected.T, color=color, s=size, edgecolors='white', linewidths=.6, depthshade=False,
-                             label='Mo' if z == 42 else 'S')
-            axis.legend(loc='upper right', frameon=False, fontsize=10)
-            draw_cell(axis, np.array([2*cell[0], 2*cell[1]]), periodic=2)
-            for point, z in zip(cart, c.elements):
-                if z == 16:
-                    axis.quiver(*point, 0, 0, .6*np.sign(point[2]), color='#167d8d', arrow_length_ratio=.25, lw=1.7)
-            axis.set_box_aspect([1.1, 1, .65]); axis.view_init(elev=18, azim=-66)
             axis.set_title('(b) Monolayer MoS$_2$ · C2DB 1MoS2-1', loc='left', fontsize=13)
             text = ('LG 78 · Mo 1a + S 2f · (d, p) = (3, 2)\n'
                     r'$z=(k,h)$: 1 in-plane lattice + 1 height DOF'+'\n'
                     r'$a=b=3.1841\ \AA,\ \gamma=120^\circ,\ h=1.56356\ \AA$'+'\n'
-                    '3 atoms per cell (2 × 2 display); height motions are +dh / −dh')
-        axis.set_axis_off()
+                    '3 atoms per cell (2 × 2 display); no normal repetition')
         note = fig.add_subplot(grid[1, column]); note.set_axis_off()
         note.text(0, .98, text, ha='left', va='top', fontsize=11, linespacing=1.65, transform=note.transAxes)
     fig.suptitle('Real encoded examples · shared expansion and velocity interfaces', fontsize=14)

@@ -219,57 +219,21 @@ def render(trace, fps, ffmpeg):
     def number(v):
         return '['+', '.join(f'{x:.3f}' for x in v)+']'
 
-    def structure(draw, c, z, bounds, angle=.45, vectors=None):
-        l, f, _ = expand_numpy(c, z)
-        f[:, c.periodic] %= 1
-        xyz = f @ l.T
-        elements = list(c.elements)
-        # A 2x2 layer supercell is a viewing choice, never extra independent atoms.
-        if c.descriptor.kind == 'layer':
-            xyz = np.concatenate([xyz+i*l[:, 0]+j*l[:, 1] for i in range(2) for j in range(2)])
-            elements *= 4
-            if vectors is not None:
-                vectors = np.tile(vectors, (4, 1))
-            a, b = 2*l[:, 0], 2*l[:, 1]
-            cell = np.array([np.zeros(3), a, a+b, b])
-            edges = [(0,1),(1,2),(2,3),(3,0)]
-        else:
-            cell = np.array([l@np.array([i,j,k]) for i in (0,1) for j in (0,1) for k in (0,1)])
-            edges = [(i,j) for i in range(8) for j in range(i+1,8) if (i^j) in (1,2,4)]
-        ca, sa = math.cos(angle), math.sin(angle)
-        rotation = np.array([[ca,-sa,0],[sa*.42,ca*.42,-.907],[sa*.907,ca*.907,.42]])
-        points = np.concatenate([xyz, cell])@rotation.T
-        low, high = points[:, :2].min(0), points[:, :2].max(0)
-        x0,y0,x1,y1 = bounds
-        scale = min((x1-x0-70)/max(high[0]-low[0],.1), (y1-y0-70)/max(high[1]-low[1],.1))
-        center = (low+high)/2
-        points[:, :2] = (points[:, :2]-center)*scale+np.array([(x0+x1)/2,(y0+y1)/2])
-        cell2 = points[len(xyz):]
-        for i,j in edges:
-            draw.line([tuple(cell2[i,:2]),tuple(cell2[j,:2])], fill='#a2b5c4', width=3)
-        colors = {8:'#ce6d51',22:'#437da6',42:'#167d8d',16:'#d7b34d'}
-        symbols = {8:'O',22:'Ti',42:'Mo',16:'S'}
-        for i in np.argsort(points[:len(xyz),2]):
-            x,y = points[i,:2]; radius = 16 if elements[i] in (8,16) else 21
-            color = colors.get(elements[i],BLUE)
-            draw.ellipse((x-radius,y-radius,x+radius,y+radius), fill=color, outline='white', width=2)
-            if len(xyz)<=12:
-                label = symbols.get(elements[i],str(elements[i]))
-                draw.text((x,y),label,font=fonts[18],fill='white',anchor='mm')
-            if vectors is not None and i<len(vectors):
-                delta = np.asarray(vectors[i])@rotation.T
-                end = (x+delta[0]*18,y+delta[1]*18)
-                draw.line([(x,y),end],fill=RED,width=4)
-                d = np.array(end)-[x,y]; norm=np.linalg.norm(d)
-                if norm>8:
-                    u=d/norm; normal=np.array([-u[1],u[0]])
-                    draw.polygon([end,tuple(np.array(end)-10*u+5*normal),tuple(np.array(end)-10*u-5*normal)],fill=RED)
+    from unifiedgroupgen.structure_rendering import render_structure, element_color
+
+    def structure(canvas, c, z, bounds, angle=.45, vectors=None):
+        lattice, coords, _ = expand_numpy(c, z)
+        x0, y0, x1, y1 = bounds
+        image = render_structure(lattice.T, coords, c.elements, periodic=tuple(c.periodic),
+            repeat=(2, 2, 1) if c.descriptor.kind == 'layer' else (1, 1, 1),
+            size=(x1-x0, y1-y0), angle=angle, vectors=vectors)
+        canvas.paste(image, (x0, y0))
 
     def atom_legend(draw, x, y, index):
-        labels = [('Ti',BLUE),('O',RED)] if index==0 else [('Mo',TEAL),('S','#d7b34d')]
-        for k,(label,color) in enumerate(labels):
+        labels = [('Ti',22),('O',8)] if index==0 else [('Mo',42),('S',16)]
+        for k,(label,number) in enumerate(labels):
             xx=x+k*100
-            draw.ellipse((xx,y+4,xx+18,y+22),fill=color)
+            draw.ellipse((xx,y+4,xx+18,y+22),fill=element_color(number))
             txt(draw,(xx+27,y),label,22)
 
     def panel(draw, index, title=None):
@@ -297,8 +261,8 @@ def render(trace, fps, ffmpeg):
             lines(d,(60,210),['UnifiedGroupGen', '同一套规则编译接口，同一套连续网络',
                              f'最优检查点：第 {trace["best_epoch"]} 轮',
                              f'描述模型 {trace["proposal_parameters"]:,} + 流模型 {trace["flow_parameters"]:,} 参数'],32,65)
-            structure(d,charts[0],examples[0]['state'],(70,480,760,765),angle=.45+u*.5)
-            structure(d,charts[1],examples[1]['state'],(850,250,1520,720),angle=.45+u*.5)
+            structure(im,charts[0],examples[0]['state'],(70,480,760,765),angle=.45+u*.5)
+            structure(im,charts[1],examples[1]['state'],(850,250,1520,720),angle=.45+u*.5)
             txt(d,(900,730),'TiO₂ / MoS₂：真实数据样本',24,MUTED)
             caption='先理解输入和训练目标，再观察真实网络中间值，最后执行一次新的材料生成。'
         elif chapter==1:
@@ -309,7 +273,7 @@ def render(trace, fps, ffmpeg):
                       f'z = {number(e["state"])}',f'展开后的原子元素: {e["elements"]}',
                       '周期边界: x,y,z' if i==0 else '周期边界: x,y；面外高度以 Å 计',
                       f'性质标签: Ef={e["properties"]["formation_energy"]:.3f} eV/atom; Eg={e["properties"]["band_gap"]:.3f} eV'],24,43)
-                structure(d,charts[i],e['state'],(x+35,505,x+700,750))
+                structure(im,charts[i],e['state'],(x+35,505,x+700,750))
             caption='每个样本的 z 长度可以不同：TiO₂ 为 3 维，MoS₂ 为 2 维；模型读取的是展开后的变长原子图。'
         elif chapter==2:
             for i,e in enumerate(examples):
@@ -320,7 +284,7 @@ def render(trace, fps, ffmpeg):
                       f'q = {z[-1]:.4f} '+('（分数坐标）' if i==0 else 'Å'),
                       f'k = {number(z[:c.lattice_dof])}; S = Σ k_i E_i',
                       '此处为规则展开演示，尚未调用神经网络'],24,43)
-                structure(d,c,z,(x+35,490,x+700,740))
+                structure(im,c,z,(x+35,490,x+700,740))
             caption='B 是由群操作和轨道表确定的基底。演示中只改变独立参数，完整原子轨道始终一起变化。'
         elif chapter==3:
             for i,e in enumerate(examples):
@@ -340,7 +304,7 @@ def render(trace, fps, ffmpeg):
                 x=panel(d,i); t=e['training']; z=np.array(t['start'])+u*np.array(t['target'])
                 lines(d,(x+25,245),[f't = {u:.2f}  |  zt = z0 + t × Δz',f'z0 = {number(t["start"])}',
                      f'Δz = {number(t["target"])}',f'zt = {number(z)}'],24,43)
-                structure(d,charts[i],z,(x+35,440,x+700,740))
+                structure(im,charts[i],z,(x+35,440,x+700,740))
             caption='目标速度为连接先验和真实样本的 Δz；周期坐标走最短提升路径。每个中间态都通过编译器合法展开。'
         elif chapter==5:
             layer=min(int(u*6),5)
@@ -370,7 +334,7 @@ def render(trace, fps, ffmpeg):
                     f'预测独立速度: {number(t["prediction"])}',
                     'q̇ = (BᵀMB)⁻¹ BᵀM v̂；M = LᵀL',
                     'Ḟ = Bq̇；红箭头表示笛卡尔速度'],24,43)
-                structure(d,charts[i],z,(x+35,445,x+700,735),vectors=vectors)
+                structure(im,charts[i],z,(x+35,445,x+700,735),vectors=vectors)
             caption='投影使用晶格诱导的物理度量；箭头是当前预测值，采用固定显示比例，不代表模型自动保证化学合理性。'
         elif chapter==7:
             for i,e in enumerate(examples):
@@ -424,7 +388,7 @@ def render(trace, fps, ffmpeg):
                     lines(d,(x+25,245),[f'固定 {"SG 136" if i==0 else "LG 78"} 与元素/Wyckoff 列表',
                         f'Heun 步数: {min(64,int(position)):02d} / 64  |  t = {progress:.2f}',
                         f'z(t) = {number(z)}','仅 source_domain 上下文；无目标性质'],24,43)
-                structure(d,c,z,(x+35,440,x+700,735))
+                structure(im,c,z,(x+35,440,x+700,735))
             caption='实际保存 65 个积分状态；步间只为视频做独立参数插值。二维展示 2×2 超胞，法向不使用周期边界。'
         else:
             for i,e in enumerate(examples):
@@ -434,7 +398,7 @@ def render(trace, fps, ffmpeg):
                      f'识别到目标群: {r.get("exact_target_group")}',
                      f'最短原子间距: {r["minimum_distance_angstrom"]:.3f} Å',
                      f'晶格相容残差: {r["metric_residual"]:.2e}'],24,40)
-                structure(d,c,g['trajectory'][-1],(x+35,455,x+700,740),angle=.45+u*.5)
+                structure(im,c,g['trajectory'][-1],(x+35,455,x+700,740),angle=.45+u*.5)
             caption='这两例仅展示模型运作。新颖性、化学有效性、稳定性及性质命中率，需要样本级的独立标准评估。'
         d.rounded_rectangle((32,801,1568,864),radius=10,fill='#e7eef3')
         caption_lines=['']
@@ -475,6 +439,8 @@ def render(trace, fps, ffmpeg):
             process.kill();process.wait();raise
     save_json(OUT/'data/video_manifest.json',{'width':W,'height':H,'fps':fps,'duration_seconds':total_seconds,
              'frames':total_seconds*fps,'video_sha256':sha256(video),'trace_sha256':sha256(OUT/'data/model_trace.json'),
+             'structure_style':'Reference matched: VESTA, matte 0.5 A spheres, translucent coordination hulls, split-color visual contacts and axis compass',
+             'structure_renderer_sha256':hashlib.sha256((ROOT/'src/unifiedgroupgen/structure_rendering.py').read_bytes().replace(b'\r\n', b'\n')).hexdigest(),
              'chapters':[{'start_seconds':int(boundaries[i]),'duration_seconds':c[0],'title':c[1]} for i,c in enumerate(chapters)]})
     print('Video saved:',video,flush=True)
 
@@ -489,6 +455,7 @@ def verify(ffmpeg):
     manifest = json.loads((OUT/'data/video_manifest.json').read_text(encoding='utf-8'))
     assert manifest['trace_sha256'] == sha256(OUT/'data/model_trace.json')
     assert manifest['video_sha256'] == sha256(OUT/'UnifiedGroupGen_walkthrough_zh.mp4')
+    assert manifest['structure_renderer_sha256'] == hashlib.sha256((ROOT/'src/unifiedgroupgen/structure_rendering.py').read_bytes().replace(b'\r\n', b'\n')).hexdigest()
     errors, statistics = [], []
     for e in trace['examples']:
         c = compiled_chart(Descriptor.from_dict(e['descriptor']))

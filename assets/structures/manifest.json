@@ -1,0 +1,224 @@
+{
+  "style": "User reference matched / transparent PNG / VESTA / matte spheres / coordination hulls / axis compass",
+  "reference": "https://github.com/materialsproject/crystaltoolkit/blob/main/crystal_toolkit/components/structure.py",
+  "bond_display": "Current-geometry distance cutoff: 1.15 times covalent-radius sum; omit metal-metal contacts in mixed metal/nonmetal compounds; visual contacts, not chemical certification",
+  "renderer_sha256": "fd3bd084d70413794f54bc8c787892703f362b2f1e640630916d57798d5e5fa1",
+  "figures": [
+    {
+      "file": "mp-2657_isometric.png",
+      "scope": "Real encoded dataset example",
+      "source": "assets/paper/source/material_examples.json",
+      "source_sha256": "db8736431f0e005e59095fc6b745e259c174f80b07fb96fe9c9e7fcf6ac5b6aa",
+      "periodic": [
+        true,
+        true,
+        true
+      ],
+      "display_repeat": [
+        1,
+        1,
+        1
+      ],
+      "independent_cell_atoms": 6,
+      "view": "isometric"
+    },
+    {
+      "file": "1MoS2-1_isometric.png",
+      "scope": "Real encoded dataset example",
+      "source": "assets/paper/source/material_examples.json",
+      "source_sha256": "db8736431f0e005e59095fc6b745e259c174f80b07fb96fe9c9e7fcf6ac5b6aa",
+      "periodic": [
+        true,
+        true,
+        false
+      ],
+      "display_repeat": [
+        2,
+        2,
+        1
+      ],
+      "independent_cell_atoms": 3,
+      "view": "isometric"
+    },
+    {
+      "file": "1MoS2-1_top.png",
+      "scope": "Real encoded dataset example",
+      "source": "assets/paper/source/material_examples.json",
+      "source_sha256": "db8736431f0e005e59095fc6b745e259c174f80b07fb96fe9c9e7fcf6ac5b6aa",
+      "periodic": [
+        true,
+        true,
+        false
+      ],
+      "display_repeat": [
+        2,
+        2,
+        1
+      ],
+      "independent_cell_atoms": 3,
+      "view": "top"
+    },
+    {
+      "file": "1MoS2-1_side.png",
+      "scope": "Real encoded dataset example",
+      "source": "assets/paper/source/material_examples.json",
+      "source_sha256": "db8736431f0e005e59095fc6b745e259c174f80b07fb96fe9c9e7fcf6ac5b6aa",
+      "periodic": [
+        true,
+        true,
+        false
+      ],
+      "display_repeat": [
+        2,
+        2,
+        1
+      ],
+      "independent_cell_atoms": 3,
+      "view": "side"
+    },
+    {
+      "file": "fixed_layer_isometric.png",
+      "scope": "Saved model output; no new sampling",
+      "source": "assets/videos/model_walkthrough/outputs/fixed_layer.cif",
+      "source_sha256": "78d04c9751546ef3465289c2152518680f712d0cc0ff3803ed762f62312d0b89",
+      "periodic": [
+        true,
+        true,
+        false
+      ],
+      "display_repeat": [
+        2,
+        2,
+        1
+      ],
+      "independent_cell_atoms": 3,
+      "view": "isometric"
+    },
+    {
+      "file": "fixed_layer_top.png",
+      "scope": "Saved model output; no new sampling",
+      "source": "assets/videos/model_walkthrough/outputs/fixed_layer.cif",
+      "source_sha256": "78d04c9751546ef3465289c2152518680f712d0cc0ff3803ed762f62312d0b89",
+      "periodic": [
+        true,
+        true,
+        false
+      ],
+      "display_repeat": [
+        2,
+        2,
+        1
+      ],
+      "independent_cell_atoms": 3,
+      "view": "top"
+    },
+    {
+      "file": "fixed_layer_side.png",
+      "scope": "Saved model output; no new sampling",
+      "source": "assets/videos/model_walkthrough/outputs/fixed_layer.cif",
+      "source_sha256": "78d04c9751546ef3465289c2152518680f712d0cc0ff3803ed762f62312d0b89",
+      "periodic": [
+        true,
+        true,
+        false
+      ],
+      "display_repeat": [
+        2,
+        2,
+        1
+      ],
+      "independent_cell_atoms": 3,
+      "view": "side"
+    },
+    {
+      "file": "fixed_space_isometric.png",
+      "scope": "Saved model output; no new sampling",
+      "source": "assets/videos/model_walkthrough/outputs/fixed_space.cif",
+      "source_sha256": "82a3fa3fb7e33c3ea9a0c108fda212912c93abfff044eb619b461b44681450f5",
+      "periodic": [
+        true,
+        true,
+        true
+      ],
+      "display_repeat": [
+        1,
+        1,
+        1
+      ],
+      "independent_cell_atoms": 6,
+      "view": "isometric"
+    },
+    {
+      "file": "full_layer_isometric.png",
+      "scope": "Saved model output; no new sampling",
+      "source": "assets/videos/model_walkthrough/outputs/full_layer.cif",
+      "source_sha256": "41ae630487c3d4c9091b6b8a67dca693b9a8e816007465fe75b4baa0c26d3754",
+      "periodic": [
+        true,
+        true,
+        false
+      ],
+      "display_repeat": [
+        2,
+        2,
+        1
+      ],
+      "independent_cell_atoms": 3,
+      "view": "isometric"
+    },
+    {
+      "file": "full_layer_top.png",
+      "scope": "Saved model output; no new sampling",
+      "source": "assets/videos/model_walkthrough/outputs/full_layer.cif",
+      "source_sha256": "41ae630487c3d4c9091b6b8a67dca693b9a8e816007465fe75b4baa0c26d3754",
+      "periodic": [
+        true,
+        true,
+        false
+      ],
+      "display_repeat": [
+        2,
+        2,
+        1
+      ],
+      "independent_cell_atoms": 3,
+      "view": "top"
+    },
+    {
+      "file": "full_layer_side.png",
+      "scope": "Saved model output; no new sampling",
+      "source": "assets/videos/model_walkthrough/outputs/full_layer.cif",
+      "source_sha256": "41ae630487c3d4c9091b6b8a67dca693b9a8e816007465fe75b4baa0c26d3754",
+      "periodic": [
+        true,
+        true,
+        false
+      ],
+      "display_repeat": [
+        2,
+        2,
+        1
+      ],
+      "independent_cell_atoms": 3,
+      "view": "side"
+    },
+    {
+      "file": "full_space_isometric.png",
+      "scope": "Saved model output; no new sampling",
+      "source": "assets/videos/model_walkthrough/outputs/full_space.cif",
+      "source_sha256": "228b94b80bc40e09afa0d0bc2108a6a84e2cc03c43fd50510e1b0f387198138c",
+      "periodic": [
+        true,
+        true,
+        true
+      ],
+      "display_repeat": [
+        1,
+        1,
+        1
+      ],
+      "independent_cell_atoms": 6,
+      "view": "isometric"
+    }
+  ]
+}

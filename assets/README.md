@@ -92,3 +92,7 @@ python assets/training/source/build_result_figures.py
 统计依赖当前项目编译器及NumPy、pandas、Matplotlib、PyXtal环境；主图使用Times New Roman。配方附图在本机安装CCFA技能时额外生成SVG。本次PNG预览已检查；主统计图PDF/SVG由相同绘图对象导出。训练图读取父目录下此前建立的静态审计结果，额外MP20筛查读取原有本地审计及小型CIF备份。
 
 本次只整理结果与生成图表，没有修改训练源码、恢复训练或推送GitHub。
+
+## 材料结构的统一显示
+
+[结构图集与复现说明](structures/README.md) 统一论文结构示例、模型输出和全过程视频的材料显示。真实二维材料同时提供俯视和侧视 PNG。文献阅读目录中的原图作为来源资料保留原貌。

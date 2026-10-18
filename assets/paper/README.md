@@ -60,3 +60,7 @@ python scripts/build_paper_results.py --manifest assets/paper/source/standard_re
 | 06_relaxation_symmetry.png | 弛豫前后均成功识别的样本中，回收群不变的比例与计数 |
 
 当前已导入并核验本轮共享生成，并完成标准质量补算。连续对照、性质与物理占位保留，待实际实验后原位更新；工程测试夹具不进入论文结果。
+
+## 材料结构显示风格
+
+正文 TiO₂/MoS₂ 数值结构图采用共同的 Crystal Toolkit 风格渲染器：VESTA 配色、均一半径哑光球体、半透明配位多面体、分色显示键、细灰晶胞边框和三色方向轴。三维保留周期像，二维仅面内重复。图1和架构图中的插图为方法示意；数值几何以独立状态展开图为准。更多视图、显示键规则与重建命令见 [结构图说明](../structures/README.md)。
