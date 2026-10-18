@@ -50,6 +50,8 @@ CUDA_VISIBLE_DEVICES=0 nohup python -u scripts/train_remote.py --stage all > art
 
 优先训练二维/三维共享主模型可改为`--stage main`；主模型不依赖两个参考模型的权重。
 
+PyXtal固定为`1.1.3`；训练、模型构建及数据验证会先执行完整层群单轨道目录检查。复用已有环境时先运行`python -m pip install --no-deps "pyxtal==1.1.3"`。已有模型和数据的兼容验证见[PyXtal运行前验证](docs/PYXTAL_RUNTIME.md)。
+
 ## 目录
 
 ```text

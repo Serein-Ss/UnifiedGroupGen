@@ -38,6 +38,7 @@ git pull --ff-only
 export MKL_THREADING_LAYER=SEQUENTIAL
 export OMP_NUM_THREADS=4
 export MKL_NUM_THREADS=4
+python -m pip install --no-deps "pyxtal==1.1.3"
 python -m pip install --no-deps --no-build-isolation -e ".[test]"
 python -c "import torch; assert torch.cuda.is_available(); assert torch.cuda.is_bf16_supported(); print(torch.__version__, torch.version.cuda, torch.cuda.get_device_name())"
 nvidia-smi
@@ -47,6 +48,7 @@ python -m pytest -q
 ```
 
 这条流程不执行`requirements-remote.txt`，该文件锁定另一套PyTorch 2.7.1环境。上述具体服务器路径来自用户提供的本次终端输出，适用于该实例；其他实例需要使用实际项目路径。
+PyXtal现固定为1.1.3：1.1.1的LG52 4c映射含重复坐标。训练、模型构建和数据验证会先检查80个层群的477种单轨道，失败则停止。已有检查点和数据的CPU兼容验证及更新命令见[PyXtal运行前验证](PYXTAL_RUNTIME.md)。更换包后须重启已有Python进程，旧进程的目录缓存不会自动更新。
 全部检查成功后执行下一节的`--stage all`完整训练命令；如有其他任务正在使用GPU，先确认资源足够再启动。
 
 AMP兼容验证：本机PyTorch 2.7.1/CUDA完整测试91项通过，含强制旧接口下CPU/CUDA/BF16断点续训一致性；独立PyTorch 2.2.1 CPU、NumPy 1.26.4、PyXtal 1.1.3、pymatgen 2025.4.17环境80项通过、11项CUDA测试因CPU构建跳过。该独立环境实际SciPy为1.15.2，用户提供的服务器清单为1.15.3；这是旧接口和主要依赖兼容性验证，Linux/CUDA 12.1/4090测试仍须在服务器执行。

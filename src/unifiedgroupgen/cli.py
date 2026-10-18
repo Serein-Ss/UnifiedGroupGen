@@ -39,6 +39,8 @@ def composition_of(compiled):
 
 
 def build_models(config, device):
+    from .symmetry_preflight import check_layer_catalog
+    check_layer_catalog()
     groups = config.get("groups")
     if groups is None:
         limits = {"space": 230, "layer": 80, "plane": 17}
@@ -271,6 +273,9 @@ def main():
     summary.add_argument('--samples', required=True)
     summary.add_argument('--output', required=True)
     args = parser.parse_args()
+    if args.command in ('prepare', 'audit', 'preflight'):
+        from .symmetry_preflight import check_layer_catalog
+        check_layer_catalog()
     torch.set_num_threads(args.threads)
     torch.manual_seed(args.seed)
     random.seed(args.seed)

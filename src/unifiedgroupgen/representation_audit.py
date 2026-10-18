@@ -20,7 +20,9 @@ def expand_numpy(compiled, state):
     h = compiled.root @ expm(np.einsum('k,kij->ij', state[:compiled.lattice_dof], compiled.metric_basis)) @ compiled.root
     lattice = np.eye(3)
     lattice[:len(h), :len(h)] = np.linalg.cholesky(h).T
-    coords = compiled.b + np.einsum('ijq,q->ij', compiled.coordinate_basis, state[compiled.lattice_dof:])
+    coords = compiled.b.copy()
+    if compiled.coordinate_dof:
+        coords += np.einsum('ijq,q->ij', compiled.coordinate_basis, state[compiled.lattice_dof:])
     return lattice, coords, h
 
 
@@ -98,10 +100,12 @@ def audit_record(record, seed=182, path_points=3):
     return result
 
 
-def audit_catalog(seed=182):
+def audit_catalog(seed=182, kinds=('space', 'layer', 'plane')):
     """Exhaust all catalog groups and single-orbit types; multi-orbit lists are unbounded."""
     rng = np.random.default_rng(seed)
     for kind, limit in (('space', 230), ('layer', 80), ('plane', 17)):
+        if kind not in kinds:
+            continue
         for number in range(1, limit+1):
             root, _, bases = metric_chart(kind, number)
             gram = np.einsum('aij,bij->ab', bases, bases)

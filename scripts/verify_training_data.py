@@ -15,6 +15,9 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def main():
+    from unifiedgroupgen.symmetry_preflight import check_layer_catalog
+    catalog = check_layer_catalog()
+    print('[PASS] layer catalog: 80 groups, 477 single orbits; PyXtal '+catalog['pyxtal'], flush=True)
     verified = []
     for name in ('mp20_local', 'mpts52_local', 'c2db_official_local', 'joint_space_layer_large'):
         config = yaml.safe_load((ROOT / f'configs/{name}.yaml').read_text(encoding='utf-8'))
@@ -26,7 +29,7 @@ def main():
         print(f'[PASS] {name}', flush=True)
     joint = yaml.safe_load((ROOT / 'configs/joint_space_layer_large.yaml').read_text(encoding='utf-8'))
     lineage = check_joint_lineage(joint)
-    report = {'passed': True, 'configurations': verified, 'joint_lineage': lineage,
+    report = {'passed': True, 'configurations': verified, 'joint_lineage': lineage, 'layer_catalog': catalog,
               'scope': 'Complete bundled inputs and training gates verified; no training or physical certification claim.'}
     path = ROOT / 'artifacts/portable_training_gate.json'
     path.write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')

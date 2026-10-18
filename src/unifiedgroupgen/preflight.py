@@ -205,6 +205,8 @@ def audit_files(paths, config, output):
 
 
 def check_training_gate(config, train_paths, val_paths, root):
+    from .symmetry_preflight import check_layer_catalog
+    check_layer_catalog()
     if not config.get('require_data_audit'):
         return
     if config.get('source_verified') is False:

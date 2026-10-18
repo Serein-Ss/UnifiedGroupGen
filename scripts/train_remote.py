@@ -100,6 +100,8 @@ def main():
     if args.plan:
         print(json.dumps([{'name': name, 'command': [sys.executable, '-u', *command]} for name, command in commands], indent=2))
         return
+    from unifiedgroupgen.symmetry_preflight import check_layer_catalog
+    print('[PASS] layer catalog: '+json.dumps(check_layer_catalog()), flush=True)
     if not (ROOT / 'artifacts/dataset_import.json').exists():
         raise ValueError('Run python scripts/unpack_training_data.py before remote training')
     folder = ROOT / 'artifacts/runs/remote_pipeline'
