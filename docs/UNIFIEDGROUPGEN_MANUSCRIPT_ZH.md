@@ -8,6 +8,8 @@
 
 本次更新：已从最新服务器压缩包核验并导入完整测试及六组256次采样结果，第9节填入真实测试损失、对称性／几何计数及完整标准质量补算。第6节图1使用TiO₂/MoS₂，第9节图2使用全量准备记录统计，图3使用共享模型真实采样记录；图4—6缺失结果以明确占位图表示。
 
+数据图集更新：第8.4节补入TiO₂/MoS₂轨道几何图，第9.2节补入群、化学体系、元素、性质与Wyckoff自由度统计；附录D.7展示三个来源各20个随机真实结构，附录F嵌入全部60张结构单图。新增71张PNG的来源、图注和复现入口见 [数据集图集](../assets/datasets/ATLAS_README.md)。
+
 阅读说明：第 3—5 节给出数学框架与推导，第 6—8 节描述当前模型，第 9 节报告已有证据，第 10 节列出待开展实验。规则内容条件与磁性扩展在第 11 节单列，未计入当前模型的已实现能力。本稿用于完整理解和讨论研究内容，尚未填入完整物理验证与公平基线实验结果。所有新增图片均为PNG，图片和可复现来源保存在 `assets`。
 
 ## 摘要
@@ -827,6 +829,16 @@ z_1=(k,h)=(-0.03499801,1.56355628).
 
 **图1配套实例｜不同合法维数使用同一接口。** 左图为TiO₂的六原子常规胞，右图为MoS₂三原子层胞的2×2面内展开；所有原子位置由记录中的独立状态经当前编译器确定。绿色箭头表示各自Wyckoff自由参数产生的相关运动，长度仅用于显示运动方向。结构采用VESTA元素配色、半透明配位多面体和统一球棍风格；晶胞边界的周期像不增加独立原子数。MoS₂的面外高度以Å计，不生成法向周期或真空厚度。图1(c)采用相同材料关系作方法示意，本图保留真实坐标及尺寸。
 
+### 8.4 轨道几何与允许方向的可视化
+
+![图S14 TiO₂与MoS₂的真实轨道几何和独立自由度](../assets/datasets/08_tio2_mos2_symmetry.png)
+
+**图S14｜三维晶体和二维层状材料的轨道参数。** (a,b) 金红石TiO₂的斜视图与俯视图；(c) 136号空间群下Ti 2a和O 4f的代表坐标、重数和自由度。(d,e) 单层MoS₂的斜视图与侧视图；(f) 78号层群下Mo 1a和S 2f的代表坐标、重数和自由度。原子坐标由真实数据状态确定性展开，配色、接触棍和多面体使用统一的结构渲染器。绿色箭头来自位置展开对独立参数的导数，长度经过显示缩放，不表示模型预测的物理速度。MoS₂采用面内2×2显示；面内晶胞基面放在最低原子下方1 Å，不表示法向周期。
+
+TiO₂的Ti 2a代表位置没有独立坐标参数，O 4f只允许由同一个u控制的相关变化，因此六个原子的18个位置分量归约为一个位置参数。MoS₂的Mo 1a同样没有独立位置参数，两个S原子由一个高度h控制，允许变化为相反的法向位移。两者的位置自由度均为1，但前者包含两个晶格自由度，后者包含一个面内晶格自由度，分别得到三维和二维的独立状态向量。
+
+这个实例说明，相同的位置自由度数量可以对应不同的物理变化方向；方向信息由各自的展开基底给出，共享网络通过相应编译结果处理。零自由度轨道的位置在固定晶格与描述下受限，仍可随晶格变化发生笛卡尔位置变化。两个实例展示表示和接口的具体含义，目录范围内的正确性由第9.4节的检查报告支持。
+
 ## 9 Data and Current Evidence 数据与已有结果
 
 ### 9.1 数据处理
@@ -850,6 +862,84 @@ z_1=(k,h)=(-0.03499801,1.56355628).
 来源为已归档的数据统计 [dataset_summary.csv](../assets/datasets/tables/dataset_summary.csv)。该表描述全库覆盖，并非训练集覆盖。轨道组合保留同一类型的重复次数，但忽略连续参数和元素；它不是物理非等价材料的计数。
 
 完整 Wyckoff 类型目录有限，不代表轨道实例组合总数有限。若不限制原子数和轨道数，具有自由参数的轨道可反复加入，组合数可以无限。加入预算后可作有限计数，但形式组合也不等于稳定材料。
+
+以下数据图均统计各来源原始train、val、test的合并记录。合计102,610条记录，MP_20和MPTS_52之间保留来源关联，合计数不代表去重后的独立材料数。图像基于已经核对的预处理记录和派生统计，不混入模型生成样本；训练集覆盖和生成分布在对应实验中另行评价。
+
+#### 9.2.1 群分布与频率不均衡
+
+![图S15 三个来源的完整空间群与层群分布](../assets/datasets/09_group_distribution.png)
+
+**图S15｜群覆盖与来源内的结构频率。** 上、中两行分别为MP_20和MPTS_52的空间群1–230，下行为C2DB的层群1–80。每根柱的分母为本来源全部结构记录；未观察到的群保留在横轴上并显示为零。背景分区标记空间群晶系或层群的对应分类。空间群与层群的编号分别解释。图形组织参考SLayerGen的全编号分布展示，所有数值来自本项目数据。
+
+MP_20、MPTS_52和C2DB分别覆盖179、208和71个群，同时在少数群上表现出较高频率。目录覆盖与样本均衡是两个不同问题：前者决定哪些规则出现在数据中，后者影响学习信号的分配。因此共享模型的评价除总体指标外，还需要报告按群或晶系分层的结果；本图提供数据分母，模型收益由后续匹配实验判断。
+
+#### 9.2.2 化学体系复杂度与晶胞计数约定
+
+![图S16 化学体系复杂度和来源胞、标准胞原子数](../assets/datasets/11_chemistry_cell_size.png)
+
+**图S16｜化学复杂度与结构规模。** 每行一个数据集，三列依次统计不同元素种类数、来源晶胞原子数、标准化晶胞原子数。柱高为来源记录百分比，虚线为中位数；横轴保留完整取值范围。化学体系复杂度定义为不同元素种类数，二元、三元体系分别对应2、3。来源晶胞不统一称为原胞，其具体约定由原始数据确定。
+
+三个来源的元素种类数中位数均为3，三元体系占比分别为58.37%、51.46%和40.95%，但最大元素种类数分别达到7、8和9。标准化后，MP_20、MPTS_52和C2DB的晶胞原子数中位数分别为16、24和8，最大值分别为80、208和64；对应来源胞中位数为10、18和8。这些差异说明，统一模型同时面对不同化学复杂度、图规模和标准胞扩展。MP_20中的20原子限制作用于来源胞，不能据此要求展开后的标准胞也不超过20原子。
+
+#### 9.2.3 元素覆盖与出现频率
+
+![图S17a MP20元素周期表](../assets/datasets/10_periodic_table_mp_20.png)
+
+**图S17a｜MP_20元素覆盖。** 格内数字为至少含该元素的结构记录数，颜色为该计数除以45,229，使用与另两个来源相同的对数颜色尺。89种元素出现；氧出现在11,522条记录中，说明该来源内不同元素的出现频率差异较大。
+
+![图S17b MPTS52元素周期表](../assets/datasets/10_periodic_table_mpts_52.png)
+
+**图S17b｜MPTS_52元素覆盖。** 计数分母为40,476，覆盖89种元素；氧出现在14,347条记录中。元素目录规模与MP_20相同，出现频率并不相同，因此相同元素词表不意味着相同的化学分布。
+
+![图S17c C2DB元素周期表](../assets/datasets/10_periodic_table_c2db_51.png)
+
+**图S17c｜C2DB元素覆盖。** 计数分母为16,905，覆盖63种元素；硫出现在4,770条记录中。灰色和破折号表示未出现。全部周期表均对每个结构中的一种元素计一次，不按轨道重数或原子数量累加；各元素出现率不要求合计为100%。
+
+元素图展示三个来源的化学覆盖和稀有元素情况，为允许元素范围与化学分布比较提供依据。这里合并全部参考划分；实际训练词表仍由训练分区的元素策略确定，不能用全量覆盖替代训练元素覆盖。
+
+#### 9.2.4 性质监督、缺失标签与完整分布
+
+![图S18 形成能、带隙和凸包能的来源内分布](../assets/datasets/12_property_distributions.png)
+
+**图S18｜当前预处理数据中的性质标签。** 每行一个来源，每列分别为形成能、带隙和凸包能。各面板使用60个等宽bin，保留所有有限标签的完整数值范围；纵轴为有限标签在每个bin中的百分比，虚线为中位数，文字给出有限标签数、总记录数和准确零值比例。形成能与凸包能单位为eV/atom，带隙单位为eV。不同面板的横轴范围由各自数据确定。图形组织参考CrystalFlow的性质直方图。
+
+| 来源 | 形成能有限标签 | 带隙有限标签 | 凸包能有限标签 |
+|---|---:|---:|---:|
+| MP_20 | 45,229/45,229 | 45,229/45,229 | 45,229/45,229 |
+| MPTS_52 | 40,476/40,476 | 0/40,476 | 40,476/40,476 |
+| C2DB | 16,905/16,905 | 8,686/16,905 | 16,905/16,905 |
+
+MPTS_52当前预处理记录没有带隙标签；C2DB有8,219条带隙缺失记录。MP_20的带隙零值比例为61.97%，C2DB在有标签子集中的对应比例为47.49%。缺失表示监督信息不可用，零带隙是已记录的物理数值，二者在条件编码中分别处理。形成能中位数分别为−0.807、−0.949和−0.485 eV/atom，各来源也具有不同的凸包能范围和集中程度。
+
+这些分布明确了当前条件训练的监督来源，并为设置目标值和分析条件外推提供数据背景。不同来源的计算流程与能量参考可能不同，来源上下文需随条件保留。数据标签图不提供生成结构的性质值；性质控制仍需独立性质计算或评价模型验证。
+
+#### 9.2.5 Wyckoff坐标自由度的结构出现率
+
+![图S19 不同Wyckoff坐标自由度在结构中的出现率](../assets/datasets/13_wyckoff_dimensions.png)
+
+**图S19｜结构是否包含某种维数的轨道。** 横轴0、1、2、3表示单个Wyckoff轨道的独立位置参数个数。纵轴为至少含一个该维数轨道的结构数，除以该来源的总结构数。每个结构在同一个维数中最多计一次，可以同时计入多个维数；柱高不是轨道实例比例、原子比例或整个结构的总自由度分布。统计口径参考SGEquiDiff的Wyckoff维数展示，精确计数见 [wyckoff_dimension_counts.csv](../assets/datasets/tables/wyckoff_dimension_counts.csv)。
+
+对结构\(i\)的第\(\alpha\)个轨道，记独立位置参数数目为\(\delta_\alpha\)，等于该轨道展开基底的秩。图中的\(\delta\)维柱定义为：
+
+\[
+P_\delta=\frac{100}{N_{\mathrm{records}}}
+\sum_{i=1}^{N_{\mathrm{records}}}
+\mathbf 1\{\text{结构 }i\text{ 至少存在一个轨道 }\alpha\text{ 满足 }\delta_\alpha=\delta\}.
+\]
+
+| 来源 | 含0维轨道 | 含1维轨道 | 含2维轨道 | 含3维轨道 |
+|---|---:|---:|---:|---:|
+| MP_20 | 31,020/45,229，68.58% | 24,595/45,229，54.38% | 12,867/45,229，28.45% | 10,900/45,229，24.10% |
+| MPTS_52 | 23,124/40,476，57.13% | 21,068/40,476，52.05% | 14,667/40,476，36.24% | 17,763/40,476，43.89% |
+| C2DB | 6,856/16,905，40.56% | 10,374/16,905，61.37% | 6,160/16,905，36.44% | 5,203/16,905，30.78% |
+
+0维轨道的代表坐标由当前规则固定；1维轨道需要一个独立参数，例如TiO₂中O 4f的u；2维轨道需要两个独立参数，例如受镜面限制的(x,y,0)位置；3维轨道具有三个独立位置参数。C2DB的二维指二维周期性，原子嵌入三维空间，因此层群的一般位置可以由分数x、分数y和非周期高度h三个参数描述。
+
+TiO₂含0维Ti 2a和1维O 4f，所以同时计入0维与1维柱。MoS₂含0维Mo 1a和1维S 2f，也同时计入这两根柱。即使一个结构有多个1维轨道，在1维柱中仍只计一次。四个事件可以重叠，各柱百分比之和因而可以超过100%。
+
+整条结构的坐标自由度则为各轨道实例自由度之和：\(\dim q=\sum_{\alpha=1}^{K}\delta_\alpha\)。含0维轨道不等于\(\dim q=0\)；后者要求所有轨道都没有独立位置参数。三个来源中\(\dim q=0\)的结构分别只有8,446/45,229（18.67%）、3,549/40,476（8.77%）和116/16,905（0.69%），与图中0维柱的68.58%、57.13%和40.56%不同。晶格自由度\(k\)另行计入，\(\dim q=0\)也不意味着整个连续状态\(z\)没有自由度。
+
+这些统计表明，三个来源都混合了固定与可动轨道，C2DB尤其常见一维轨道，MPTS_52包含三维轨道的结构比例高于MP_20。共享模型需要处理不同的轨道参数数目及不同方向的约束映射。正式评价应同时报告整条结构的dim(q)分层结果，以区分只生成晶格与还需学习原子位置的任务；本图不能单独建立生成质量或未见规则泛化结论。
 
 ### 9.3 联合划分与来源条件
 
@@ -1345,18 +1435,101 @@ UnifiedGroupGen 将固定群与轨道规则下的材料结构写为独立晶格�
 
 逐任务的有效／未知计数和几何分布PNG保存在 [joint_best_seed142诊断图目录](../assets/generation_metrics/joint_best_seed142/README.md)。完整分层表、逐尝试表、输入出处及重绘清单位于 [assets/paper/standard](../assets/paper/README.md)。
 
+### D.7 随机真实结构图集与来源分布的直观比较
+
+以下三组图均从各来源全部参考划分中均匀无放回抽取20条记录，使用固定随机种子，不依据模型评分、稳定性、群或美观程度筛选。结构阵列布局参考DiffCSP；配色、球棍、多面体和晶胞边界沿用统一的结构渲染风格。每幅图上方标注简化化学式，下方标注材料ID、SG/LG编号和标准胞原子数N。不同结构独立适配画幅，不共用像素长度尺。
+
+![图S20 MP20随机20个真实结构](../assets/datasets/14_random_structures_mp_20.png)
+
+**图S20｜MP_20来源的随机结构。** 抽样种子20261018，分母为45,229条来源记录。图中同时出现较小化学式和不同标准胞规模，提供三维训练数据局部配位与晶格形态的定性示例；总体分布由第9.2节的全量统计给出。图中的N使用展开标准胞，不能用简化化学式的原子数替代。
+
+![图S21 MPTS52随机20个真实结构](../assets/datasets/14_random_structures_mpts_52.png)
+
+**图S21｜MPTS_52来源的随机结构。** 抽样种子20261019，分母为40,476条来源记录。示例包含较大标准胞以及多种元素组合，直观展示图规模和配位环境的变化。MP_20与MPTS_52之间未作额外跨来源排重，二者的独立性按第9.3节的关联划分处理。
+
+![图S22 C2DB随机20个真实结构](../assets/datasets/14_random_structures_c2db_51.png)
+
+**图S22｜C2DB来源的随机结构。** 抽样种子20261020，分母为16,905条来源记录。每个样本沿面内显示2×2重复，不沿法向复制，保留真实面外厚度与起伏。图中的N为独立层胞原子数，显示周期像不增加独立样本或轨道数。由此可直观看到，二维材料的二维指周期秩，而非要求所有原子共面。
+
+三组图展示真实数据中的几何、化学和规模差异，用于解释统一输入所覆盖的变化范围。图中接触棍与多面体来自既有距离显示规则，不承担成键或稳定性判定。这60个真实样本不作为生成模型输出计入有效率或新颖性。对应60张单图嵌入附录F；样本描述、独立状态与来源信息保存在 [random_structure_examples.json](../assets/datasets/tables/random_structure_examples.json)。全部新增数据图的复现入口为 [build_dataset_atlas.py](../assets/datasets/source/build_dataset_atlas.py)。
+
 ## 附录 E 主图当前完成度与需要补齐的数据
 
 | 图 | 当前已有 | 仍需补齐 | 对应论文结论 |
 |---|---|---|---|
 | 图1 方法 | 已绘制；真实TiO₂/MoS₂状态、编译、共享网络 | 投稿版字号与排版可按模板调整 | 不同规则／维数通过同一构造和相同权重处理 |
 | 图2 表示 | 102610条准备记录、2280种目录类型、48条来源抽查 | 全量原始CIF重编码、缺失的理想化偏差及容差敏感性 | 给定目录和约定范围内的表示正确性 |
+| 图S14—S22 数据图集 | 全量群、元素、化学体系、晶胞规模、性质与轨道自由度；60个固定种子的真实结构 | 若用于最终训练或基线比较，补对应train-only及匹配划分统计 | 当前数据覆盖、频率不均衡及统一表示面对的样本异质性 |
 | 图3 共享生成 | 全量10235条测试、六组1536次输出、标准化学／覆盖／匹配、二维连通性诊断 | 4096次及重复、同划分单来源模型和公平外部基线；进一步分析条件组偏差 | 共享模型的材料分布质量及统一训练收益 |
 | 图4 连续机制 | 配对先验／学习流／固定晶格代码，灰色占位 | 执行controls任务；质量、多样性、观测残差；必要的重训消融 | 合法性之外，连续学习和结构观测的具体作用 |
 | 图5 条件控制 | 已训练条件编码及CFG；本轮有固定目标结构，灰色占位 | 多档目标／CFG采样，独立性质值、容差、有效命中率和多样性 | 目标性质是否改变实际生成性质 |
 | 图6 物理质量 | 独立计算及弛豫／相图接口，灰色占位 | 合适的势函数或DFT、兼容能量参考与竞争相、弛豫后匹配，必要声子 | 指定评价体系下的物理候选产率 |
 
 图4—6的灰色框表示缺失证据，不表示零性能。新增结果应替换原位图像和对应正文，保留方法、数据、分母及版本出处。具体执行命令见 [PAPER_WORKFLOW.md](PAPER_WORKFLOW.md)，完整证据组织见 [PAPER_EVIDENCE_PLAN.md](PAPER_EVIDENCE_PLAN.md)。
+
+## 附录 F 随机真实结构的全部单图
+
+以下60张单图对应附录D.7的三幅总览，使用相同坐标、视角和显示规则。逐图保留化学式、材料ID和群编号，便于放大检查；计数仍为每个来源20个样本，重复排版不增加样本数。各组默认折叠，展开后可查看全部PNG。
+
+### F.1 MP_20：图S20的20个样本
+
+<details>
+<summary>展开MP_20的20张结构单图</summary>
+
+| 结构单图 | 结构单图 |
+|---|---|
+| **S20.01**<br>![Cs3Li2Cl5 · mp-570756](../assets/datasets/structures/mp_20/01.png) | **S20.02**<br>![Nb8Co2Sb4Pd · mp-1220498](../assets/datasets/structures/mp_20/02.png) |
+| **S20.03**<br>![PmCu2Sn · mp-862900](../assets/datasets/structures/mp_20/03.png) | **S20.04**<br>![Pd(PbCl3)2 · mp-28982](../assets/datasets/structures/mp_20/04.png) |
+| **S20.05**<br>![NdNi3 · mp-1095561](../assets/datasets/structures/mp_20/05.png) | **S20.06**<br>![KNiSbO4 · mp-1223391](../assets/datasets/structures/mp_20/06.png) |
+| **S20.07**<br>![SrGa2 · mp-182](../assets/datasets/structures/mp_20/07.png) | **S20.08**<br>![LaN · mp-256](../assets/datasets/structures/mp_20/08.png) |
+| **S20.09**<br>![Pm2O3 · mp-556584](../assets/datasets/structures/mp_20/09.png) | **S20.10**<br>![Zn(RhO2)2 · mp-5146](../assets/datasets/structures/mp_20/10.png) |
+| **S20.11**<br>![Li2AlCoO4 · mp-1222767](../assets/datasets/structures/mp_20/11.png) | **S20.12**<br>![Bi2TeO2 · mp-755419](../assets/datasets/structures/mp_20/12.png) |
+| **S20.13**<br>![Th3In5 · mp-1189532](../assets/datasets/structures/mp_20/13.png) | **S20.14**<br>![Li2MnF6 · mp-752557](../assets/datasets/structures/mp_20/14.png) |
+| **S20.15**<br>![ErAg(PSe3)2 · mp-13384](../assets/datasets/structures/mp_20/15.png) | **S20.16**<br>![TiGaIr2 · mp-866142](../assets/datasets/structures/mp_20/16.png) |
+| **S20.17**<br>![Yb2PdAu · mp-864800](../assets/datasets/structures/mp_20/17.png) | **S20.18**<br>![HfIr · mp-1206659](../assets/datasets/structures/mp_20/18.png) |
+| **S20.19**<br>![GdGePt · mp-1103746](../assets/datasets/structures/mp_20/19.png) | **S20.20**<br>![Mg(InS2)2 · mp-20493](../assets/datasets/structures/mp_20/20.png) |
+
+</details>
+
+### F.2 MPTS_52：图S21的20个样本
+
+<details>
+<summary>展开MPTS_52的20张结构单图</summary>
+
+| 结构单图 | 结构单图 |
+|---|---|
+| **S21.01**<br>![LaB2ClO4 · mp-559417](../assets/datasets/structures/mpts_52/01.png) | **S21.02**<br>![Ba2GaSbSe5 · mp-1203387](../assets/datasets/structures/mpts_52/02.png) |
+| **S21.03**<br>![Be(PO3)2 · mp-560521](../assets/datasets/structures/mpts_52/03.png) | **S21.04**<br>![Nd3Co11B4 · mp-5568](../assets/datasets/structures/mpts_52/04.png) |
+| **S21.05**<br>![Er2In · mp-877](../assets/datasets/structures/mpts_52/05.png) | **S21.06**<br>![LaInNi · mp-1078593](../assets/datasets/structures/mpts_52/06.png) |
+| **S21.07**<br>![In2HgTe4 · mp-19765](../assets/datasets/structures/mpts_52/07.png) | **S21.08**<br>![Bi · mp-1078637](../assets/datasets/structures/mpts_52/08.png) |
+| **S21.09**<br>![U2NiO6 · mp-540841](../assets/datasets/structures/mpts_52/09.png) | **S21.10**<br>![Ca5Zn3 · mp-2786](../assets/datasets/structures/mpts_52/10.png) |
+| **S21.11**<br>![MnInPd2 · mp-31328](../assets/datasets/structures/mpts_52/11.png) | **S21.12**<br>![BaH2Br2O7 · mp-1192207](../assets/datasets/structures/mpts_52/12.png) |
+| **S21.13**<br>![Zn2PHO5 · mp-722516](../assets/datasets/structures/mpts_52/13.png) | **S21.14**<br>![U(PS3)2 · mp-20326](../assets/datasets/structures/mpts_52/14.png) |
+| **S21.15**<br>![DyPd3 · mp-797](../assets/datasets/structures/mpts_52/15.png) | **S21.16**<br>![SrCo3(P2O7)2 · mp-1196626](../assets/datasets/structures/mpts_52/16.png) |
+| **S21.17**<br>![LaNiBN · mp-20881](../assets/datasets/structures/mpts_52/17.png) | **S21.18**<br>![Cr3SnN · mp-10376](../assets/datasets/structures/mpts_52/18.png) |
+| **S21.19**<br>![Cu2GeO4 · mp-9600](../assets/datasets/structures/mpts_52/19.png) | **S21.20**<br>![Er2SiO5 · mp-555983](../assets/datasets/structures/mpts_52/20.png) |
+
+</details>
+
+### F.3 C2DB：图S22的20个样本
+
+<details>
+<summary>展开C2DB的20张结构单图</summary>
+
+| 结构单图 | 结构单图 |
+|---|---|
+| **S22.01**<br>![CsHg2S(BrO)3 · 2CsSHg2Br3O3-1](../assets/datasets/structures/c2db_51/01.png) | **S22.02**<br>![CdH4C2(N2F)2 · 1CdC2F2H4N4-1](../assets/datasets/structures/c2db_51/02.png) |
+| **S22.03**<br>![FeSbPd · 2FePdSb-1](../assets/datasets/structures/c2db_51/03.png) | **S22.04**<br>![PtBr2 · 1PtBr2-1](../assets/datasets/structures/c2db_51/04.png) |
+| **S22.05**<br>![AgBr · 4AgBr-2](../assets/datasets/structures/c2db_51/05.png) | **S22.06**<br>![Ag2SBr2 · 1SAg2Br2-1](../assets/datasets/structures/c2db_51/06.png) |
+| **S22.07**<br>![Pd3SeSI3 · 1SSeI3Pd3-1](../assets/datasets/structures/c2db_51/07.png) | **S22.08**<br>![Pd3S3(IBr2)2 · 1I2Pd3S3Br4-1](../assets/datasets/structures/c2db_51/08.png) |
+| **S22.09**<br>![KC2(OF)3 · 2KC2F3O3-1](../assets/datasets/structures/c2db_51/09.png) | **S22.10**<br>![Zr2IBrN · 1BrINZr2-1](../assets/datasets/structures/c2db_51/10.png) |
+| **S22.11**<br>![WSeCl · 2ClSeW-1](../assets/datasets/structures/c2db_51/11.png) | **S22.12**<br>![Ta3B2(HS)2 · 1B2H2S2Ta3-1](../assets/datasets/structures/c2db_51/12.png) |
+| **S22.13**<br>![ScPtBr2NO · 1NOPtScBr2-1](../assets/datasets/structures/c2db_51/13.png) | **S22.14**<br>![ScPO3 · 2PScO3-1](../assets/datasets/structures/c2db_51/14.png) |
+| **S22.15**<br>![Te3Pd · 2PdTe3-2](../assets/datasets/structures/c2db_51/15.png) | **S22.16**<br>![Ca3Au2(S2Br)2 · 1Au2Br2Ca3S4-1](../assets/datasets/structures/c2db_51/16.png) |
+| **S22.17**<br>![GaAsO3 · 2AsGaO3-1](../assets/datasets/structures/c2db_51/17.png) | **S22.18**<br>![CuSBrF · 4BrCuFS-1](../assets/datasets/structures/c2db_51/18.png) |
+| **S22.19**<br>![TlAs · 2AsTl-2](../assets/datasets/structures/c2db_51/19.png) | **S22.20**<br>![Mo3(HC)2 · 1C2H2Mo3-1](../assets/datasets/structures/c2db_51/20.png) |
+
+</details>
 
 ## 参考文献与方法来源
 
