@@ -1,0 +1,3013 @@
+[
+  {
+    "dataset": "MP20",
+    "id": "mp-570756",
+    "formula": "Cs3Li2Cl5",
+    "group_kind": "space",
+    "group": 8,
+    "atoms": 20,
+    "seed": 20261018,
+    "file": "structures/mp_20/01.png",
+    "source_cif_sha256": "2783872ce997d2882dc24b8c1df9573939bf7ccf7ba5a89770fa6b55b21bd2fc",
+    "descriptor": {
+      "kind": "space",
+      "number": 8,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 17
+        },
+        {
+          "letter": "a",
+          "atomic_number": 55
+        },
+        {
+          "letter": "b",
+          "atomic_number": 3
+        },
+        {
+          "letter": "b",
+          "atomic_number": 17
+        },
+        {
+          "letter": "b",
+          "atomic_number": 17
+        },
+        {
+          "letter": "b",
+          "atomic_number": 55
+        }
+      ]
+    },
+    "state": [
+      1.6287500837002484,
+      -0.8997544161437167,
+      4.206422579363612,
+      0.40926443430880627,
+      0.4955360000000001,
+      0.2515850000000001,
+      0.9977360000000002,
+      0.26664900000000014,
+      0.9508289999999999,
+      0.78241,
+      0.7026539999999999,
+      0.05252799999999991,
+      0.7396240000000001,
+      0.3048270000000001,
+      0.9940895,
+      0.8779115,
+      0.7479359999999999,
+      0.9911199999999999,
+      0.624583,
+      0.7502199999999999
+    ]
+  },
+  {
+    "dataset": "MP20",
+    "id": "mp-1220498",
+    "formula": "Nb8Co2Sb4Pd",
+    "group_kind": "space",
+    "group": 121,
+    "atoms": 30,
+    "seed": 20261018,
+    "file": "structures/mp_20/02.png",
+    "source_cif_sha256": "ab3c565ca0c430a139b7cdc74eb205468db0332964c82e990b8e4130a6b654d3",
+    "descriptor": {
+      "kind": "space",
+      "number": 121,
+      "orbits": [
+        {
+          "letter": "b",
+          "atomic_number": 46
+        },
+        {
+          "letter": "c",
+          "atomic_number": 27
+        },
+        {
+          "letter": "i",
+          "atomic_number": 51
+        },
+        {
+          "letter": "j",
+          "atomic_number": 41
+        }
+      ]
+    },
+    "state": [
+      3.563423832357868,
+      0.9982796196657366,
+      0.15194449999999982,
+      0.22409250000000003,
+      0.920702,
+      0.7034119999999999,
+      0.7440739999999998
+    ]
+  },
+  {
+    "dataset": "MP20",
+    "id": "mp-862900",
+    "formula": "PmCu2Sn",
+    "group_kind": "space",
+    "group": 225,
+    "atoms": 16,
+    "seed": 20261018,
+    "file": "structures/mp_20/03.png",
+    "source_cif_sha256": "54304764ae09f2186ff789395264233486358744534262b9af6384fd7541b681",
+    "descriptor": {
+      "kind": "space",
+      "number": 225,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 50
+        },
+        {
+          "letter": "b",
+          "atomic_number": 61
+        },
+        {
+          "letter": "c",
+          "atomic_number": 29
+        }
+      ]
+    },
+    "state": [
+      2.80739832752211
+    ]
+  },
+  {
+    "dataset": "MP20",
+    "id": "mp-28982",
+    "formula": "Pd(PbCl3)2",
+    "group_kind": "space",
+    "group": 14,
+    "atoms": 18,
+    "seed": 20261018,
+    "file": "structures/mp_20/04.png",
+    "source_cif_sha256": "6be83951a815cf27f4732ee76b92a428581c19f72c33fcb93ea911621e58e032",
+    "descriptor": {
+      "kind": "space",
+      "number": 14,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 46
+        },
+        {
+          "letter": "e",
+          "atomic_number": 17
+        },
+        {
+          "letter": "e",
+          "atomic_number": 17
+        },
+        {
+          "letter": "e",
+          "atomic_number": 17
+        },
+        {
+          "letter": "e",
+          "atomic_number": 82
+        }
+      ]
+    },
+    "state": [
+      2.2419191629444795,
+      -0.029943002545145536,
+      1.5559338431156926,
+      2.0050958538968935,
+      0.5604219999999999,
+      0.35190200000000005,
+      0.16679699999999995,
+      0.9403979999999998,
+      0.29654800000000003,
+      0.14149999999999993,
+      0.7633149999999999,
+      0.622598,
+      0.5299729999999999,
+      0.7170849999999999,
+      0.04263700000000001,
+      0.3759359999999999
+    ]
+  },
+  {
+    "dataset": "MP20",
+    "id": "mp-1095561",
+    "formula": "NdNi3",
+    "group_kind": "space",
+    "group": 166,
+    "atoms": 36,
+    "seed": 20261018,
+    "file": "structures/mp_20/05.png",
+    "source_cif_sha256": "b5e0d2c1353f962894db327de204c759602c9109c19204e956a6e398c55efc42",
+    "descriptor": {
+      "kind": "space",
+      "number": 166,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 60
+        },
+        {
+          "letter": "b",
+          "atomic_number": 28
+        },
+        {
+          "letter": "c",
+          "atomic_number": 28
+        },
+        {
+          "letter": "c",
+          "atomic_number": 60
+        },
+        {
+          "letter": "h",
+          "atomic_number": 28
+        }
+      ]
+    },
+    "state": [
+      1.1746070177281023,
+      4.321636673155647,
+      0.33287599999999995,
+      0.13927799999999999,
+      0.1677756666666666,
+      0.2522573333333334
+    ]
+  },
+  {
+    "dataset": "MP20",
+    "id": "mp-1223391",
+    "formula": "KNiSbO4",
+    "group_kind": "space",
+    "group": 1,
+    "atoms": 7,
+    "seed": 20261018,
+    "file": "structures/mp_20/06.png",
+    "source_cif_sha256": "e01e624104618c93b50359adc476cdc2237b03a61b4784b2b197c0541a9368e1",
+    "descriptor": {
+      "kind": "space",
+      "number": 1,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 8
+        },
+        {
+          "letter": "a",
+          "atomic_number": 8
+        },
+        {
+          "letter": "a",
+          "atomic_number": 8
+        },
+        {
+          "letter": "a",
+          "atomic_number": 8
+        },
+        {
+          "letter": "a",
+          "atomic_number": 19
+        },
+        {
+          "letter": "a",
+          "atomic_number": 28
+        },
+        {
+          "letter": "a",
+          "atomic_number": 51
+        }
+      ]
+    },
+    "state": [
+      0.05256726258354932,
+      -0.01935184005704032,
+      -0.320805275137326,
+      1.1265132496342585,
+      -0.12568911436217362,
+      1.5286700764213852,
+      0.9192290000000001,
+      0.30085799999999996,
+      0.8383529999999998,
+      0.413674,
+      0.823254,
+      0.8273789999999999,
+      0.586354,
+      0.17645299999999997,
+      0.17285499999999995,
+      0.080774,
+      0.699777,
+      0.16174899999999995,
+      0.252378,
+      0.41827099999999995,
+      0.504379,
+      0.5028889999999999,
+      0.502267,
+      0.005785999999999999,
+      0.998851,
+      0.99717,
+      0.9977999999999998
+    ]
+  },
+  {
+    "dataset": "MP20",
+    "id": "mp-182",
+    "formula": "SrGa2",
+    "group_kind": "space",
+    "group": 191,
+    "atoms": 3,
+    "seed": 20261018,
+    "file": "structures/mp_20/07.png",
+    "source_cif_sha256": "25c10cb05f93414a8465a89fbbd4d80ab0f6e5039a9620ef9148c2db190fd908",
+    "descriptor": {
+      "kind": "space",
+      "number": 191,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 38
+        },
+        {
+          "letter": "d",
+          "atomic_number": 31
+        }
+      ]
+    },
+    "state": [
+      0.7841835819162879,
+      1.045885901296469
+    ]
+  },
+  {
+    "dataset": "MP20",
+    "id": "mp-256",
+    "formula": "LaN",
+    "group_kind": "space",
+    "group": 225,
+    "atoms": 8,
+    "seed": 20261018,
+    "file": "structures/mp_20/08.png",
+    "source_cif_sha256": "b7af49486578bf215caed56f3e31eec351c4d534b3279f9136823889defa1eff",
+    "descriptor": {
+      "kind": "space",
+      "number": 225,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 57
+        },
+        {
+          "letter": "b",
+          "atomic_number": 7
+        }
+      ]
+    },
+    "state": [
+      1.97737530010635
+    ]
+  },
+  {
+    "dataset": "MP20",
+    "id": "mp-556584",
+    "formula": "Pm2O3",
+    "group_kind": "space",
+    "group": 12,
+    "atoms": 30,
+    "seed": 20261018,
+    "file": "structures/mp_20/09.png",
+    "source_cif_sha256": "fb7d39ef6c2117090df00090a91b8a3689db0d9eb410e62eff7bafd4fa8b56eb",
+    "descriptor": {
+      "kind": "space",
+      "number": 12,
+      "orbits": [
+        {
+          "letter": "b",
+          "atomic_number": 8
+        },
+        {
+          "letter": "i",
+          "atomic_number": 8
+        },
+        {
+          "letter": "i",
+          "atomic_number": 8
+        },
+        {
+          "letter": "i",
+          "atomic_number": 8
+        },
+        {
+          "letter": "i",
+          "atomic_number": 8
+        },
+        {
+          "letter": "i",
+          "atomic_number": 61
+        },
+        {
+          "letter": "i",
+          "atomic_number": 61
+        },
+        {
+          "letter": "i",
+          "atomic_number": 61
+        }
+      ]
+    },
+    "state": [
+      3.137252684111596,
+      -0.24571479411437033,
+      0.3949938738386751,
+      2.1700413970020835,
+      0.12933099999999997,
+      0.2853179999999999,
+      0.52658,
+      0.6564799999999998,
+      0.2020579999999999,
+      0.6260149999999999,
+      0.8251310000000001,
+      0.026728999999999985,
+      0.967779,
+      0.1865769999999999,
+      0.3661869999999999,
+      0.5106099999999999,
+      0.692445,
+      0.13903299999999996
+    ]
+  },
+  {
+    "dataset": "MP20",
+    "id": "mp-5146",
+    "formula": "Zn(RhO2)2",
+    "group_kind": "space",
+    "group": 227,
+    "atoms": 56,
+    "seed": 20261018,
+    "file": "structures/mp_20/10.png",
+    "source_cif_sha256": "86ec70a175040d25e525e54921b79f0c759af1a9909b4b665c928774dd55bd94",
+    "descriptor": {
+      "kind": "space",
+      "number": 227,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 30
+        },
+        {
+          "letter": "d",
+          "atomic_number": 45
+        },
+        {
+          "letter": "e",
+          "atomic_number": 8
+        }
+      ]
+    },
+    "state": [
+      3.669020903675336,
+      0.73954
+    ]
+  },
+  {
+    "dataset": "MP20",
+    "id": "mp-1222767",
+    "formula": "Li2AlCoO4",
+    "group_kind": "space",
+    "group": 12,
+    "atoms": 16,
+    "seed": 20261018,
+    "file": "structures/mp_20/11.png",
+    "source_cif_sha256": "bfbd419342a27adda0332af987f5cb7f73f868cf4e726976891eeefd9a9ca90c",
+    "descriptor": {
+      "kind": "space",
+      "number": 12,
+      "orbits": [
+        {
+          "letter": "b",
+          "atomic_number": 13
+        },
+        {
+          "letter": "c",
+          "atomic_number": 27
+        },
+        {
+          "letter": "i",
+          "atomic_number": 3
+        },
+        {
+          "letter": "i",
+          "atomic_number": 8
+        },
+        {
+          "letter": "i",
+          "atomic_number": 8
+        }
+      ]
+    },
+    "state": [
+      2.3524401716078582,
+      -0.22195350221049298,
+      -0.08568139414818908,
+      1.007341740775162,
+      0.747267,
+      0.74986,
+      0.611908,
+      0.36084800000000006,
+      0.1096200000000001,
+      0.882613
+    ]
+  },
+  {
+    "dataset": "MP20",
+    "id": "mp-755419",
+    "formula": "Bi2TeO2",
+    "group_kind": "space",
+    "group": 1,
+    "atoms": 5,
+    "seed": 20261018,
+    "file": "structures/mp_20/12.png",
+    "source_cif_sha256": "1b738648bd349c5b9894566e07fe86c4909eef65de0f9db1bfe55602566cc166",
+    "descriptor": {
+      "kind": "space",
+      "number": 1,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 8
+        },
+        {
+          "letter": "a",
+          "atomic_number": 8
+        },
+        {
+          "letter": "a",
+          "atomic_number": 52
+        },
+        {
+          "letter": "a",
+          "atomic_number": 83
+        },
+        {
+          "letter": "a",
+          "atomic_number": 83
+        }
+      ]
+    },
+    "state": [
+      0.5248376851370126,
+      -0.08279301557099364,
+      -0.398691318309751,
+      0.5331749699529255,
+      -0.3967195043723075,
+      1.6478758406082596,
+      0.7509589999999999,
+      0.251374,
+      0.502303,
+      0.251104,
+      0.751296,
+      0.50102,
+      0.9964469999999999,
+      0.008288,
+      0.001122,
+      0.6582349999999998,
+      0.6559059999999999,
+      0.309376,
+      0.35109100000000004,
+      0.340526,
+      0.695228
+    ]
+  },
+  {
+    "dataset": "MP20",
+    "id": "mp-1189532",
+    "formula": "Th3In5",
+    "group_kind": "space",
+    "group": 63,
+    "atoms": 32,
+    "seed": 20261018,
+    "file": "structures/mp_20/13.png",
+    "source_cif_sha256": "b3badf3d72e4e07b1c69d3641a994722e1b4810c2ff523e8c130f16a98606a67",
+    "descriptor": {
+      "kind": "space",
+      "number": 63,
+      "orbits": [
+        {
+          "letter": "c",
+          "atomic_number": 49
+        },
+        {
+          "letter": "c",
+          "atomic_number": 90
+        },
+        {
+          "letter": "e",
+          "atomic_number": 90
+        },
+        {
+          "letter": "f",
+          "atomic_number": 49
+        },
+        {
+          "letter": "g",
+          "atomic_number": 49
+        }
+      ]
+    },
+    "state": [
+      2.4756273736757155,
+      2.0419476350952075,
+      2.498845841099577,
+      0.48283199999999993,
+      0.867796,
+      0.706312,
+      0.8088870000000001,
+      0.551099,
+      0.7910809999999999,
+      0.2153529999999999
+    ]
+  },
+  {
+    "dataset": "MP20",
+    "id": "mp-752557",
+    "formula": "Li2MnF6",
+    "group_kind": "space",
+    "group": 162,
+    "atoms": 9,
+    "seed": 20261018,
+    "file": "structures/mp_20/14.png",
+    "source_cif_sha256": "df5d4d78a682b8ac45cc0d20b901e392e4e2bc51e3942f1efe88d5519414434d",
+    "descriptor": {
+      "kind": "space",
+      "number": 162,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 25
+        },
+        {
+          "letter": "d",
+          "atomic_number": 3
+        },
+        {
+          "letter": "k",
+          "atomic_number": 9
+        }
+      ]
+    },
+    "state": [
+      1.1337086675895092,
+      0.8780290520187425,
+      0.6921229999999999,
+      0.24025499999999989
+    ]
+  },
+  {
+    "dataset": "MP20",
+    "id": "mp-13384",
+    "formula": "ErAg(PSe3)2",
+    "group_kind": "space",
+    "group": 163,
+    "atoms": 20,
+    "seed": 20261018,
+    "file": "structures/mp_20/15.png",
+    "source_cif_sha256": "ae81507ff05fe127797cd839ba3e70279bdb34ba92c0c34bb0990361d4aa3b14",
+    "descriptor": {
+      "kind": "space",
+      "number": 163,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 68
+        },
+        {
+          "letter": "d",
+          "atomic_number": 47
+        },
+        {
+          "letter": "f",
+          "atomic_number": 15
+        },
+        {
+          "letter": "i",
+          "atomic_number": 34
+        }
+      ]
+    },
+    "state": [
+      1.9817275242304382,
+      3.3454280622087578,
+      0.32467199999999996,
+      0.022130999999999932,
+      0.3437850000000001,
+      0.131565
+    ]
+  },
+  {
+    "dataset": "MP20",
+    "id": "mp-866142",
+    "formula": "TiGaIr2",
+    "group_kind": "space",
+    "group": 225,
+    "atoms": 16,
+    "seed": 20261018,
+    "file": "structures/mp_20/16.png",
+    "source_cif_sha256": "7627321d5f9f5948a57ee62364c7dc2a7aad1ccbc3a0dd296704638f134dc58c",
+    "descriptor": {
+      "kind": "space",
+      "number": 225,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 22
+        },
+        {
+          "letter": "b",
+          "atomic_number": 31
+        },
+        {
+          "letter": "c",
+          "atomic_number": 77
+        }
+      ]
+    },
+    "state": [
+      2.5031951097153575
+    ]
+  },
+  {
+    "dataset": "MP20",
+    "id": "mp-864800",
+    "formula": "Yb2PdAu",
+    "group_kind": "space",
+    "group": 225,
+    "atoms": 16,
+    "seed": 20261018,
+    "file": "structures/mp_20/17.png",
+    "source_cif_sha256": "00dc5975ddb55762991bd7664fcc7ae30d8ce31a916b62a35a5961b8966e6d91",
+    "descriptor": {
+      "kind": "space",
+      "number": 225,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 46
+        },
+        {
+          "letter": "b",
+          "atomic_number": 79
+        },
+        {
+          "letter": "c",
+          "atomic_number": 70
+        }
+      ]
+    },
+    "state": [
+      2.9648162827335534
+    ]
+  },
+  {
+    "dataset": "MP20",
+    "id": "mp-1206659",
+    "formula": "HfIr",
+    "group_kind": "space",
+    "group": 51,
+    "atoms": 4,
+    "seed": 20261018,
+    "file": "structures/mp_20/18.png",
+    "source_cif_sha256": "b26da907d62b1cdc117c53867f02ab0a4b97ea143200d621b948d03ccc1193a3",
+    "descriptor": {
+      "kind": "space",
+      "number": 51,
+      "orbits": [
+        {
+          "letter": "e",
+          "atomic_number": 72
+        },
+        {
+          "letter": "f",
+          "atomic_number": 77
+        }
+      ]
+    },
+    "state": [
+      0.7637341480517722,
+      0.3835215118829113,
+      0.7618397582014867,
+      0.249525,
+      0.749663
+    ]
+  },
+  {
+    "dataset": "MP20",
+    "id": "mp-1103746",
+    "formula": "GdGePt",
+    "group_kind": "space",
+    "group": 62,
+    "atoms": 12,
+    "seed": 20261018,
+    "file": "structures/mp_20/19.png",
+    "source_cif_sha256": "b9923da3f00d9bed99400368a03fdee099575921258661af007aebe521baf143",
+    "descriptor": {
+      "kind": "space",
+      "number": 62,
+      "orbits": [
+        {
+          "letter": "c",
+          "atomic_number": 32
+        },
+        {
+          "letter": "c",
+          "atomic_number": 64
+        },
+        {
+          "letter": "c",
+          "atomic_number": 78
+        }
+      ]
+    },
+    "state": [
+      1.7366398239010665,
+      0.7780245546140702,
+      1.8722460638654168,
+      0.687147,
+      0.58759,
+      0.0020140000000000158,
+      0.29640200000000005,
+      0.294818,
+      0.583793
+    ]
+  },
+  {
+    "dataset": "MP20",
+    "id": "mp-20493",
+    "formula": "Mg(InS2)2",
+    "group_kind": "space",
+    "group": 227,
+    "atoms": 56,
+    "seed": 20261018,
+    "file": "structures/mp_20/20.png",
+    "source_cif_sha256": "7dd39bb87da918121bbe9c8a9282b809f3611287219c3ee6a6e7685a3d8e8e7d",
+    "descriptor": {
+      "kind": "space",
+      "number": 227,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 12
+        },
+        {
+          "letter": "d",
+          "atomic_number": 49
+        },
+        {
+          "letter": "e",
+          "atomic_number": 16
+        }
+      ]
+    },
+    "state": [
+      4.467939698105319,
+      0.257126
+    ]
+  },
+  {
+    "dataset": "MPTS52",
+    "id": "mp-559417",
+    "formula": "LaB2ClO4",
+    "group_kind": "space",
+    "group": 2,
+    "atoms": 16,
+    "seed": 20261019,
+    "file": "structures/mpts_52/01.png",
+    "source_cif_sha256": "e6a2509269d4fcf117c76baac2b2a65b05c01856d524717a5d487c00d80464a0",
+    "descriptor": {
+      "kind": "space",
+      "number": 2,
+      "orbits": [
+        {
+          "letter": "i",
+          "atomic_number": 5
+        },
+        {
+          "letter": "i",
+          "atomic_number": 5
+        },
+        {
+          "letter": "i",
+          "atomic_number": 8
+        },
+        {
+          "letter": "i",
+          "atomic_number": 8
+        },
+        {
+          "letter": "i",
+          "atomic_number": 8
+        },
+        {
+          "letter": "i",
+          "atomic_number": 8
+        },
+        {
+          "letter": "i",
+          "atomic_number": 17
+        },
+        {
+          "letter": "i",
+          "atomic_number": 57
+        }
+      ]
+    },
+    "state": [
+      0.6403868249692489,
+      0.4352564335822727,
+      -0.015256229393167033,
+      1.551093857015068,
+      0.2010104549387529,
+      2.0184199129999576,
+      0.164821,
+      0.349904,
+      0.852624,
+      0.43846700000000005,
+      0.4372670000000001,
+      0.19284900000000005,
+      0.8992089999999999,
+      0.53507,
+      0.822994,
+      0.47540899999999997,
+      0.375617,
+      0.818416,
+      0.634713,
+      0.23622500000000002,
+      0.20822399999999996,
+      0.838944,
+      0.845597,
+      0.07979899999999995,
+      0.147725,
+      0.20023000000000002,
+      0.5432589999999999,
+      0.21128199999999997,
+      0.03284699999999996,
+      0.22212200000000004
+    ]
+  },
+  {
+    "dataset": "MPTS52",
+    "id": "mp-1203387",
+    "formula": "Ba2GaSbSe5",
+    "group_kind": "space",
+    "group": 62,
+    "atoms": 36,
+    "seed": 20261019,
+    "file": "structures/mpts_52/02.png",
+    "source_cif_sha256": "b2abf1ba31ebd82d80689eec04299e913c212b3176671d7b71bd79a29b8554a2",
+    "descriptor": {
+      "kind": "space",
+      "number": 62,
+      "orbits": [
+        {
+          "letter": "c",
+          "atomic_number": 31
+        },
+        {
+          "letter": "c",
+          "atomic_number": 34
+        },
+        {
+          "letter": "c",
+          "atomic_number": 34
+        },
+        {
+          "letter": "c",
+          "atomic_number": 34
+        },
+        {
+          "letter": "c",
+          "atomic_number": 51
+        },
+        {
+          "letter": "d",
+          "atomic_number": 34
+        },
+        {
+          "letter": "d",
+          "atomic_number": 56
+        }
+      ]
+    },
+    "state": [
+      2.90305731155184,
+      2.2566879987379407,
+      2.29666964455768,
+      0.5970729999999999,
+      0.3327899999999999,
+      0.71846,
+      0.883856,
+      0.7801669999999999,
+      0.3928209999999999,
+      0.9903329999999999,
+      0.961638,
+      0.5267319999999999,
+      0.9809889999999999,
+      0.55851,
+      0.043299,
+      0.175666,
+      0.8250289999999999,
+      0.006899,
+      0.12333500000000003
+    ]
+  },
+  {
+    "dataset": "MPTS52",
+    "id": "mp-560521",
+    "formula": "Be(PO3)2",
+    "group_kind": "space",
+    "group": 20,
+    "atoms": 72,
+    "seed": 20261019,
+    "file": "structures/mpts_52/03.png",
+    "source_cif_sha256": "c065f8f711bd361dfac758ba1cc03aecb5f7a9ade2cbee4d6aa2b20ea344a897",
+    "descriptor": {
+      "kind": "space",
+      "number": 20,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 15
+        },
+        {
+          "letter": "b",
+          "atomic_number": 15
+        },
+        {
+          "letter": "c",
+          "atomic_number": 4
+        },
+        {
+          "letter": "c",
+          "atomic_number": 8
+        },
+        {
+          "letter": "c",
+          "atomic_number": 8
+        },
+        {
+          "letter": "c",
+          "atomic_number": 8
+        },
+        {
+          "letter": "c",
+          "atomic_number": 8
+        },
+        {
+          "letter": "c",
+          "atomic_number": 8
+        },
+        {
+          "letter": "c",
+          "atomic_number": 8
+        },
+        {
+          "letter": "c",
+          "atomic_number": 15
+        }
+      ]
+    },
+    "state": [
+      2.4332050242244816,
+      2.4654198184766116,
+      2.173015986061617,
+      0.06820500000000007,
+      0.590574,
+      0.2684234999999999,
+      0.09625949999999994,
+      0.777893,
+      0.529144,
+      0.3852749999999999,
+      0.5479080000000001,
+      0.664488,
+      0.19629799999999997,
+      0.6072250000000001,
+      0.6269855,
+      0.018222499999999933,
+      0.23225800000000002,
+      0.781461,
+      0.825688,
+      0.12895800000000002,
+      0.8592434999999999,
+      0.031945499999999974,
+      0.6413140000000002,
+      0.5060005,
+      0.8113085,
+      0.6096430000000002,
+      0.38283049999999996,
+      0.7273685,
+      0.976394
+    ]
+  },
+  {
+    "dataset": "MPTS52",
+    "id": "mp-5568",
+    "formula": "Nd3Co11B4",
+    "group_kind": "space",
+    "group": 191,
+    "atoms": 18,
+    "seed": 20261019,
+    "file": "structures/mpts_52/04.png",
+    "source_cif_sha256": "49dd53f29603c0d57969abccbafa215f2524c49e0be7ee1968ae65be3eec8309",
+    "descriptor": {
+      "kind": "space",
+      "number": 191,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 60
+        },
+        {
+          "letter": "c",
+          "atomic_number": 27
+        },
+        {
+          "letter": "g",
+          "atomic_number": 27
+        },
+        {
+          "letter": "e",
+          "atomic_number": 60
+        },
+        {
+          "letter": "h",
+          "atomic_number": 5
+        },
+        {
+          "letter": "i",
+          "atomic_number": 27
+        }
+      ]
+    },
+    "state": [
+      1.2470061528391945,
+      2.4499361177270185,
+      0.658996,
+      0.650046,
+      0.20427799999999996
+    ]
+  },
+  {
+    "dataset": "MPTS52",
+    "id": "mp-877",
+    "formula": "Er2In",
+    "group_kind": "space",
+    "group": 194,
+    "atoms": 6,
+    "seed": 20261019,
+    "file": "structures/mpts_52/05.png",
+    "source_cif_sha256": "fcc45c740ba835c8383c9e158017014d0c6125735bada1f95b1f969f4f069cda",
+    "descriptor": {
+      "kind": "space",
+      "number": 194,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 68
+        },
+        {
+          "letter": "c",
+          "atomic_number": 49
+        },
+        {
+          "letter": "d",
+          "atomic_number": 68
+        }
+      ]
+    },
+    "state": [
+      1.3658571042224903,
+      1.6960570384054643
+    ]
+  },
+  {
+    "dataset": "MPTS52",
+    "id": "mp-1078593",
+    "formula": "LaInNi",
+    "group_kind": "space",
+    "group": 189,
+    "atoms": 9,
+    "seed": 20261019,
+    "file": "structures/mpts_52/06.png",
+    "source_cif_sha256": "30fad5b61ca1a26196d52587f86c8ee6c9681859d2bad950dc8a0f203c45f72e",
+    "descriptor": {
+      "kind": "space",
+      "number": 189,
+      "orbits": [
+        {
+          "letter": "b",
+          "atomic_number": 28
+        },
+        {
+          "letter": "c",
+          "atomic_number": 28
+        },
+        {
+          "letter": "f",
+          "atomic_number": 49
+        },
+        {
+          "letter": "g",
+          "atomic_number": 57
+        }
+      ]
+    },
+    "state": [
+      2.3723216910262144,
+      0.6918473261018193,
+      0.755966,
+      0.414517
+    ]
+  },
+  {
+    "dataset": "MPTS52",
+    "id": "mp-19765",
+    "formula": "In2HgTe4",
+    "group_kind": "space",
+    "group": 82,
+    "atoms": 14,
+    "seed": 20261019,
+    "file": "structures/mpts_52/07.png",
+    "source_cif_sha256": "3fea6bdd95722aba48209e85ff6dfcedb8b7560695eefc782e7f0b9b301274b6",
+    "descriptor": {
+      "kind": "space",
+      "number": 82,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 80
+        },
+        {
+          "letter": "b",
+          "atomic_number": 49
+        },
+        {
+          "letter": "d",
+          "atomic_number": 49
+        },
+        {
+          "letter": "g",
+          "atomic_number": 52
+        }
+      ]
+    },
+    "state": [
+      2.1490169575046547,
+      2.888799783096512,
+      0.224374,
+      0.730237,
+      0.362617
+    ]
+  },
+  {
+    "dataset": "MPTS52",
+    "id": "mp-1078637",
+    "formula": "Bi",
+    "group_kind": "space",
+    "group": 64,
+    "atoms": 16,
+    "seed": 20261019,
+    "file": "structures/mpts_52/08.png",
+    "source_cif_sha256": "246e7f959b1a9b0703b4f1adae45eafabf4f25675e29316417161a588b078e5e",
+    "descriptor": {
+      "kind": "space",
+      "number": 64,
+      "orbits": [
+        {
+          "letter": "d",
+          "atomic_number": 83
+        },
+        {
+          "letter": "f",
+          "atomic_number": 83
+        }
+      ]
+    },
+    "state": [
+      2.6130811685706763,
+      1.6390048143485545,
+      1.666957341713635,
+      0.796004,
+      0.333113,
+      0.833033
+    ]
+  },
+  {
+    "dataset": "MPTS52",
+    "id": "mp-540841",
+    "formula": "U2NiO6",
+    "group_kind": "space",
+    "group": 150,
+    "atoms": 27,
+    "seed": 20261019,
+    "file": "structures/mpts_52/09.png",
+    "source_cif_sha256": "71e8a2fd7966726afd8b0576cffb17e470826d2474df98932cc09281e8007079",
+    "descriptor": {
+      "kind": "space",
+      "number": 150,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 28
+        },
+        {
+          "letter": "d",
+          "atomic_number": 28
+        },
+        {
+          "letter": "e",
+          "atomic_number": 92
+        },
+        {
+          "letter": "f",
+          "atomic_number": 92
+        },
+        {
+          "letter": "g",
+          "atomic_number": 8
+        },
+        {
+          "letter": "g",
+          "atomic_number": 8
+        },
+        {
+          "letter": "g",
+          "atomic_number": 8
+        }
+      ]
+    },
+    "state": [
+      2.8831497175014498,
+      1.1290059719575827,
+      0.504573,
+      0.646615,
+      0.312548,
+      0.100219,
+      0.8775200000000002,
+      0.776679,
+      0.45487,
+      0.566672,
+      0.735154,
+      0.220058,
+      0.7750410000000001,
+      0.273969
+    ]
+  },
+  {
+    "dataset": "MPTS52",
+    "id": "mp-2786",
+    "formula": "Ca5Zn3",
+    "group_kind": "space",
+    "group": 140,
+    "atoms": 32,
+    "seed": 20261019,
+    "file": "structures/mpts_52/10.png",
+    "source_cif_sha256": "79f8b3b5815e4d951bf0bc7c6542acae3b29cbfdef643414e70ce204c6bf76ad",
+    "descriptor": {
+      "kind": "space",
+      "number": 140,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 30
+        },
+        {
+          "letter": "c",
+          "atomic_number": 20
+        },
+        {
+          "letter": "h",
+          "atomic_number": 30
+        },
+        {
+          "letter": "l",
+          "atomic_number": 20
+        }
+      ]
+    },
+    "state": [
+      2.736920447019802,
+      3.2576014082096916,
+      0.3826944999999998,
+      0.6704439999999998,
+      0.352907
+    ]
+  },
+  {
+    "dataset": "MPTS52",
+    "id": "mp-31328",
+    "formula": "MnInPd2",
+    "group_kind": "space",
+    "group": 225,
+    "atoms": 16,
+    "seed": 20261019,
+    "file": "structures/mpts_52/11.png",
+    "source_cif_sha256": "570b8eb60d53eb95da9652d3186406eb907387bbd938c8fe22971782229fc9d5",
+    "descriptor": {
+      "kind": "space",
+      "number": 225,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 49
+        },
+        {
+          "letter": "b",
+          "atomic_number": 25
+        },
+        {
+          "letter": "c",
+          "atomic_number": 46
+        }
+      ]
+    },
+    "state": [
+      2.6383845470882408
+    ]
+  },
+  {
+    "dataset": "MPTS52",
+    "id": "mp-1192207",
+    "formula": "BaH2Br2O7",
+    "group_kind": "space",
+    "group": 15,
+    "atoms": 48,
+    "seed": 20261019,
+    "file": "structures/mpts_52/12.png",
+    "source_cif_sha256": "48148c0a53df7ec64309360b0e553603f3d06f337ccc744baef95348f4a18bfa",
+    "descriptor": {
+      "kind": "space",
+      "number": 15,
+      "orbits": [
+        {
+          "letter": "e",
+          "atomic_number": 8
+        },
+        {
+          "letter": "e",
+          "atomic_number": 56
+        },
+        {
+          "letter": "f",
+          "atomic_number": 1
+        },
+        {
+          "letter": "f",
+          "atomic_number": 8
+        },
+        {
+          "letter": "f",
+          "atomic_number": 8
+        },
+        {
+          "letter": "f",
+          "atomic_number": 8
+        },
+        {
+          "letter": "f",
+          "atomic_number": 35
+        }
+      ]
+    },
+    "state": [
+      2.7321663349677237,
+      -1.1178521401641457,
+      2.043993736361217,
+      1.8661265526119757,
+      0.3196319999999999,
+      0.6439479999999999,
+      0.5428014999999999,
+      0.7516305,
+      0.365156,
+      0.19093100000000002,
+      0.09359200000000001,
+      0.02010199999999995,
+      0.6045594999999999,
+      0.3461994999999999,
+      0.10245599999999996,
+      0.3568515,
+      0.9708335,
+      0.37487399999999993,
+      0.19197700000000006,
+      0.021830999999999934,
+      0.19327799999999995
+    ]
+  },
+  {
+    "dataset": "MPTS52",
+    "id": "mp-722516",
+    "formula": "Zn2PHO5",
+    "group_kind": "space",
+    "group": 2,
+    "atoms": 18,
+    "seed": 20261019,
+    "file": "structures/mpts_52/13.png",
+    "source_cif_sha256": "479d2a9dcda32606bca8dbb55ef576de0c13c64a1e115fdbcb1b19ca41be68d2",
+    "descriptor": {
+      "kind": "space",
+      "number": 2,
+      "orbits": [
+        {
+          "letter": "i",
+          "atomic_number": 1
+        },
+        {
+          "letter": "i",
+          "atomic_number": 8
+        },
+        {
+          "letter": "i",
+          "atomic_number": 8
+        },
+        {
+          "letter": "i",
+          "atomic_number": 8
+        },
+        {
+          "letter": "i",
+          "atomic_number": 8
+        },
+        {
+          "letter": "i",
+          "atomic_number": 8
+        },
+        {
+          "letter": "i",
+          "atomic_number": 15
+        },
+        {
+          "letter": "i",
+          "atomic_number": 30
+        },
+        {
+          "letter": "i",
+          "atomic_number": 30
+        }
+      ]
+    },
+    "state": [
+      1.2263368339532348,
+      0.03141275550255299,
+      0.3032801436840816,
+      1.2792914225236072,
+      0.2970486732009515,
+      1.5318447610029653,
+      0.4291400000000001,
+      0.920044,
+      0.820475,
+      0.775658,
+      0.994659,
+      0.847229,
+      0.941798,
+      0.389257,
+      0.865421,
+      0.6011880000000001,
+      0.37917,
+      0.665372,
+      0.970536,
+      0.751021,
+      0.486719,
+      0.3577910000000001,
+      0.896657,
+      0.702178,
+      0.8370350000000001,
+      0.250731,
+      0.723288,
+      0.38697000000000004,
+      0.250945,
+      0.50009,
+      0.028133000000000075,
+      0.740099,
+      0.811695
+    ]
+  },
+  {
+    "dataset": "MPTS52",
+    "id": "mp-20326",
+    "formula": "U(PS3)2",
+    "group_kind": "space",
+    "group": 84,
+    "atoms": 18,
+    "seed": 20261019,
+    "file": "structures/mpts_52/14.png",
+    "source_cif_sha256": "ea26887227ed7d4e9661da6cc882e7f98437618f7ab0593702f78e819e0865d0",
+    "descriptor": {
+      "kind": "space",
+      "number": 84,
+      "orbits": [
+        {
+          "letter": "e",
+          "atomic_number": 92
+        },
+        {
+          "letter": "j",
+          "atomic_number": 15
+        },
+        {
+          "letter": "j",
+          "atomic_number": 16
+        },
+        {
+          "letter": "k",
+          "atomic_number": 16
+        }
+      ]
+    },
+    "state": [
+      2.4213760301155545,
+      2.3514233894339363,
+      0.6535319999999999,
+      0.05759400000000003,
+      0.17185000000000006,
+      0.17437800000000006,
+      0.2076390000000001,
+      0.31458000000000014,
+      0.676025
+    ]
+  },
+  {
+    "dataset": "MPTS52",
+    "id": "mp-797",
+    "formula": "DyPd3",
+    "group_kind": "space",
+    "group": 221,
+    "atoms": 4,
+    "seed": 20261019,
+    "file": "structures/mpts_52/15.png",
+    "source_cif_sha256": "3a0ede40b26126a8afafd8a64521f18ce6f1f822af1dd4f9d0a01d07f58f9e31",
+    "descriptor": {
+      "kind": "space",
+      "number": 221,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 66
+        },
+        {
+          "letter": "c",
+          "atomic_number": 46
+        }
+      ]
+    },
+    "state": [
+      1.1061460977701711
+    ]
+  },
+  {
+    "dataset": "MPTS52",
+    "id": "mp-1196626",
+    "formula": "SrCo3(P2O7)2",
+    "group_kind": "space",
+    "group": 14,
+    "atoms": 44,
+    "seed": 20261019,
+    "file": "structures/mpts_52/16.png",
+    "source_cif_sha256": "aa1d04de871933191bdcdbd59f45bbe9adbefbd85803f7408cbd51fa6826ae7a",
+    "descriptor": {
+      "kind": "space",
+      "number": 14,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 38
+        },
+        {
+          "letter": "b",
+          "atomic_number": 27
+        },
+        {
+          "letter": "e",
+          "atomic_number": 8
+        },
+        {
+          "letter": "e",
+          "atomic_number": 8
+        },
+        {
+          "letter": "e",
+          "atomic_number": 8
+        },
+        {
+          "letter": "e",
+          "atomic_number": 8
+        },
+        {
+          "letter": "e",
+          "atomic_number": 8
+        },
+        {
+          "letter": "e",
+          "atomic_number": 8
+        },
+        {
+          "letter": "e",
+          "atomic_number": 8
+        },
+        {
+          "letter": "e",
+          "atomic_number": 15
+        },
+        {
+          "letter": "e",
+          "atomic_number": 15
+        },
+        {
+          "letter": "e",
+          "atomic_number": 27
+        }
+      ]
+    },
+    "state": [
+      1.7613443268763274,
+      -0.5505411734284889,
+      1.913205544779933,
+      2.2661194047386624,
+      0.12343899999999997,
+      0.17985799999999993,
+      0.584584,
+      0.34290299999999996,
+      0.624051,
+      0.612448,
+      0.817557,
+      0.37162499999999987,
+      0.82247,
+      0.47336500000000004,
+      0.5776689999999999,
+      0.113415,
+      0.771516,
+      0.615311,
+      0.635436,
+      0.502178,
+      0.21156599999999992,
+      0.1352,
+      0.098047,
+      0.5177189999999999,
+      0.806594,
+      0.612216,
+      0.20396399999999992,
+      0.306088,
+      0.896089,
+      0.5577,
+      0.798276,
+      0.686118,
+      0.624896,
+      0.027587
+    ]
+  },
+  {
+    "dataset": "MPTS52",
+    "id": "mp-20881",
+    "formula": "LaNiBN",
+    "group_kind": "space",
+    "group": 129,
+    "atoms": 8,
+    "seed": 20261019,
+    "file": "structures/mpts_52/17.png",
+    "source_cif_sha256": "962f617cf513fcc3c1e794b4843b9d2b7fd906ff2c9a9c0a22be97050867af8d",
+    "descriptor": {
+      "kind": "space",
+      "number": 129,
+      "orbits": [
+        {
+          "letter": "b",
+          "atomic_number": 28
+        },
+        {
+          "letter": "c",
+          "atomic_number": 5
+        },
+        {
+          "letter": "c",
+          "atomic_number": 7
+        },
+        {
+          "letter": "c",
+          "atomic_number": 57
+        }
+      ]
+    },
+    "state": [
+      0.6533092534613254,
+      1.7805595212615768,
+      0.36569399999999996,
+      0.168009,
+      0.821848
+    ]
+  },
+  {
+    "dataset": "MPTS52",
+    "id": "mp-10376",
+    "formula": "Cr3SnN",
+    "group_kind": "space",
+    "group": 221,
+    "atoms": 5,
+    "seed": 20261019,
+    "file": "structures/mpts_52/18.png",
+    "source_cif_sha256": "2214c8f253339addc9f56968871210a5c34ec9321a3b0fe473976af1f3b775f3",
+    "descriptor": {
+      "kind": "space",
+      "number": 221,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 50
+        },
+        {
+          "letter": "b",
+          "atomic_number": 7
+        },
+        {
+          "letter": "c",
+          "atomic_number": 24
+        }
+      ]
+    },
+    "state": [
+      0.9414658009870287
+    ]
+  },
+  {
+    "dataset": "MPTS52",
+    "id": "mp-9600",
+    "formula": "Cu2GeO4",
+    "group_kind": "space",
+    "group": 141,
+    "atoms": 28,
+    "seed": 20261019,
+    "file": "structures/mpts_52/19.png",
+    "source_cif_sha256": "4e0cc5d20de6883b38a86104c6bbfb7f9d982d371b9cd96538c06305e6069061",
+    "descriptor": {
+      "kind": "space",
+      "number": 141,
+      "orbits": [
+        {
+          "letter": "b",
+          "atomic_number": 32
+        },
+        {
+          "letter": "c",
+          "atomic_number": 29
+        },
+        {
+          "letter": "h",
+          "atomic_number": 8
+        }
+      ]
+    },
+    "state": [
+      1.7628343149297545,
+      2.495168881432073,
+      0.9869229999999996,
+      0.27668499999999985
+    ]
+  },
+  {
+    "dataset": "MPTS52",
+    "id": "mp-555983",
+    "formula": "Er2SiO5",
+    "group_kind": "space",
+    "group": 15,
+    "atoms": 64,
+    "seed": 20261019,
+    "file": "structures/mpts_52/20.png",
+    "source_cif_sha256": "be61a43c3d3be85df768ec2f216ad28d24009bbcc9c739da9f8d862eec16f9b6",
+    "descriptor": {
+      "kind": "space",
+      "number": 15,
+      "orbits": [
+        {
+          "letter": "f",
+          "atomic_number": 8
+        },
+        {
+          "letter": "f",
+          "atomic_number": 8
+        },
+        {
+          "letter": "f",
+          "atomic_number": 8
+        },
+        {
+          "letter": "f",
+          "atomic_number": 8
+        },
+        {
+          "letter": "f",
+          "atomic_number": 8
+        },
+        {
+          "letter": "f",
+          "atomic_number": 14
+        },
+        {
+          "letter": "f",
+          "atomic_number": 68
+        },
+        {
+          "letter": "f",
+          "atomic_number": 68
+        }
+      ]
+    },
+    "state": [
+      3.0143243969141253,
+      -0.8239148556841324,
+      1.6173278928727612,
+      2.2800859121458896,
+      0.2976705,
+      0.14686649999999996,
+      0.8243240000000001,
+      0.11917249999999996,
+      0.7116825,
+      0.32155900000000004,
+      0.41152599999999995,
+      0.502861,
+      0.86064,
+      0.20140899999999995,
+      0.07058799999999998,
+      0.43811500000000003,
+      0.9821614999999999,
+      0.40392949999999983,
+      0.102352,
+      0.8182059999999999,
+      0.9095519999999999,
+      0.19273399999999996,
+      0.8590845,
+      0.6228435,
+      0.664127,
+      0.9634505,
+      0.2563604999999999,
+      0.533738
+    ]
+  },
+  {
+    "dataset": "C2DB",
+    "id": "2CsSHg2Br3O3-1",
+    "formula": "CsHg2S(BrO)3",
+    "group_kind": "layer",
+    "group": 32,
+    "atoms": 20,
+    "seed": 20261020,
+    "file": "structures/c2db_51/01.png",
+    "source_cif_sha256": "2b5030104859ec46d2fbcd0c5322299b12ff994b516fe0e42826d04170b7b0ee",
+    "descriptor": {
+      "kind": "layer",
+      "number": 32,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 8
+        },
+        {
+          "letter": "a",
+          "atomic_number": 16
+        },
+        {
+          "letter": "a",
+          "atomic_number": 35
+        },
+        {
+          "letter": "a",
+          "atomic_number": 35
+        },
+        {
+          "letter": "a",
+          "atomic_number": 35
+        },
+        {
+          "letter": "a",
+          "atomic_number": 55
+        },
+        {
+          "letter": "a",
+          "atomic_number": 80
+        },
+        {
+          "letter": "a",
+          "atomic_number": 80
+        },
+        {
+          "letter": "b",
+          "atomic_number": 8
+        }
+      ]
+    },
+    "state": [
+      1.3257482998026628,
+      1.7547964355286836,
+      0.3849788100000002,
+      -1.0833550602333517,
+      0.51741094,
+      -2.237629186788908,
+      0.05410651000000011,
+      -5.829510304601563,
+      0.036572750000000265,
+      5.63368174346239,
+      0.5941653200000003,
+      2.757998346098489,
+      0.9730242800000002,
+      -0.275128600630012,
+      0.3123822100000002,
+      -4.178281158458134,
+      0.30595074999999994,
+      4.1284837942511246,
+      0.2879578199999999,
+      0.13342220000000005,
+      2.229485362338181
+    ]
+  },
+  {
+    "dataset": "C2DB",
+    "id": "1CdC2F2H4N4-1",
+    "formula": "CdH4C2(N2F)2",
+    "group_kind": "layer",
+    "group": 2,
+    "atoms": 13,
+    "seed": 20261020,
+    "file": "structures/c2db_51/02.png",
+    "source_cif_sha256": "a1db3b25008f1617a2948b40aaed0a1c69855b0b58fa8c3ed7f7d2f19ca678bb",
+    "descriptor": {
+      "kind": "layer",
+      "number": 2,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 48
+        },
+        {
+          "letter": "e",
+          "atomic_number": 1
+        },
+        {
+          "letter": "e",
+          "atomic_number": 1
+        },
+        {
+          "letter": "e",
+          "atomic_number": 6
+        },
+        {
+          "letter": "e",
+          "atomic_number": 7
+        },
+        {
+          "letter": "e",
+          "atomic_number": 7
+        },
+        {
+          "letter": "e",
+          "atomic_number": 9
+        }
+      ]
+    },
+    "state": [
+      0.400393157461641,
+      -0.301665150656907,
+      1.7284930352782206,
+      0.3084496700000001,
+      0.7532622600000001,
+      1.4639182017138275,
+      0.23652329000000005,
+      0.39784147999999986,
+      1.9547788745422032,
+      0.033331200000000116,
+      0.3117571699999999,
+      0.10504558174411827,
+      0.12144441000000006,
+      0.63306252,
+      0.9633607030459572,
+      0.17629224999999993,
+      0.44089968999999996,
+      1.032167182628669,
+      0.5092045000000001,
+      0.0490862299999999,
+      -1.6061709530751287
+    ]
+  },
+  {
+    "dataset": "C2DB",
+    "id": "2FePdSb-1",
+    "formula": "FeSbPd",
+    "group_kind": "layer",
+    "group": 64,
+    "atoms": 6,
+    "seed": 20261020,
+    "file": "structures/c2db_51/03.png",
+    "source_cif_sha256": "96bf6273b10b9ad7dc1321e1f9d47edac713214826d48725c1a233dbf2554dd0",
+    "descriptor": {
+      "kind": "layer",
+      "number": 64,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 26
+        },
+        {
+          "letter": "b",
+          "atomic_number": 46
+        },
+        {
+          "letter": "b",
+          "atomic_number": 51
+        }
+      ]
+    },
+    "state": [
+      0.7180415752005587,
+      -1.887947151287996,
+      2.0524231562339956
+    ]
+  },
+  {
+    "dataset": "C2DB",
+    "id": "1PtBr2-1",
+    "formula": "PtBr2",
+    "group_kind": "layer",
+    "group": 72,
+    "atoms": 3,
+    "seed": 20261020,
+    "file": "structures/c2db_51/04.png",
+    "source_cif_sha256": "8cdf5b5e13a021e4316bdf97bd22cd1499d2219f5df56ed6ad3f1dac98d332ba",
+    "descriptor": {
+      "kind": "layer",
+      "number": 72,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 78
+        },
+        {
+          "letter": "c",
+          "atomic_number": 35
+        }
+      ]
+    },
+    "state": [
+      0.5774695036144775,
+      -1.4110896020158208
+    ]
+  },
+  {
+    "dataset": "C2DB",
+    "id": "4AgBr-2",
+    "formula": "AgBr",
+    "group_kind": "layer",
+    "group": 21,
+    "atoms": 8,
+    "seed": 20261020,
+    "file": "structures/c2db_51/05.png",
+    "source_cif_sha256": "2663b0934db2351fa6f64badaf75fa87df8e0490a498a90ecdd3c9d8a8525707",
+    "descriptor": {
+      "kind": "layer",
+      "number": 21,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 47
+        },
+        {
+          "letter": "b",
+          "atomic_number": 47
+        },
+        {
+          "letter": "c",
+          "atomic_number": 35
+        }
+      ]
+    },
+    "state": [
+      1.1603402988307374,
+      1.7263161534477005,
+      -1.4627900823059474,
+      0.027227473027132465,
+      0.7865133000000004,
+      0.2217751400000001,
+      1.6372969225336065
+    ]
+  },
+  {
+    "dataset": "C2DB",
+    "id": "1SAg2Br2-1",
+    "formula": "Ag2SBr2",
+    "group_kind": "layer",
+    "group": 1,
+    "atoms": 5,
+    "seed": 20261020,
+    "file": "structures/c2db_51/06.png",
+    "source_cif_sha256": "d1756f184be92fb3f238259760b1c38044d19007c8af3fda903dc7de32256e19",
+    "descriptor": {
+      "kind": "layer",
+      "number": 1,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 16
+        },
+        {
+          "letter": "a",
+          "atomic_number": 35
+        },
+        {
+          "letter": "a",
+          "atomic_number": 35
+        },
+        {
+          "letter": "a",
+          "atomic_number": 47
+        },
+        {
+          "letter": "a",
+          "atomic_number": 47
+        }
+      ]
+    },
+    "state": [
+      0.6401374506716395,
+      -0.7731573449457917,
+      0.6404194010512491,
+      0.9903610800000003,
+      0.3071721900000002,
+      -0.7609123613053757,
+      0.06654780000000038,
+      0.47697571000000005,
+      -2.967418717914693,
+      0.43365169000000015,
+      0.2395220600000001,
+      2.589521958596958,
+      0.10047110000000026,
+      0.5728958399999998,
+      1.735881431770649,
+      0.3352188300000003,
+      0.9937659200000002,
+      -0.5970723111475382
+    ]
+  },
+  {
+    "dataset": "C2DB",
+    "id": "1SSeI3Pd3-1",
+    "formula": "Pd3SeSI3",
+    "group_kind": "layer",
+    "group": 11,
+    "atoms": 8,
+    "seed": 20261020,
+    "file": "structures/c2db_51/07.png",
+    "source_cif_sha256": "e1d73258e93489a98297923320d78d32f1ed72046993bb482bbb67b3a22305da",
+    "descriptor": {
+      "kind": "layer",
+      "number": 11,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 34
+        },
+        {
+          "letter": "a",
+          "atomic_number": 46
+        },
+        {
+          "letter": "a",
+          "atomic_number": 53
+        },
+        {
+          "letter": "a",
+          "atomic_number": 53
+        },
+        {
+          "letter": "b",
+          "atomic_number": 16
+        },
+        {
+          "letter": "b",
+          "atomic_number": 46
+        },
+        {
+          "letter": "b",
+          "atomic_number": 46
+        },
+        {
+          "letter": "b",
+          "atomic_number": 53
+        }
+      ]
+    },
+    "state": [
+      0.46309826644240615,
+      1.4467836666255338,
+      0.04901548000000011,
+      -0.3003692689672084,
+      0.36590299000000015,
+      1.2981201083455742,
+      0.03832003000000017,
+      3.417849442220203,
+      0.5148109999999998,
+      -2.347330511423732,
+      0.5863380799999999,
+      0.9991575179299899,
+      0.99910885,
+      1.4150522940501,
+      0.76980603,
+      -1.1263830643418702,
+      0.022527420000000187,
+      -3.3560965178130564
+    ]
+  },
+  {
+    "dataset": "C2DB",
+    "id": "1I2Pd3S3Br4-1",
+    "formula": "Pd3S3(IBr2)2",
+    "group_kind": "layer",
+    "group": 1,
+    "atoms": 12,
+    "seed": 20261020,
+    "file": "structures/c2db_51/08.png",
+    "source_cif_sha256": "8872bd2a6da538b64d40d2f02e9c8df3b43aef8c5a87c5b1b09b778b977ec37b",
+    "descriptor": {
+      "kind": "layer",
+      "number": 1,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 16
+        },
+        {
+          "letter": "a",
+          "atomic_number": 16
+        },
+        {
+          "letter": "a",
+          "atomic_number": 16
+        },
+        {
+          "letter": "a",
+          "atomic_number": 35
+        },
+        {
+          "letter": "a",
+          "atomic_number": 35
+        },
+        {
+          "letter": "a",
+          "atomic_number": 35
+        },
+        {
+          "letter": "a",
+          "atomic_number": 35
+        },
+        {
+          "letter": "a",
+          "atomic_number": 46
+        },
+        {
+          "letter": "a",
+          "atomic_number": 46
+        },
+        {
+          "letter": "a",
+          "atomic_number": 46
+        },
+        {
+          "letter": "a",
+          "atomic_number": 53
+        },
+        {
+          "letter": "a",
+          "atomic_number": 53
+        }
+      ]
+    },
+    "state": [
+      1.0191211528079243,
+      -0.21446427787459926,
+      1.8024190308735661,
+      0.3688485300000002,
+      0.81925822,
+      -0.361279422849643,
+      0.12402193000000017,
+      0.17567864,
+      0.4059379498725466,
+      0.7518376000000001,
+      0.5031250200000001,
+      -0.12146440538204217,
+      0.8673733900000002,
+      0.88034743,
+      -2.6826879618172104,
+      0.20133741000000016,
+      0.54157247,
+      2.560514988312905,
+      0.27927437,
+      0.4530123799999999,
+      -2.52142781997256,
+      0.6245054800000002,
+      0.11881436000000012,
+      2.690137633861985,
+      0.2465820900000002,
+      0.49756212,
+      0.025147191340884945,
+      0.6051789900000001,
+      0.1569198300000001,
+      0.08536376579974814,
+      0.8862180400000002,
+      0.84271259,
+      -0.09295145187900822,
+      0.5777979700000001,
+      0.16922576,
+      -2.6269092676338452,
+      0.9083522700000002,
+      0.82740153,
+      2.6396188003462395
+    ]
+  },
+  {
+    "dataset": "C2DB",
+    "id": "2KC2F3O3-1",
+    "formula": "KC2(OF)3",
+    "group_kind": "layer",
+    "group": 2,
+    "atoms": 18,
+    "seed": 20261020,
+    "file": "structures/c2db_51/09.png",
+    "source_cif_sha256": "4e9153957a4c36342fc950a997b5cacf84c60ad5a4d136c22ec7c26eb15d87b8",
+    "descriptor": {
+      "kind": "layer",
+      "number": 2,
+      "orbits": [
+        {
+          "letter": "e",
+          "atomic_number": 6
+        },
+        {
+          "letter": "e",
+          "atomic_number": 6
+        },
+        {
+          "letter": "e",
+          "atomic_number": 8
+        },
+        {
+          "letter": "e",
+          "atomic_number": 8
+        },
+        {
+          "letter": "e",
+          "atomic_number": 8
+        },
+        {
+          "letter": "e",
+          "atomic_number": 9
+        },
+        {
+          "letter": "e",
+          "atomic_number": 9
+        },
+        {
+          "letter": "e",
+          "atomic_number": 9
+        },
+        {
+          "letter": "e",
+          "atomic_number": 19
+        }
+      ]
+    },
+    "state": [
+      0.7688039237090393,
+      -0.08829128324888055,
+      1.2296349562931577,
+      0.67784622,
+      0.2945945449999998,
+      -1.920895664484532,
+      0.42920599000000004,
+      0.3136446949999998,
+      -4.153529642820799,
+      0.5229373600000001,
+      0.17939708499999996,
+      -3.1134424963439136,
+      0.6885294700000001,
+      0.5168034949999999,
+      -1.8495011183260734,
+      0.76480148,
+      0.13393466499999995,
+      -1.1736758304610566,
+      0.2315401600000001,
+      0.48145189499999996,
+      -3.7692476801143036,
+      0.27917141000000023,
+      0.16174165500000004,
+      -5.014575033991618,
+      0.6572358000000003,
+      0.4333849449999998,
+      -4.818659930171655,
+      0.20898445,
+      0.8062250249999998,
+      -1.5788809165132838
+    ]
+  },
+  {
+    "dataset": "C2DB",
+    "id": "1BrINZr2-1",
+    "formula": "Zr2IBrN",
+    "group_kind": "layer",
+    "group": 69,
+    "atoms": 5,
+    "seed": 20261020,
+    "file": "structures/c2db_51/10.png",
+    "source_cif_sha256": "5bba334055351ea6bd98b12120533ca215c111818e7c27a76a70f5cd6977212a",
+    "descriptor": {
+      "kind": "layer",
+      "number": 69,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 40
+        },
+        {
+          "letter": "a",
+          "atomic_number": 53
+        },
+        {
+          "letter": "b",
+          "atomic_number": 7
+        },
+        {
+          "letter": "c",
+          "atomic_number": 35
+        },
+        {
+          "letter": "c",
+          "atomic_number": 40
+        }
+      ]
+    },
+    "state": [
+      0.2834673074500499,
+      1.130571841332293,
+      -3.1970379158814377,
+      0.056693636603908804,
+      3.053607621217012,
+      -1.0438351832717756
+    ]
+  },
+  {
+    "dataset": "C2DB",
+    "id": "2ClSeW-1",
+    "formula": "WSeCl",
+    "group_kind": "layer",
+    "group": 46,
+    "atoms": 6,
+    "seed": 20261020,
+    "file": "structures/c2db_51/11.png",
+    "source_cif_sha256": "6d478a18e7a6a0e0f9d2bddbae5d0ff13d6e6d518611e39136afe2963974f494",
+    "descriptor": {
+      "kind": "layer",
+      "number": 46,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 17
+        },
+        {
+          "letter": "a",
+          "atomic_number": 34
+        },
+        {
+          "letter": "b",
+          "atomic_number": 74
+        }
+      ]
+    },
+    "state": [
+      0.15925005322158167,
+      0.9588054959567773,
+      2.525295974183482,
+      -1.4438140427524147,
+      -0.5490035526019774
+    ]
+  },
+  {
+    "dataset": "C2DB",
+    "id": "1B2H2S2Ta3-1",
+    "formula": "Ta3B2(HS)2",
+    "group_kind": "layer",
+    "group": 78,
+    "atoms": 9,
+    "seed": 20261020,
+    "file": "structures/c2db_51/12.png",
+    "source_cif_sha256": "2d962650755c0400ed8d7d1756fc3632a56bb53fb5b58ac05e10a3e14c218300",
+    "descriptor": {
+      "kind": "layer",
+      "number": 78,
+      "orbits": [
+        {
+          "letter": "c",
+          "atomic_number": 73
+        },
+        {
+          "letter": "d",
+          "atomic_number": 5
+        },
+        {
+          "letter": "e",
+          "atomic_number": 73
+        },
+        {
+          "letter": "f",
+          "atomic_number": 1
+        },
+        {
+          "letter": "f",
+          "atomic_number": 16
+        }
+      ]
+    },
+    "state": [
+      0.16543910755638824,
+      1.1925885516463808,
+      2.382363714745761,
+      5.334606960823601,
+      3.949249364368413
+    ]
+  },
+  {
+    "dataset": "C2DB",
+    "id": "1NOPtScBr2-1",
+    "formula": "ScPtBr2NO",
+    "group_kind": "layer",
+    "group": 13,
+    "atoms": 12,
+    "seed": 20261020,
+    "file": "structures/c2db_51/13.png",
+    "source_cif_sha256": "350eee9691e06830cc86dbf8e1c01c53ab40636e736bbe7d42da10ad69334614",
+    "descriptor": {
+      "kind": "layer",
+      "number": 13,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 7
+        },
+        {
+          "letter": "a",
+          "atomic_number": 8
+        },
+        {
+          "letter": "a",
+          "atomic_number": 21
+        },
+        {
+          "letter": "a",
+          "atomic_number": 35
+        },
+        {
+          "letter": "a",
+          "atomic_number": 35
+        },
+        {
+          "letter": "a",
+          "atomic_number": 78
+        }
+      ]
+    },
+    "state": [
+      0.12831142074975976,
+      2.48818920844198,
+      0.663638495,
+      0.17885049787901286,
+      0.4301455249999999,
+      -0.5345398087217821,
+      0.29447928,
+      0.8184094925305323,
+      0.07580809499999996,
+      -2.9364568431748617,
+      0.85591916,
+      2.813613941332656,
+      0.058235570000000014,
+      -0.3398772798455547
+    ]
+  },
+  {
+    "dataset": "C2DB",
+    "id": "2PScO3-1",
+    "formula": "ScPO3",
+    "group_kind": "layer",
+    "group": 70,
+    "atoms": 10,
+    "seed": 20261020,
+    "file": "structures/c2db_51/14.png",
+    "source_cif_sha256": "01ba7705a56b1b77c1402de6f94e5dfda43c0b8d7110777e4bef4f1938682935",
+    "descriptor": {
+      "kind": "layer",
+      "number": 70,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 15
+        },
+        {
+          "letter": "a",
+          "atomic_number": 15
+        },
+        {
+          "letter": "b",
+          "atomic_number": 21
+        },
+        {
+          "letter": "c",
+          "atomic_number": 8
+        },
+        {
+          "letter": "c",
+          "atomic_number": 8
+        }
+      ]
+    },
+    "state": [
+      1.4687143877505158,
+      -0.7674609230373328,
+      1.3923358054740518,
+      -0.007721419543505137,
+      0.28191474499999997,
+      -1.2002591768344264,
+      0.6503797349999998,
+      0.9971151623845234
+    ]
+  },
+  {
+    "dataset": "C2DB",
+    "id": "2PdTe3-2",
+    "formula": "Te3Pd",
+    "group_kind": "layer",
+    "group": 15,
+    "atoms": 8,
+    "seed": 20261020,
+    "file": "structures/c2db_51/15.png",
+    "source_cif_sha256": "58cb2baabbdb45f2d89c2068cace8cd4cf30abde3a2a55fd521797c2079c1b6f",
+    "descriptor": {
+      "kind": "layer",
+      "number": 15,
+      "orbits": [
+        {
+          "letter": "c",
+          "atomic_number": 46
+        },
+        {
+          "letter": "c",
+          "atomic_number": 52
+        },
+        {
+          "letter": "c",
+          "atomic_number": 52
+        },
+        {
+          "letter": "c",
+          "atomic_number": 52
+        }
+      ]
+    },
+    "state": [
+      0.5326435744722986,
+      1.5795024126356396,
+      0.524930965,
+      1.7408180440550396,
+      0.2647387050000001,
+      -0.5819889773934577,
+      0.6270037350000002,
+      -3.2155817331120495,
+      0.04743079500000014,
+      -3.1119704748115247
+    ]
+  },
+  {
+    "dataset": "C2DB",
+    "id": "1Au2Br2Ca3S4-1",
+    "formula": "Ca3Au2(S2Br)2",
+    "group_kind": "layer",
+    "group": 61,
+    "atoms": 11,
+    "seed": 20261020,
+    "file": "structures/c2db_51/16.png",
+    "source_cif_sha256": "432785211d351583e8a79678cb94d62266a4592b7c73e3294764e9c5165218db",
+    "descriptor": {
+      "kind": "layer",
+      "number": 61,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 20
+        },
+        {
+          "letter": "d",
+          "atomic_number": 20
+        },
+        {
+          "letter": "e",
+          "atomic_number": 35
+        },
+        {
+          "letter": "e",
+          "atomic_number": 79
+        },
+        {
+          "letter": "f",
+          "atomic_number": 16
+        }
+      ]
+    },
+    "state": [
+      1.3064338674110787,
+      3.7255225248881176,
+      4.932986270007395,
+      1.494907524403474,
+      1.947565680664554
+    ]
+  },
+  {
+    "dataset": "C2DB",
+    "id": "2AsGaO3-1",
+    "formula": "GaAsO3",
+    "group_kind": "layer",
+    "group": 2,
+    "atoms": 10,
+    "seed": 20261020,
+    "file": "structures/c2db_51/17.png",
+    "source_cif_sha256": "b35577bf681a90cc87f68dcbe0a23c12bb694e617360ed767116dd5a7ba4b886",
+    "descriptor": {
+      "kind": "layer",
+      "number": 2,
+      "orbits": [
+        {
+          "letter": "e",
+          "atomic_number": 8
+        },
+        {
+          "letter": "e",
+          "atomic_number": 8
+        },
+        {
+          "letter": "e",
+          "atomic_number": 8
+        },
+        {
+          "letter": "e",
+          "atomic_number": 31
+        },
+        {
+          "letter": "e",
+          "atomic_number": 33
+        }
+      ]
+    },
+    "state": [
+      1.041662706857835,
+      -0.5476035722173249,
+      1.06547951653852,
+      0.7559601499999999,
+      0.21707189500000013,
+      2.0898005414810394,
+      0.6066098000000002,
+      0.6593250150000001,
+      1.294141763951147,
+      0.20292046000000008,
+      0.851905795,
+      1.9911634790078785,
+      0.9209797700000001,
+      0.554967615,
+      1.0821797509212359,
+      0.52397856,
+      0.9441004149999999,
+      1.2598885594765785
+    ]
+  },
+  {
+    "dataset": "C2DB",
+    "id": "4BrCuFS-1",
+    "formula": "CuSBrF",
+    "group_kind": "layer",
+    "group": 17,
+    "atoms": 16,
+    "seed": 20261020,
+    "file": "structures/c2db_51/18.png",
+    "source_cif_sha256": "c062f138abfb31c3103ffa52f099a01e67eaa8e326689d9acf8be93c86cda056",
+    "descriptor": {
+      "kind": "layer",
+      "number": 17,
+      "orbits": [
+        {
+          "letter": "c",
+          "atomic_number": 9
+        },
+        {
+          "letter": "c",
+          "atomic_number": 16
+        },
+        {
+          "letter": "c",
+          "atomic_number": 29
+        },
+        {
+          "letter": "c",
+          "atomic_number": 35
+        }
+      ]
+    },
+    "state": [
+      1.9841277552367698,
+      1.5901214564873907,
+      0.7513517000000001,
+      0.17582904999999993,
+      -1.3038797588592672,
+      0.58614711,
+      0.12524989000000009,
+      -0.2977750726447539,
+      0.14625796000000002,
+      0.57382106,
+      -1.4866431301567857,
+      0.35253067000000005,
+      0.3883845899999998,
+      -2.650912789044856
+    ]
+  },
+  {
+    "dataset": "C2DB",
+    "id": "2AsTl-2",
+    "formula": "TlAs",
+    "group_kind": "layer",
+    "group": 27,
+    "atoms": 4,
+    "seed": 20261020,
+    "file": "structures/c2db_51/19.png",
+    "source_cif_sha256": "2229c240b190a802f4d24a9245bc32d6f667ffbf32ba395f23167a6f7836503a",
+    "descriptor": {
+      "kind": "layer",
+      "number": 27,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 33
+        },
+        {
+          "letter": "b",
+          "atomic_number": 33
+        },
+        {
+          "letter": "c",
+          "atomic_number": 81
+        }
+      ]
+    },
+    "state": [
+      0.46983540365025356,
+      0.6112805732560901,
+      0.30133648,
+      0.89327093,
+      0.77745658,
+      2.524261436768466
+    ]
+  },
+  {
+    "dataset": "C2DB",
+    "id": "1C2H2Mo3-1",
+    "formula": "Mo3(HC)2",
+    "group_kind": "layer",
+    "group": 78,
+    "atoms": 7,
+    "seed": 20261020,
+    "file": "structures/c2db_51/20.png",
+    "source_cif_sha256": "5cd95df4157ff5ae05eec439ac916ec8146f195663ed488eb88fcde0273e1fc6",
+    "descriptor": {
+      "kind": "layer",
+      "number": 78,
+      "orbits": [
+        {
+          "letter": "a",
+          "atomic_number": 42
+        },
+        {
+          "letter": "d",
+          "atomic_number": 1
+        },
+        {
+          "letter": "e",
+          "atomic_number": 6
+        },
+        {
+          "letter": "f",
+          "atomic_number": 42
+        }
+      ]
+    },
+    "state": [
+      -0.27947475789339893,
+      3.7255865968188893,
+      1.36615609476938,
+      2.676732887662215
+    ]
+  }
+]

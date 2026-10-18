@@ -1,0 +1,131 @@
+{
+  "seed": 20261018,
+  "counts": {
+    "MP20": 45229,
+    "MPTS52": 40476,
+    "C2DB": 16905
+  },
+  "source_files": [
+    {
+      "path": "artifacts/full/mp_20/train.jsonl",
+      "sha256": "150ac1f4be772e2347baaba4f61a658c820de65f1d711b571078d1b598557437"
+    },
+    {
+      "path": "artifacts/full/mp_20/val.jsonl",
+      "sha256": "13c6fcef388879ed281768d181d5adc6701b82abb79d6178869ee55ff3ca947b"
+    },
+    {
+      "path": "artifacts/full/mp_20/test.jsonl",
+      "sha256": "378a6f4a7cc11dff8e0f2d3f88c45aeb79a2ae1f17575fbbee81f390bdc3de80"
+    },
+    {
+      "path": "artifacts/full_tol0p01/mpts_52/train.jsonl",
+      "sha256": "4bfef77f42385c85913cad38d9c62b8bc1aee3ea7f29b9738e8adcfc28f78668"
+    },
+    {
+      "path": "artifacts/full_tol0p01/mpts_52/val.jsonl",
+      "sha256": "f24d234f43a00e124afe8a566c04b1581c64c9da58a971120e205531fc905664"
+    },
+    {
+      "path": "artifacts/full_tol0p01/mpts_52/test.jsonl",
+      "sha256": "7ab4a47f988bdcd25165c0785517f7f91fb4f133064590d8625aa15c111b667f"
+    },
+    {
+      "path": "artifacts/full_official_tol0p1_v7/c2db_51/train.jsonl",
+      "sha256": "9551316d60439c1e4dd59d8a7529ffdfa4fab4e513e349a6dd3c169fc96930ed"
+    },
+    {
+      "path": "artifacts/full_official_tol0p1_v7/c2db_51/val.jsonl",
+      "sha256": "e0aa4db0e8586f806b9d84f63b6e888ad0f4ba9180c91271e5f70aff6d03f99e"
+    },
+    {
+      "path": "artifacts/full_official_tol0p1_v7/c2db_51/test.jsonl",
+      "sha256": "aae321c47299a2a1c2ada25f7678774b1f351d5f718d76267b6c48e1cb109792"
+    }
+  ],
+  "statistics_sha256": "b5a87f09dc084d13cdee214358e599d2ef3531b34724a09b81eeca0096ff1388",
+  "files": [
+    "08_tio2_mos2_symmetry.png",
+    "09_group_distribution.png",
+    "10_periodic_table_mp_20.png",
+    "10_periodic_table_mpts_52.png",
+    "10_periodic_table_c2db_51.png",
+    "11_chemistry_cell_size.png",
+    "12_property_distributions.png",
+    "13_wyckoff_dimensions.png",
+    "structures/mp_20/01.png",
+    "structures/mp_20/02.png",
+    "structures/mp_20/03.png",
+    "structures/mp_20/04.png",
+    "structures/mp_20/05.png",
+    "structures/mp_20/06.png",
+    "structures/mp_20/07.png",
+    "structures/mp_20/08.png",
+    "structures/mp_20/09.png",
+    "structures/mp_20/10.png",
+    "structures/mp_20/11.png",
+    "structures/mp_20/12.png",
+    "structures/mp_20/13.png",
+    "structures/mp_20/14.png",
+    "structures/mp_20/15.png",
+    "structures/mp_20/16.png",
+    "structures/mp_20/17.png",
+    "structures/mp_20/18.png",
+    "structures/mp_20/19.png",
+    "structures/mp_20/20.png",
+    "14_random_structures_mp_20.png",
+    "structures/mpts_52/01.png",
+    "structures/mpts_52/02.png",
+    "structures/mpts_52/03.png",
+    "structures/mpts_52/04.png",
+    "structures/mpts_52/05.png",
+    "structures/mpts_52/06.png",
+    "structures/mpts_52/07.png",
+    "structures/mpts_52/08.png",
+    "structures/mpts_52/09.png",
+    "structures/mpts_52/10.png",
+    "structures/mpts_52/11.png",
+    "structures/mpts_52/12.png",
+    "structures/mpts_52/13.png",
+    "structures/mpts_52/14.png",
+    "structures/mpts_52/15.png",
+    "structures/mpts_52/16.png",
+    "structures/mpts_52/17.png",
+    "structures/mpts_52/18.png",
+    "structures/mpts_52/19.png",
+    "structures/mpts_52/20.png",
+    "14_random_structures_mpts_52.png",
+    "structures/c2db_51/01.png",
+    "structures/c2db_51/02.png",
+    "structures/c2db_51/03.png",
+    "structures/c2db_51/04.png",
+    "structures/c2db_51/05.png",
+    "structures/c2db_51/06.png",
+    "structures/c2db_51/07.png",
+    "structures/c2db_51/08.png",
+    "structures/c2db_51/09.png",
+    "structures/c2db_51/10.png",
+    "structures/c2db_51/11.png",
+    "structures/c2db_51/12.png",
+    "structures/c2db_51/13.png",
+    "structures/c2db_51/14.png",
+    "structures/c2db_51/15.png",
+    "structures/c2db_51/16.png",
+    "structures/c2db_51/17.png",
+    "structures/c2db_51/18.png",
+    "structures/c2db_51/19.png",
+    "structures/c2db_51/20.png",
+    "14_random_structures_c2db_51.png"
+  ],
+  "scope": "All reference splits; real encoded structures, no model-generated structures",
+  "style_references": [
+    "SGEquiDiff Figure 1",
+    "SLayerGen Figure 6",
+    "CrystalFlow Supplementary Figure S3-1",
+    "DiffCSP Figure 12"
+  ],
+  "structure_style": "Existing Crystal Toolkit inspired renderer: matte spheres, contact cylinders, translucent coordination hulls",
+  "layer_display": "2x2 in plane; basal outline 1 Angstrom below lowest atom via display-only translation; no normal repetition",
+  "units": "TiO2: fractional coordinates; MoS2: fractional in-plane coordinates and Cartesian height in Angstrom",
+  "renderer_sha256": "fd3bd084d70413794f54bc8c787892703f362b2f1e640630916d57798d5e5fa1"
+}
