@@ -207,5 +207,8 @@
     "06_overlap_and_fixed_sites": "前两图为去重ID与原始CIF字节哈希的集合交集，数值为真实计数、颜色为log10(count+1)，不等于完整结构匹配。相同哈希证明原始字节相同；不同哈希不能排除等价结构。",
     "07_lattice_and_layer_geometry": "由存档k和群相容度量解码周期测度，V或A=sqrt(det H)。3D体积/原子与2D面积/原子分开；2D层厚=max(h)-min(h)，不包含真空，也不加范德华原子半径。保留完整分布，3D体积横轴用对数。"
   },
-  "scope": "Prepared source records across all original splits; shared splits counted separately. No structural matching or property re-evaluation."
+  "scope": "Prepared source records across all original splits; shared splits counted separately. No structural matching or property re-evaluation.",
+  "archive_sha256": "0491f7034501737fbb2bce97a4a56d65f6fdf7e41cc255681288326d932e7f43",
+  "verified_snapshot": "artifacts/server_snapshots/20261019_completed245",
+  "source_identity_unchanged": true
 }

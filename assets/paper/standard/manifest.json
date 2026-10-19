@@ -44,5 +44,8 @@
     "physical relaxation/hull assessment",
     "matched continuous controls"
   ],
-  "scope": "Wilson intervals are descriptive per-attempt binomial intervals; correlated same-descriptor samples are not independent materials or model replicates. Repeat means/std summarize listed jobs; compare equal budgets and distinguish sampling from training seeds. Pooling is only within source/mode; no 2D/3D density pooling. Raw provenance is retained for comparison review; collecting files does not establish matched splits or fair external baseline settings."
+  "scope": "Wilson intervals are descriptive per-attempt binomial intervals; correlated same-descriptor samples are not independent materials or model replicates. Repeat means/std summarize listed jobs; compare equal budgets and distinguish sampling from training seeds. Pooling is only within source/mode; no 2D/3D density pooling. Raw provenance is retained for comparison review; collecting files does not establish matched splits or fair external baseline settings.",
+  "verified_snapshot": "artifacts/server_snapshots/20261019_completed245",
+  "archive_sha256": "0491f7034501737fbb2bce97a4a56d65f6fdf7e41cc255681288326d932e7f43",
+  "best_checkpoint_unchanged": true
 }

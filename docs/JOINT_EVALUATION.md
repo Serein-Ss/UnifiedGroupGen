@@ -142,3 +142,6 @@ tar -czf artifacts/evaluations/joint_best_seed142_results.tar.gz \
 ```
 
 下一阶段用这些结果决定是否需要修复生成质量，再开展化学筛查、去重、新颖性、独立性质评估和匹配划分的对照。
+
+
+> 2026-10-19结果同步：联合训练已在245轮早停，49次验证；最优仍为第195轮。新包最优权重、七组评估输出及数据划分已核验一致。当前结果以 `assets/results/current_snapshot.json` 为准，完整更新清单见 `docs/RESULTS_UPDATE_20261019.md`。本次未新增性质或稳定性认证。

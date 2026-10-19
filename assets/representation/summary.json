@@ -562,5 +562,7 @@
     "record_limit_per_source": null,
     "workers": 4
   },
-  "rank_and_tangent_criteria_rechecked_over_saved_record_statistics": true
+  "rank_and_tangent_criteria_rechecked_over_saved_record_statistics": true,
+  "verified_snapshot": "artifacts/server_snapshots/20261019_completed245",
+  "source_identity_unchanged": true
 }

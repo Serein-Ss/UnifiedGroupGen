@@ -1,6 +1,6 @@
 # 论文图表输出
 
-2026-10-18更新。当前文章为 [UNIFIEDGROUPGEN_MANUSCRIPT_ZH.md](../../docs/UNIFIEDGROUPGEN_MANUSCRIPT_ZH.md)，图像已放入对应方法、实例、结果和实验位置。新增图只保存PNG；缺失结果用明确灰色占位，不填模拟数值。
+2026-10-19更新。当前文章为 [UNIFIEDGROUPGEN_MANUSCRIPT_ZH.md](../../docs/UNIFIEDGROUPGEN_MANUSCRIPT_ZH.md)，图像已放入对应方法、实例、结果和实验位置。新增图只保存PNG；缺失结果用明确灰色占位，不填模拟数值。
 
 ## 当前主文图
 
@@ -64,3 +64,6 @@ python scripts/build_paper_results.py --manifest assets/paper/source/standard_re
 ## 材料结构显示风格
 
 正文 TiO₂/MoS₂ 数值结构图采用共同的 Crystal Toolkit 风格渲染器：VESTA 配色、均一半径哑光球体、半透明配位多面体、分色显示键、细灰晶胞边框和三色方向轴。三维保留周期像，二维仅面内重复。图1和架构图中的插图为方法示意；数值几何以独立状态展开图为准。更多视图、显示键规则与重建命令见 [结构图说明](../structures/README.md)。
+
+
+> 2026-10-19结果同步：联合训练已在245轮早停，49次验证；最优仍为第195轮。新包最优权重、七组评估输出及数据划分已核验一致。当前结果以 `assets/results/current_snapshot.json` 为准，完整更新清单见 `docs/RESULTS_UPDATE_20261019.md`。本次未新增性质或稳定性认证。

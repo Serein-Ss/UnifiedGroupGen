@@ -34921,9 +34921,1187 @@
         "validation_interval": 5
       },
       "peak_cuda_bytes": 3537190912
+    },
+    {
+      "epoch": 198,
+      "train": {
+        "descriptor": 0.418725444133782,
+        "flow": 37.444812123859755,
+        "lattice": 0.6534788764570363,
+        "coordinates": 36.79133341191002
+      },
+      "val": null,
+      "val_loss": null,
+      "validated": false,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1569.4837519563735,
+      "learning_rate": 3.75e-05,
+      "gradient_norm_mean": 553.7312930534806,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3622483968
+    },
+    {
+      "epoch": 199,
+      "train": {
+        "descriptor": 0.41843414599641493,
+        "flow": 36.75996462422841,
+        "lattice": 0.6570168239600236,
+        "coordinates": 36.102947877829486
+      },
+      "val": {
+        "descriptor": 1.86260665317045,
+        "flow": 20.154061283190188,
+        "lattice": 0.805149681271,
+        "coordinates": 19.3489117278903
+      },
+      "val_loss": 22.016667936360637,
+      "validated": true,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1365.3819918446243,
+      "learning_rate": 3.75e-05,
+      "gradient_norm_mean": 628.2619162369751,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3614621184
+    },
+    {
+      "epoch": 200,
+      "train": {
+        "descriptor": 0.4167470394190685,
+        "flow": 37.21618756464075,
+        "lattice": 0.6591771654587503,
+        "coordinates": 36.55701043122643
+      },
+      "val": null,
+      "val_loss": null,
+      "validated": false,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1192.8516538962722,
+      "learning_rate": 3.75e-05,
+      "gradient_norm_mean": 643.9320777010203,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3588364288
+    },
+    {
+      "epoch": 201,
+      "train": {
+        "descriptor": 0.4143435592857918,
+        "flow": 36.7632052570159,
+        "lattice": 0.660215729466681,
+        "coordinates": 36.10298952651646
+      },
+      "val": null,
+      "val_loss": null,
+      "validated": false,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1181.2660651914775,
+      "learning_rate": 3.75e-05,
+      "gradient_norm_mean": 612.4107959432679,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3599842816
+    },
+    {
+      "epoch": 202,
+      "train": {
+        "descriptor": 0.4137273850787358,
+        "flow": 36.286596050565315,
+        "lattice": 0.6617369183921361,
+        "coordinates": 35.624859058992584
+      },
+      "val": null,
+      "val_loss": null,
+      "validated": false,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1106.7811138443649,
+      "learning_rate": 3.75e-05,
+      "gradient_norm_mean": 687.4597007693555,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3630217728
+    },
+    {
+      "epoch": 203,
+      "train": {
+        "descriptor": 0.4144848112672134,
+        "flow": 37.88964956754344,
+        "lattice": 0.6534065370831806,
+        "coordinates": 37.236242999764784
+      },
+      "val": null,
+      "val_loss": null,
+      "validated": false,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1108.8818279467523,
+      "learning_rate": 3.75e-05,
+      "gradient_norm_mean": 684.1383855971928,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3626833920
+    },
+    {
+      "epoch": 204,
+      "train": {
+        "descriptor": 0.4126092526732392,
+        "flow": 36.74704262806043,
+        "lattice": 0.6657048530239776,
+        "coordinates": 36.081337743374945
+      },
+      "val": {
+        "descriptor": 1.8751457588712412,
+        "flow": 20.033769864727166,
+        "lattice": 0.8101661655455974,
+        "coordinates": 19.223603671806718
+      },
+      "val_loss": 21.908915623598407,
+      "validated": true,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1219.7408647686243,
+      "learning_rate": 3.75e-05,
+      "gradient_norm_mean": 594.1141168509185,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3626675712
+    },
+    {
+      "epoch": 205,
+      "train": {
+        "descriptor": 0.4150590411428916,
+        "flow": 36.800135490750286,
+        "lattice": 0.6546746718823319,
+        "coordinates": 36.145460768883744
+      },
+      "val": null,
+      "val_loss": null,
+      "validated": false,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1126.521751947701,
+      "learning_rate": 3.75e-05,
+      "gradient_norm_mean": 629.9129864042011,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3621701120
+    },
+    {
+      "epoch": 206,
+      "train": {
+        "descriptor": 0.41454043783809086,
+        "flow": 36.782268396479566,
+        "lattice": 0.6549683939839842,
+        "coordinates": 36.127300056967634
+      },
+      "val": null,
+      "val_loss": null,
+      "validated": false,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1099.8466270901263,
+      "learning_rate": 3.75e-05,
+      "gradient_norm_mean": 616.9600022006454,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3582980608
+    },
+    {
+      "epoch": 207,
+      "train": {
+        "descriptor": 0.4105238683222129,
+        "flow": 36.1672267787799,
+        "lattice": 0.6605018119448807,
+        "coordinates": 35.50672510551726
+      },
+      "val": null,
+      "val_loss": null,
+      "validated": false,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1101.8383610248566,
+      "learning_rate": 3.75e-05,
+      "gradient_norm_mean": 744.9041823137408,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3636034048
+    },
+    {
+      "epoch": 208,
+      "train": {
+        "descriptor": 0.4153274552465435,
+        "flow": 36.782013187685784,
+        "lattice": 0.6574114838082794,
+        "coordinates": 36.12460173678643
+      },
+      "val": null,
+      "val_loss": null,
+      "validated": false,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1088.52012732625,
+      "learning_rate": 3.75e-05,
+      "gradient_norm_mean": 662.2662259434537,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3637113344
+    },
+    {
+      "epoch": 209,
+      "train": {
+        "descriptor": 0.41033303616378636,
+        "flow": 37.590231174896715,
+        "lattice": 0.6533503131781746,
+        "coordinates": 36.93688087860235
+      },
+      "val": {
+        "descriptor": 1.886289615462643,
+        "flow": 20.131810844354003,
+        "lattice": 0.8074689817381794,
+        "coordinates": 19.32434185952738
+      },
+      "val_loss": 22.018100459816647,
+      "validated": true,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1229.6015264093876,
+      "learning_rate": 1.875e-05,
+      "gradient_norm_mean": 648.2663544944304,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3568319488
+    },
+    {
+      "epoch": 210,
+      "train": {
+        "descriptor": 0.40519390959892565,
+        "flow": 36.303605058473586,
+        "lattice": 0.6526955245583642,
+        "coordinates": 35.65090949391625
+      },
+      "val": null,
+      "val_loss": null,
+      "validated": false,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1127.9803740680218,
+      "learning_rate": 1.875e-05,
+      "gradient_norm_mean": 665.169385589294,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3621548544
+    },
+    {
+      "epoch": 211,
+      "train": {
+        "descriptor": 0.4062874105207719,
+        "flow": 36.381358841294215,
+        "lattice": 0.658025674923802,
+        "coordinates": 35.72333328127317
+      },
+      "val": null,
+      "val_loss": null,
+      "validated": false,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1097.5933516994119,
+      "learning_rate": 1.875e-05,
+      "gradient_norm_mean": 608.9798318732361,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3592251904
+    },
+    {
+      "epoch": 212,
+      "train": {
+        "descriptor": 0.403699910235302,
+        "flow": 36.51966195164236,
+        "lattice": 0.6549522006178798,
+        "coordinates": 35.86470975839302
+      },
+      "val": null,
+      "val_loss": null,
+      "validated": false,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1101.3571807183325,
+      "learning_rate": 1.875e-05,
+      "gradient_norm_mean": 536.9344927770314,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3594788352
+    },
+    {
+      "epoch": 213,
+      "train": {
+        "descriptor": 0.40099371838556586,
+        "flow": 36.34551373202268,
+        "lattice": 0.6611669584065304,
+        "coordinates": 35.684346851029304
+      },
+      "val": null,
+      "val_loss": null,
+      "validated": false,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1094.983265478164,
+      "learning_rate": 1.875e-05,
+      "gradient_norm_mean": 605.4510317583427,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3662177280
+    },
+    {
+      "epoch": 214,
+      "train": {
+        "descriptor": 0.403554294871872,
+        "flow": 37.42374690084219,
+        "lattice": 0.6518156706710261,
+        "coordinates": 36.77193130973105
+      },
+      "val": {
+        "descriptor": 1.9016182921000622,
+        "flow": 20.011865116078205,
+        "lattice": 0.8030873891064885,
+        "coordinates": 19.208777648356758
+      },
+      "val_loss": 21.913483408178266,
+      "validated": true,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1216.2856197431684,
+      "learning_rate": 1.875e-05,
+      "gradient_norm_mean": 643.0808960319787,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3635103232
+    },
+    {
+      "epoch": 215,
+      "train": {
+        "descriptor": 0.40329813108092033,
+        "flow": 36.29496750023676,
+        "lattice": 0.658133691963056,
+        "coordinates": 35.63683388070584
+      },
+      "val": null,
+      "val_loss": null,
+      "validated": false,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1122.9768975228071,
+      "learning_rate": 1.875e-05,
+      "gradient_norm_mean": 603.7318987110493,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3602051584
+    },
+    {
+      "epoch": 216,
+      "train": {
+        "descriptor": 0.4016843561332156,
+        "flow": 36.68302990140043,
+        "lattice": 0.6572958924470537,
+        "coordinates": 36.02573402861054
+      },
+      "val": null,
+      "val_loss": null,
+      "validated": false,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1092.0007462613285,
+      "learning_rate": 1.875e-05,
+      "gradient_norm_mean": 695.5968742656638,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3636863488
+    },
+    {
+      "epoch": 217,
+      "train": {
+        "descriptor": 0.4007362854889059,
+        "flow": 37.279151088999825,
+        "lattice": 0.6540544707097588,
+        "coordinates": 36.62509669673887
+      },
+      "val": null,
+      "val_loss": null,
+      "validated": false,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1101.7430137433112,
+      "learning_rate": 1.875e-05,
+      "gradient_norm_mean": 675.1071968562082,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3550931968
+    },
+    {
+      "epoch": 218,
+      "train": {
+        "descriptor": 0.4011137478918883,
+        "flow": 36.59651871576951,
+        "lattice": 0.6563889504900493,
+        "coordinates": 35.94012986858693
+      },
+      "val": null,
+      "val_loss": null,
+      "validated": false,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1127.0877918340266,
+      "learning_rate": 1.875e-05,
+      "gradient_norm_mean": 737.2743167271137,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3597218304
+    },
+    {
+      "epoch": 219,
+      "train": {
+        "descriptor": 0.39974355047808124,
+        "flow": 36.708367625087575,
+        "lattice": 0.6524097014990733,
+        "coordinates": 36.05595783322529
+      },
+      "val": {
+        "descriptor": 1.9144478506850073,
+        "flow": 19.985698669253903,
+        "lattice": 0.8019325812735665,
+        "coordinates": 19.183765816431166
+      },
+      "val_loss": 21.90014651993891,
+      "validated": true,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1201.3841792829335,
+      "learning_rate": 1.875e-05,
+      "gradient_norm_mean": 731.9883235566531,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3522620416
+    },
+    {
+      "epoch": 220,
+      "train": {
+        "descriptor": 0.3979744091785004,
+        "flow": 37.0122342030715,
+        "lattice": 0.6586488579111087,
+        "coordinates": 36.35358540028517
+      },
+      "val": null,
+      "val_loss": null,
+      "validated": false,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1112.167013593018,
+      "learning_rate": 1.875e-05,
+      "gradient_norm_mean": 675.5182565699203,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3593195008
+    },
+    {
+      "epoch": 221,
+      "train": {
+        "descriptor": 0.40117249805184474,
+        "flow": 36.38579885676923,
+        "lattice": 0.6472532370653713,
+        "coordinates": 35.738545623443244
+      },
+      "val": null,
+      "val_loss": null,
+      "validated": false,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1091.87105647102,
+      "learning_rate": 1.875e-05,
+      "gradient_norm_mean": 677.3300425328117,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3635817984
+    },
+    {
+      "epoch": 222,
+      "train": {
+        "descriptor": 0.3992638126721875,
+        "flow": 37.45056935399889,
+        "lattice": 0.6507686193997302,
+        "coordinates": 36.79980071791261
+      },
+      "val": null,
+      "val_loss": null,
+      "validated": false,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1095.1284173205495,
+      "learning_rate": 1.875e-05,
+      "gradient_norm_mean": 703.0542211859373,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3620916224
+    },
+    {
+      "epoch": 223,
+      "train": {
+        "descriptor": 0.4006300528626623,
+        "flow": 36.370720665784276,
+        "lattice": 0.6509170944052339,
+        "coordinates": 35.71980356391767
+      },
+      "val": null,
+      "val_loss": null,
+      "validated": false,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1103.0355801023543,
+      "learning_rate": 1.875e-05,
+      "gradient_norm_mean": 569.381297563059,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3620642816
+    },
+    {
+      "epoch": 224,
+      "train": {
+        "descriptor": 0.39732022293584224,
+        "flow": 37.458224612813495,
+        "lattice": 0.6530902933043097,
+        "coordinates": 36.80513427376044
+      },
+      "val": {
+        "descriptor": 1.927120346129233,
+        "flow": 20.034226929848984,
+        "lattice": 0.8018389028936653,
+        "coordinates": 19.23238807206533
+      },
+      "val_loss": 21.961347275978216,
+      "validated": true,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1189.6616681665182,
+      "learning_rate": 9.375e-06,
+      "gradient_norm_mean": 646.4886248448582,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3605209600
+    },
+    {
+      "epoch": 225,
+      "train": {
+        "descriptor": 0.3988472821373512,
+        "flow": 37.52766555096392,
+        "lattice": 0.655932473115201,
+        "coordinates": 36.871733007577824
+      },
+      "val": null,
+      "val_loss": null,
+      "validated": false,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1104.5543864704669,
+      "learning_rate": 9.375e-06,
+      "gradient_norm_mean": 644.4133886567153,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3584401920
+    },
+    {
+      "epoch": 226,
+      "train": {
+        "descriptor": 0.39375872039487414,
+        "flow": 36.20144254365687,
+        "lattice": 0.6574394750632806,
+        "coordinates": 35.54400303095603
+      },
+      "val": null,
+      "val_loss": null,
+      "validated": false,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1086.538034133613,
+      "learning_rate": 9.375e-06,
+      "gradient_norm_mean": 587.413188018729,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3579241984
+    },
+    {
+      "epoch": 227,
+      "train": {
+        "descriptor": 0.3946813345637179,
+        "flow": 37.17779363279557,
+        "lattice": 0.6618204716399703,
+        "coordinates": 36.515973123001665
+      },
+      "val": null,
+      "val_loss": null,
+      "validated": false,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1144.507637847215,
+      "learning_rate": 9.375e-06,
+      "gradient_norm_mean": 793.719045703268,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3622256128
+    },
+    {
+      "epoch": 228,
+      "train": {
+        "descriptor": 0.39116283104629596,
+        "flow": 36.93544049115339,
+        "lattice": 0.652954608094281,
+        "coordinates": 36.28248600628774
+      },
+      "val": null,
+      "val_loss": null,
+      "validated": false,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1101.0056870169938,
+      "learning_rate": 9.375e-06,
+      "gradient_norm_mean": 631.6725372722772,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3640526848
+    },
+    {
+      "epoch": 229,
+      "train": {
+        "descriptor": 0.3954969263224733,
+        "flow": 37.38947024896878,
+        "lattice": 0.6531019890606458,
+        "coordinates": 36.73636831901018
+      },
+      "val": {
+        "descriptor": 1.9345743759574554,
+        "flow": 19.861362107626004,
+        "lattice": 0.7994332811432334,
+        "coordinates": 19.061928845855743
+      },
+      "val_loss": 21.79593648358346,
+      "validated": true,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1231.5836046561599,
+      "learning_rate": 9.375e-06,
+      "gradient_norm_mean": 701.3326544573432,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3642823680
+    },
+    {
+      "epoch": 230,
+      "train": {
+        "descriptor": 0.39219780874533716,
+        "flow": 37.063363896621915,
+        "lattice": 0.6526821591409228,
+        "coordinates": 36.41068179882551
+      },
+      "val": null,
+      "val_loss": null,
+      "validated": false,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1119.9053174294531,
+      "learning_rate": 9.375e-06,
+      "gradient_norm_mean": 794.5012188541574,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3583226880
+    },
+    {
+      "epoch": 231,
+      "train": {
+        "descriptor": 0.3951822037286927,
+        "flow": 36.788734504730805,
+        "lattice": 0.6606343104339338,
+        "coordinates": 36.128100154361725
+      },
+      "val": null,
+      "val_loss": null,
+      "validated": false,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1098.6149616986513,
+      "learning_rate": 9.375e-06,
+      "gradient_norm_mean": 714.7644014211909,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3562300416
+    },
+    {
+      "epoch": 232,
+      "train": {
+        "descriptor": 0.39158267057847823,
+        "flow": 36.723883890642945,
+        "lattice": 0.6483942230636783,
+        "coordinates": 36.075489782435604
+      },
+      "val": null,
+      "val_loss": null,
+      "validated": false,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1094.3574720732868,
+      "learning_rate": 9.375e-06,
+      "gradient_norm_mean": 701.5178424993338,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3645615104
+    },
+    {
+      "epoch": 233,
+      "train": {
+        "descriptor": 0.3964209227345246,
+        "flow": 36.65582782290252,
+        "lattice": 0.6587177821360867,
+        "coordinates": 35.99711000800256
+      },
+      "val": null,
+      "val_loss": null,
+      "validated": false,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1083.5589258670807,
+      "learning_rate": 9.375e-06,
+      "gradient_norm_mean": 667.0755318896674,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3610855424
+    },
+    {
+      "epoch": 234,
+      "train": {
+        "descriptor": 0.3915300007856276,
+        "flow": 36.76828763371961,
+        "lattice": 0.6500087277155444,
+        "coordinates": 36.11827892422524
+      },
+      "val": {
+        "descriptor": 1.940573577207017,
+        "flow": 19.90960272507298,
+        "lattice": 0.801446717105974,
+        "coordinates": 19.10815610052676
+      },
+      "val_loss": 21.850176302279998,
+      "validated": true,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1307.673813033849,
+      "learning_rate": 9.375e-06,
+      "gradient_norm_mean": 813.9599898988265,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3595434496
+    },
+    {
+      "epoch": 235,
+      "train": {
+        "descriptor": 0.39091001151650534,
+        "flow": 37.67594551104528,
+        "lattice": 0.6524654065952717,
+        "coordinates": 37.023480036995984
+      },
+      "val": null,
+      "val_loss": null,
+      "validated": false,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1298.6477131210268,
+      "learning_rate": 9.375e-06,
+      "gradient_norm_mean": 856.5564972609609,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3630923776
+    },
+    {
+      "epoch": 236,
+      "train": {
+        "descriptor": 0.39429680405723694,
+        "flow": 37.37111636581463,
+        "lattice": 0.6537707912071188,
+        "coordinates": 36.71734563589981
+      },
+      "val": null,
+      "val_loss": null,
+      "validated": false,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1306.3155379071832,
+      "learning_rate": 9.375e-06,
+      "gradient_norm_mean": 659.1625543449077,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3636797440
+    },
+    {
+      "epoch": 237,
+      "train": {
+        "descriptor": 0.392743545873268,
+        "flow": 37.31110604440469,
+        "lattice": 0.6509847333688418,
+        "coordinates": 36.66012155340559
+      },
+      "val": null,
+      "val_loss": null,
+      "validated": false,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1307.1341259293258,
+      "learning_rate": 9.375e-06,
+      "gradient_norm_mean": 678.3746922551012,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3609859072
+    },
+    {
+      "epoch": 238,
+      "train": {
+        "descriptor": 0.3943312650194799,
+        "flow": 38.218943887900764,
+        "lattice": 0.649879906433824,
+        "coordinates": 37.5690641611722
+      },
+      "val": null,
+      "val_loss": null,
+      "validated": false,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1390.0323426239192,
+      "learning_rate": 9.375e-06,
+      "gradient_norm_mean": 772.2284188837816,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3584417280
+    },
+    {
+      "epoch": 239,
+      "train": {
+        "descriptor": 0.39384400568761524,
+        "flow": 35.62952940875236,
+        "lattice": 0.6585795362260993,
+        "coordinates": 34.97094995273888
+      },
+      "val": {
+        "descriptor": 1.9469120347581739,
+        "flow": 19.829749983168913,
+        "lattice": 0.7996443250579385,
+        "coordinates": 19.03010559830745
+      },
+      "val_loss": 21.776662017927087,
+      "validated": true,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1299.7918441668153,
+      "learning_rate": 4.6875e-06,
+      "gradient_norm_mean": 722.9977173826181,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3623885824
+    },
+    {
+      "epoch": 240,
+      "train": {
+        "descriptor": 0.39155461587500906,
+        "flow": 37.002564314927916,
+        "lattice": 0.6482104353598088,
+        "coordinates": 36.354353987541835
+      },
+      "val": null,
+      "val_loss": null,
+      "validated": false,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1399.3837273232639,
+      "learning_rate": 4.6875e-06,
+      "gradient_norm_mean": 972.9685576366107,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3600970752
+    },
+    {
+      "epoch": 241,
+      "train": {
+        "descriptor": 0.38873944084683626,
+        "flow": 36.92109882633,
+        "lattice": 0.6564123132248143,
+        "coordinates": 36.26468662531872
+      },
+      "val": null,
+      "val_loss": null,
+      "validated": false,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1222.242726881057,
+      "learning_rate": 4.6875e-06,
+      "gradient_norm_mean": 675.3407485481586,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3594002432
+    },
+    {
+      "epoch": 242,
+      "train": {
+        "descriptor": 0.39094253471314405,
+        "flow": 35.593398624445,
+        "lattice": 0.651185903423291,
+        "coordinates": 34.94221257688269
+      },
+      "val": null,
+      "val_loss": null,
+      "validated": false,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1142.3141859173775,
+      "learning_rate": 4.6875e-06,
+      "gradient_norm_mean": 685.6464261084009,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3611844096
+    },
+    {
+      "epoch": 243,
+      "train": {
+        "descriptor": 0.38984705906769523,
+        "flow": 36.64462309478372,
+        "lattice": 0.6526096265028956,
+        "coordinates": 35.992013344367564
+      },
+      "val": null,
+      "val_loss": null,
+      "validated": false,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1147.7182183414698,
+      "learning_rate": 4.6875e-06,
+      "gradient_norm_mean": 668.5529652627984,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3610044416
+    },
+    {
+      "epoch": 244,
+      "train": {
+        "descriptor": 0.38735088151381847,
+        "flow": 38.02039159877012,
+        "lattice": 0.651263014697431,
+        "coordinates": 37.369128592771325
+      },
+      "val": {
+        "descriptor": 1.950599489970109,
+        "flow": 19.87125781043355,
+        "lattice": 0.7998751786319033,
+        "coordinates": 19.071382696658986
+      },
+      "val_loss": 21.82185730040366,
+      "validated": true,
+      "best_val_loss": 21.752630748692624,
+      "seconds": 1268.7091713771224,
+      "learning_rate": 4.6875e-06,
+      "gradient_norm_mean": 878.8189222195631,
+      "train_records": 82185,
+      "val_records": 10190,
+      "runtime_options": {
+        "checkpoint_layers": true,
+        "edge_chunk_size": 4096,
+        "validation_interval": 5
+      },
+      "peak_cuda_bytes": 3607947264
     }
   ],
-  "history_sha256": "8b9fa71ded616bfe1da4cd5e2b5c5dfcfafad6e96c449e80d3fd4eb453c69d56",
+  "history_sha256": "86b76f21488b0d7b82860ad4713d09805cbc7b6eb64295702df9b30c6d3a4f13",
   "config": {
     "dataset": "joint_space_layer",
     "kind": "space",
@@ -35146,5 +36324,15 @@
     "flow.py": "6cb6d2390b2cefe019b60c01299e189fd89e53c69756c0333f09bd16f12d0c89",
     "proposal.py": "67ee092914ce9eb2df61a0c61b0e249a68d0cc20785f6b17485e76c3593a3b1d",
     "symmetry.py": "741453477e989fec57754f0138193d7039820fbcb5d64f3bde1980287ded8658"
+  },
+  "verified_snapshot": "artifacts/server_snapshots/20261019_completed245",
+  "training_completion": {
+    "state": "complete",
+    "reason": "early_stopping",
+    "completed_epochs": 245,
+    "best_val_loss": 21.752630748692624,
+    "train_records": 82185,
+    "val_records": 10190,
+    "verification": "Training finished; material stability and property performance not certified"
   }
 }

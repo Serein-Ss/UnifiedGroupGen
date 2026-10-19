@@ -178,3 +178,6 @@ cgdit 单环境最新 **80 项测试通过**，一条预期三维 CIF 有限精�
 - 现有联合数据102,610条状态维数/有限性与文件哈希检查通过，无LG52 4c记录；四份数据配置门禁及联合划分谱系仍通过。此次版本修复没有改变这些数据所使用的轨道映射。
 - 已归档联合最佳检查点SHA256为932e3849e366d6ca2dc2f7b8b36b08626c5615fc6947f4a3f35fa338e2860bfd，两个网络严格加载；3,718,346与14,312,460参数保持一致，三来源各一条实际前向损失均有限。详细报告为`artifacts/audits/pyxtal113_runtime_compatibility.json`和`artifacts/audits/pyxtal_chart_compatibility.json`。
 - 验证不重写数据、不更新权重，不等于全测试损失复算、原始CIF全量重编码或物理认证。旧检查点没有群表指纹，不承诺跨环境采样逐位复现。服务器更新和兼容检查命令见[PYXTAL_RUNTIME.md](PYXTAL_RUNTIME.md)。
+
+
+> 2026-10-19结果同步：联合训练已在245轮早停，49次验证；最优仍为第195轮。新包最优权重、七组评估输出及数据划分已核验一致。当前结果以 `assets/results/current_snapshot.json` 为准，完整更新清单见 `docs/RESULTS_UPDATE_20261019.md`。本次未新增性质或稳定性认证。

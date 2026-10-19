@@ -18,7 +18,6 @@
 
 ![01_dataset_overview](01_dataset_overview.png)
 
-[SVG](01_dataset_overview.svg) · [PDF](01_dataset_overview.pdf)
 
 ## 02_structure_complexity
 
@@ -26,7 +25,6 @@
 
 ![02_structure_complexity](02_structure_complexity.png)
 
-[SVG](02_structure_complexity.svg) · [PDF](02_structure_complexity.pdf)
 
 ## 03_symmetry_distribution
 
@@ -34,7 +32,6 @@
 
 ![03_symmetry_distribution](03_symmetry_distribution.png)
 
-[SVG](03_symmetry_distribution.svg) · [PDF](03_symmetry_distribution.pdf)
 
 ## 04_element_coverage
 
@@ -42,7 +39,6 @@
 
 ![04_element_coverage](04_element_coverage.png)
 
-[SVG](04_element_coverage.svg) · [PDF](04_element_coverage.pdf)
 
 ## 05_property_labels
 
@@ -50,7 +46,6 @@
 
 ![05_property_labels](05_property_labels.png)
 
-[SVG](05_property_labels.svg) · [PDF](05_property_labels.pdf)
 
 ## 06_overlap_and_fixed_sites
 
@@ -58,7 +53,6 @@
 
 ![06_overlap_and_fixed_sites](06_overlap_and_fixed_sites.png)
 
-[SVG](06_overlap_and_fixed_sites.svg) · [PDF](06_overlap_and_fixed_sites.pdf)
 
 ## 07_lattice_and_layer_geometry
 
@@ -66,7 +60,6 @@
 
 ![07_lattice_and_layer_geometry](07_lattice_and_layer_geometry.png)
 
-[SVG](07_lattice_and_layer_geometry.svg) · [PDF](07_lattice_and_layer_geometry.pdf)
 
 ## 可复现性与口径
 
@@ -79,3 +72,6 @@
 - 形成能/凸包能单位为eV/atom、带隙为eV；分布来自存档标签，没有重新计算或统一跨来源的能量参考。
 - 图5反映记录中存储的标签，不代表每个参考配置都使用了全部标签；如MP20参考配置只条件化形成能和带隙。
 - 图6中不同数据源ID交集以精确字符串为准，MP数据源内可解释为共享材料ID；这不是原型去重或结构匹配结果。
+
+
+2026-10-19重新核验：本次新服务器包中的九份来源记录文件与本统计指纹一致，102,610条数据的图表数值不变；当前仅保留PNG，旧PDF/SVG已归档。

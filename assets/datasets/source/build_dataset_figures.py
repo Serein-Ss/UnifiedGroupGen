@@ -2,7 +2,7 @@
 
 Run with the project's environment. Input defaults to ../../tmp/UnifiedGroupGen.zip
 relative to the project. Exact plots are regenerated from the source records.
-CCFA grouped-bar/heatmap grammar is adapted to Matplotlib for vector PDF exports.
+CCFA grouped-bar/heatmap grammar is adapted to Matplotlib for PNG exports.
 """
 from pathlib import Path
 import argparse
@@ -297,7 +297,7 @@ def main():
     text += ['', '## 可复现性与口径','',
         '- `source/build_dataset_figures.py`生成所有图，`tables/`保留逐记录压缩CSV、汇总表、标签覆盖、元素频率、群分布和交集计数。',
         '- 轨道组合定义为群号及带重复的Wyckoff letter排序列表，不含元素或连续参数；不同晶胞设置不混用。',
-        '- 后续绘图只输出PNG，使用Times New Roman；已存在的PDF/SVG保留为历史文件。',
+        '- 绘图只输出PNG，使用Times New Roman；旧PDF/SVG已移出当前图集并归档。',
         '- C2DB这里是本项目实际恢复的16905条记录子集，不是宣称覆盖整个实时C2DB数据库。',
         '- 结构数是来源记录数。MP20与MPTS52存在来源重叠，直接相加不等于独立材料总数。',
         '- 同一材料的群号、Wyckoff位点及原子数取决于标准胞和识别容差。配置容差为MP20 0.001 Å、MPTS52 0.01 Å、C2DB层群识别0.1 Å。',

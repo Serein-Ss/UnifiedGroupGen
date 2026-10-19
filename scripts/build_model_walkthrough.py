@@ -519,7 +519,7 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--stage',choices=['all','trace','render','verify'],default='all')
     parser.add_argument('--checkpoint',type=Path,default=ROOT/'artifacts/imported_server/checkpoints/joint_best.pt')
-    parser.add_argument('--history',type=Path,default=ROOT.parent/'tmp/UnifiedGroupGen_remote_audit_20261017/evidence/artifacts/runs/joint_space_layer_large_seed42/model.history.jsonl')
+    parser.add_argument('--history',type=Path,default=ROOT/'artifacts/server_snapshots/20261019_completed245/artifacts/runs/joint_space_layer_large_seed42/model.history.jsonl')
     parser.add_argument('--fps',type=int,default=12)
     args=parser.parse_args()
     if args.fps<1:parser.error('--fps must be positive')

@@ -3,11 +3,10 @@
     "assets/paper/source/build_manuscript_figures.py": "a4cc1c5c9cbcc1ef5e9d16dfbe035eace23567a0a4c65d834a7e5b514e30c893",
     "assets/paper/source/material_examples.json": "db8736431f0e005e59095fc6b745e259c174f80b07fb96fe9c9e7fcf6ac5b6aa",
     "scripts/build_paper_results.py": "25237210c6b07378ce219fde2ecc88bd2de041b7f3995715e5a9d884fc70f01b",
-    "assets/representation/summary.json": "ca1a3ef6a6c066732a6c6b58d5de527a403a4201a35b5ae646b748b80ab0cadd",
+    "assets/representation/summary.json": "10ea528eb26a37ba78edda9f4bff51d1275208e3a02279a2349c49f941a1fdf1",
     "assets/representation/records.csv.gz": "34403a589bb3720556cac5dea45a0109745c91d4745547ca0aea0507f50cde05",
     "assets/representation/catalog.csv": "2c3f075062c3e671da2be51aecc5ab06bed351609cbae09e7588d976dcc218c1",
-    "assets/representation/source_reencoding.csv": "bcb48e30df5ef9c03f727d7d6b675b5c8f433738deea997dcd86c15b1da32514",
-    "src/unifiedgroupgen/structure_rendering.py": "fd3bd084d70413794f54bc8c787892703f362b2f1e640630916d57798d5e5fa1"
+    "assets/representation/source_reencoding.csv": "bcb48e30df5ef9c03f727d7d6b675b5c8f433738deea997dcd86c15b1da32514"
   },
   "input_hash_scope": "Text authoring inputs use LF-normalized SHA256 for cross-platform replay; compressed inputs and imported metric artifacts retain exact-byte SHA256.",
   "representation": {
@@ -34,10 +33,7 @@
     "jobs": 6
   },
   "scope": "Representation uses audited local records. Joint outcome values, when supplied, are verified against archived attempt files. Encoded examples are not generated candidates; symmetry and distance screens do not certify physical stability or target properties.",
-  "structure_style": "User-reference matched: VESTA matte spheres, translucent coordination hulls, axis compass; standalone PNGs have transparent backgrounds",
-  "structure_figure_sha256": {
-    "assets/paper/fig01_material_examples.png": "b1a2e13af034fc1f742658e47925a01a75a6c5d3f61b3ac0af6f2fb6c1bbeb6d",
-    "assets/paper/fig01_unified_method.png": "24e32171ab32dcf1ee4a90c68ea68a605824077ca44f59ec4fb07ebb46187545",
-    "assets/architecture/unifiedgroupgen_architecture.png": "b31e2818131af21b384e1018d7988176d3107600c7fc7f4ad0da98d34215c789"
-  }
+  "verified_snapshot": "artifacts/server_snapshots/20261019_completed245",
+  "archive_sha256": "0491f7034501737fbb2bce97a4a56d65f6fdf7e41cc255681288326d932e7f43",
+  "best_checkpoint_unchanged": true
 }

@@ -98,7 +98,7 @@
         "geometry_cutoff_angstrom": 0.5,
         "hull_threshold_ev_per_atom": 0.1
       },
-      "fingerprint_protocol": "CrystalNN-ops (61), Magpie (132), prior CGDiT scaler; 2D uses h=max(24 \u00c5, thickness+12 \u00c5) auxiliary Voronoi closure, rejects nonzero normal-image chemical weights",
+      "fingerprint_protocol": "CrystalNN-ops (61), Magpie (132), prior CGDiT scaler; 2D uses h=max(24 Å, thickness+12 Å) auxiliary Voronoi closure, rejects nonzero normal-image chemical weights",
       "valid_unique_novel_count": 170,
       "valid_unique_novel_rate_over_all_attempts": 0.6640625,
       "coverage": {
@@ -157,7 +157,7 @@
         "sun_rate_over_all_attempts": null,
         "hull_threshold_ev_per_atom": 0.1
       },
-      "scope": "Legacy validity is the prior 0.5 \u00c5 / volume protocol. Joint validity additionally includes fingerprint success when enabled. Periodic-image/radius checks are separate. Uniqueness/novelty are evaluated on joint-valid structures; novelty is against the selected same-kind TRAIN references. Layer coverage/matching are adapted metrics, not published MP20 scores. External quantities require independent assessments. Symmetry uses stored generation identification unless --reidentify is used.",
+      "scope": "Legacy validity is the prior 0.5 Å / volume protocol. Joint validity additionally includes fingerprint success when enabled. Periodic-image/radius checks are separate. Uniqueness/novelty are evaluated on joint-valid structures; novelty is against the selected same-kind TRAIN references. Layer coverage/matching are adapted metrics, not published MP20 scores. External quantities require independent assessments. Symmetry uses stored generation identification unless --reidentify is used.",
       "samples_sha256": "e7a463bb7354f96680a4544869b934b5c85e6e822f304331601e98806082f045",
       "dataset": "mp_20",
       "sampling": {
@@ -266,7 +266,7 @@
         "geometry_cutoff_angstrom": 0.5,
         "hull_threshold_ev_per_atom": 0.1
       },
-      "fingerprint_protocol": "CrystalNN-ops (61), Magpie (132), prior CGDiT scaler; 2D uses h=max(24 \u00c5, thickness+12 \u00c5) auxiliary Voronoi closure, rejects nonzero normal-image chemical weights",
+      "fingerprint_protocol": "CrystalNN-ops (61), Magpie (132), prior CGDiT scaler; 2D uses h=max(24 Å, thickness+12 Å) auxiliary Voronoi closure, rejects nonzero normal-image chemical weights",
       "valid_unique_novel_count": 136,
       "valid_unique_novel_rate_over_all_attempts": 0.53125,
       "coverage": {
@@ -346,7 +346,7 @@
         "sun_rate_over_all_attempts": null,
         "hull_threshold_ev_per_atom": 0.1
       },
-      "scope": "Legacy validity is the prior 0.5 \u00c5 / volume protocol. Joint validity additionally includes fingerprint success when enabled. Periodic-image/radius checks are separate. Uniqueness/novelty are evaluated on joint-valid structures; novelty is against the selected same-kind TRAIN references. Layer coverage/matching are adapted metrics, not published MP20 scores. External quantities require independent assessments. Symmetry uses stored generation identification unless --reidentify is used.",
+      "scope": "Legacy validity is the prior 0.5 Å / volume protocol. Joint validity additionally includes fingerprint success when enabled. Periodic-image/radius checks are separate. Uniqueness/novelty are evaluated on joint-valid structures; novelty is against the selected same-kind TRAIN references. Layer coverage/matching are adapted metrics, not published MP20 scores. External quantities require independent assessments. Symmetry uses stored generation identification unless --reidentify is used.",
       "samples_sha256": "7c00feb4287cf47fd730e9c765ef0e7660baaa322e308b3417e94b7604d8fb8b",
       "dataset": "mp_20",
       "sampling": {
@@ -452,7 +452,7 @@
         "geometry_cutoff_angstrom": 0.5,
         "hull_threshold_ev_per_atom": 0.1
       },
-      "fingerprint_protocol": "CrystalNN-ops (61), Magpie (132), prior CGDiT scaler; 2D uses h=max(24 \u00c5, thickness+12 \u00c5) auxiliary Voronoi closure, rejects nonzero normal-image chemical weights",
+      "fingerprint_protocol": "CrystalNN-ops (61), Magpie (132), prior CGDiT scaler; 2D uses h=max(24 Å, thickness+12 Å) auxiliary Voronoi closure, rejects nonzero normal-image chemical weights",
       "valid_unique_novel_count": 163,
       "valid_unique_novel_rate_over_all_attempts": 0.63671875,
       "coverage": {
@@ -511,7 +511,7 @@
         "sun_rate_over_all_attempts": null,
         "hull_threshold_ev_per_atom": 0.1
       },
-      "scope": "Legacy validity is the prior 0.5 \u00c5 / volume protocol. Joint validity additionally includes fingerprint success when enabled. Periodic-image/radius checks are separate. Uniqueness/novelty are evaluated on joint-valid structures; novelty is against the selected same-kind TRAIN references. Layer coverage/matching are adapted metrics, not published MP20 scores. External quantities require independent assessments. Symmetry uses stored generation identification unless --reidentify is used.",
+      "scope": "Legacy validity is the prior 0.5 Å / volume protocol. Joint validity additionally includes fingerprint success when enabled. Periodic-image/radius checks are separate. Uniqueness/novelty are evaluated on joint-valid structures; novelty is against the selected same-kind TRAIN references. Layer coverage/matching are adapted metrics, not published MP20 scores. External quantities require independent assessments. Symmetry uses stored generation identification unless --reidentify is used.",
       "samples_sha256": "94b47aa890f2b00da3e8d2b69d30a6303fe3a0ea87ca23ca289616cb29dc67a2",
       "dataset": "mpts_52",
       "sampling": {
@@ -620,7 +620,7 @@
         "geometry_cutoff_angstrom": 0.5,
         "hull_threshold_ev_per_atom": 0.1
       },
-      "fingerprint_protocol": "CrystalNN-ops (61), Magpie (132), prior CGDiT scaler; 2D uses h=max(24 \u00c5, thickness+12 \u00c5) auxiliary Voronoi closure, rejects nonzero normal-image chemical weights",
+      "fingerprint_protocol": "CrystalNN-ops (61), Magpie (132), prior CGDiT scaler; 2D uses h=max(24 Å, thickness+12 Å) auxiliary Voronoi closure, rejects nonzero normal-image chemical weights",
       "valid_unique_novel_count": 119,
       "valid_unique_novel_rate_over_all_attempts": 0.46484375,
       "coverage": {
@@ -700,7 +700,7 @@
         "sun_rate_over_all_attempts": null,
         "hull_threshold_ev_per_atom": 0.1
       },
-      "scope": "Legacy validity is the prior 0.5 \u00c5 / volume protocol. Joint validity additionally includes fingerprint success when enabled. Periodic-image/radius checks are separate. Uniqueness/novelty are evaluated on joint-valid structures; novelty is against the selected same-kind TRAIN references. Layer coverage/matching are adapted metrics, not published MP20 scores. External quantities require independent assessments. Symmetry uses stored generation identification unless --reidentify is used.",
+      "scope": "Legacy validity is the prior 0.5 Å / volume protocol. Joint validity additionally includes fingerprint success when enabled. Periodic-image/radius checks are separate. Uniqueness/novelty are evaluated on joint-valid structures; novelty is against the selected same-kind TRAIN references. Layer coverage/matching are adapted metrics, not published MP20 scores. External quantities require independent assessments. Symmetry uses stored generation identification unless --reidentify is used.",
       "samples_sha256": "5a9520df6d58d654bcfdf5ca8a6814b249841a347c372c681d4183dbfeca1ec5",
       "dataset": "mpts_52",
       "sampling": {
@@ -806,7 +806,7 @@
         "geometry_cutoff_angstrom": 0.5,
         "hull_threshold_ev_per_atom": 0.1
       },
-      "fingerprint_protocol": "CrystalNN-ops (61), Magpie (132), prior CGDiT scaler; 2D uses h=max(24 \u00c5, thickness+12 \u00c5) auxiliary Voronoi closure, rejects nonzero normal-image chemical weights",
+      "fingerprint_protocol": "CrystalNN-ops (61), Magpie (132), prior CGDiT scaler; 2D uses h=max(24 Å, thickness+12 Å) auxiliary Voronoi closure, rejects nonzero normal-image chemical weights",
       "valid_unique_novel_count": 199,
       "valid_unique_novel_rate_over_all_attempts": 0.77734375,
       "coverage": {
@@ -865,7 +865,7 @@
         "sun_rate_over_all_attempts": null,
         "hull_threshold_ev_per_atom": 0.1
       },
-      "scope": "Legacy validity is the prior 0.5 \u00c5 / volume protocol. Joint validity additionally includes fingerprint success when enabled. Periodic-image/radius checks are separate. Uniqueness/novelty are evaluated on joint-valid structures; novelty is against the selected same-kind TRAIN references. Layer coverage/matching are adapted metrics, not published MP20 scores. External quantities require independent assessments. Symmetry uses stored generation identification unless --reidentify is used.",
+      "scope": "Legacy validity is the prior 0.5 Å / volume protocol. Joint validity additionally includes fingerprint success when enabled. Periodic-image/radius checks are separate. Uniqueness/novelty are evaluated on joint-valid structures; novelty is against the selected same-kind TRAIN references. Layer coverage/matching are adapted metrics, not published MP20 scores. External quantities require independent assessments. Symmetry uses stored generation identification unless --reidentify is used.",
       "samples_sha256": "eb4483d71db7cf9baccb065d33553b7e8535fdefd3c055d21cd3dffc52ca07c8",
       "dataset": "c2db_51",
       "sampling": {
@@ -974,7 +974,7 @@
         "geometry_cutoff_angstrom": 0.5,
         "hull_threshold_ev_per_atom": 0.1
       },
-      "fingerprint_protocol": "CrystalNN-ops (61), Magpie (132), prior CGDiT scaler; 2D uses h=max(24 \u00c5, thickness+12 \u00c5) auxiliary Voronoi closure, rejects nonzero normal-image chemical weights",
+      "fingerprint_protocol": "CrystalNN-ops (61), Magpie (132), prior CGDiT scaler; 2D uses h=max(24 Å, thickness+12 Å) auxiliary Voronoi closure, rejects nonzero normal-image chemical weights",
       "valid_unique_novel_count": 174,
       "valid_unique_novel_rate_over_all_attempts": 0.6796875,
       "coverage": {
@@ -1054,7 +1054,7 @@
         "sun_rate_over_all_attempts": null,
         "hull_threshold_ev_per_atom": 0.1
       },
-      "scope": "Legacy validity is the prior 0.5 \u00c5 / volume protocol. Joint validity additionally includes fingerprint success when enabled. Periodic-image/radius checks are separate. Uniqueness/novelty are evaluated on joint-valid structures; novelty is against the selected same-kind TRAIN references. Layer coverage/matching are adapted metrics, not published MP20 scores. External quantities require independent assessments. Symmetry uses stored generation identification unless --reidentify is used.",
+      "scope": "Legacy validity is the prior 0.5 Å / volume protocol. Joint validity additionally includes fingerprint success when enabled. Periodic-image/radius checks are separate. Uniqueness/novelty are evaluated on joint-valid structures; novelty is against the selected same-kind TRAIN references. Layer coverage/matching are adapted metrics, not published MP20 scores. External quantities require independent assessments. Symmetry uses stored generation identification unless --reidentify is used.",
       "samples_sha256": "c3166bdad1ac02911c4e3ce28151877e740cee51200ba3c15939662bc0c6c17e",
       "dataset": "c2db_51",
       "sampling": {
@@ -1091,5 +1091,8 @@
       },
       "metrics_csv_sha256": "35b489a4d3f7daea5a40271daed70305cd6c67a2b9d54d859288c6497ec82440"
     }
-  }
+  },
+  "verified_snapshot": "artifacts/server_snapshots/20261019_completed245",
+  "archive_sha256": "0491f7034501737fbb2bce97a4a56d65f6fdf7e41cc255681288326d932e7f43",
+  "best_checkpoint_unchanged": true
 }

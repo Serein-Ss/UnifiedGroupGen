@@ -1,0 +1,110 @@
+{
+  "archive_name": "UnifiedGroupGen.zip",
+  "archive_sha256": "0491f7034501737fbb2bce97a4a56d65f6fdf7e41cc255681288326d932e7f43",
+  "snapshot": "artifacts/server_snapshots/20261019_completed245",
+  "training": {
+    "state": "complete",
+    "reason": "early_stopping",
+    "completed_epochs": 245,
+    "best_val_loss": 21.752630748692624,
+    "train_records": 82185,
+    "val_records": 10190,
+    "verification": "Training finished; material stability and property performance not certified"
+  },
+  "history": "artifacts/server_snapshots/20261019_completed245/history.json",
+  "history_sha256": "e674c37f0483cda5a5f6aee512675fdb794e26b0e7f4552fad7f6d0078d1d288",
+  "validation_points": 49,
+  "best_epoch_1based": 195,
+  "best_checkpoint_sha256": "932e3849e366d6ca2dc2f7b8b36b08626c5615fc6947f4a3f35fa338e2860bfd",
+  "last_checkpoint_sha256": "a50143c926f1007bfa66c8186bb41c618b9ccc4de0f7b02a12ad50183202956a",
+  "evaluation": "artifacts/server_snapshots/20261019_completed245/artifacts/evaluations/joint_best_seed142",
+  "evaluation_jobs_verified": [
+    {
+      "job": "test",
+      "verified_outputs": 1
+    },
+    {
+      "job": "mp_20_unconditional",
+      "verified_outputs": 258
+    },
+    {
+      "job": "mp_20_conditional",
+      "verified_outputs": 258
+    },
+    {
+      "job": "mpts_52_unconditional",
+      "verified_outputs": 258
+    },
+    {
+      "job": "mpts_52_conditional",
+      "verified_outputs": 258
+    },
+    {
+      "job": "c2db_51_unconditional",
+      "verified_outputs": 258
+    },
+    {
+      "job": "c2db_51_conditional",
+      "verified_outputs": 258
+    }
+  ],
+  "evaluation_identical_to_previous_import": true,
+  "archived_code_matches_generation": {
+    "src/unifiedgroupgen/__init__.py": true,
+    "src/unifiedgroupgen/cli.py": true,
+    "src/unifiedgroupgen/conditioning.py": true,
+    "src/unifiedgroupgen/constraints.py": true,
+    "src/unifiedgroupgen/data.py": true,
+    "src/unifiedgroupgen/evaluation.py": true,
+    "src/unifiedgroupgen/flow.py": true,
+    "src/unifiedgroupgen/joint.py": true,
+    "src/unifiedgroupgen/native_identifier.py": true,
+    "src/unifiedgroupgen/preflight.py": true,
+    "src/unifiedgroupgen/proposal.py": true,
+    "src/unifiedgroupgen/spin.py": true,
+    "src/unifiedgroupgen/symmetry.py": true,
+    "src/unifiedgroupgen/training.py": true,
+    "scripts/evaluate_joint.py": true,
+    "scripts/evaluate_checkpoint.py": true
+  },
+  "dataset_splits_verified": [
+    {
+      "path": "artifacts/full_joint_sourcegrouped/mp_20/train.jsonl",
+      "sha256": "483bf45866fe82e259a13633aed6ea92e0676d2f0f06b80f96f6915da5282877"
+    },
+    {
+      "path": "artifacts/full_joint_sourcegrouped/mp_20/val.jsonl",
+      "sha256": "1aaab6c129d736176a5f467464b2ef8f0f86ba75d1ef12b6e1ebf100af8a5ce8"
+    },
+    {
+      "path": "artifacts/full_joint_sourcegrouped/mp_20/test.jsonl",
+      "sha256": "e3e9e84b8560ac895ac82cc94ce55ce6c9bce09b5250b4fdd9370a7d85881fcf"
+    },
+    {
+      "path": "artifacts/full_joint_sourcegrouped/mpts_52/train.jsonl",
+      "sha256": "a5b708fdc9a1ae5da00812463171794a6b708fceb4c1ecfc69e87987bdb4b6b5"
+    },
+    {
+      "path": "artifacts/full_joint_sourcegrouped/mpts_52/val.jsonl",
+      "sha256": "f80bb2c69b6e34325fd6665f6543666fdf01575f86948f7b3f35684f435cce78"
+    },
+    {
+      "path": "artifacts/full_joint_sourcegrouped/mpts_52/test.jsonl",
+      "sha256": "e26d326abd232395382568fdef2913694f9f3d3035481179c469683a3c009f2a"
+    },
+    {
+      "path": "artifacts/full_joint_sourcegrouped/c2db_51/train.jsonl",
+      "sha256": "6d1e49b173dba29530a3c386d35c4258e0e57a22a15d430919fa39f47212dda8"
+    },
+    {
+      "path": "artifacts/full_joint_sourcegrouped/c2db_51/val.jsonl",
+      "sha256": "e7c5c7f9412da3b1e6fe3ebadf95d6763904b8496dd8c059a18d2aa7f2edf043"
+    },
+    {
+      "path": "artifacts/full_joint_sourcegrouped/c2db_51/test.jsonl",
+      "sha256": "59c301f824cedc1479b2ac32357963a18c811457d75118cb510dcb2e5f3bce41"
+    }
+  ],
+  "statistics_policy": "Training history refreshed. Generation/test metrics remain valid only for the byte-identical best checkpoint and verified output/reference files. No new sampling or property/stability certification.",
+  "files_imported": 1577
+}
