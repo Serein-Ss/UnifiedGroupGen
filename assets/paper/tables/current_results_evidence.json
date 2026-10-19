@@ -1,0 +1,28 @@
+{
+  "manuscript": "docs/UNIFIEDGROUPGEN_MANUSCRIPT_ZH.md",
+  "manuscript_sha256": "4e0d41384e2ef49a1fdd98c8e8d2bb1d351f0baf71870838ae65d55bda67b686",
+  "input_sha256": {
+    "assets/results/current_snapshot.json": "06be2bb505d862eca5e00f27444dd85a19cc3160873df78e6be131ea09f058de",
+    "artifacts/server_snapshots/20261019_completed245/history.json": "e674c37f0483cda5a5f6aee512675fdb794e26b0e7f4552fad7f6d0078d1d288",
+    "assets/paper/standard/main_results.csv": "69d3e98391e35373cd7b1ab20663108e7d62c80665009cee179c806beb089e95",
+    "assets/paper/tables/joint_heldout_test.csv": "d5ac6b7018e96c6e68309ea3f5df02d75ecb15f54815276ffba25ecf018bc187",
+    "assets/paper/tables/layer_connectivity_counts.csv": "996b8c583eabec18497d962a21f2c9c04df96222d2ea70cefa1ff07ac2e9c0d9",
+    "assets/datasets/tables/joint_split_counts.csv": "ad2be5e42487b5ea346b3443366074f25c869c61fa5eff7681ac778ea06169c0",
+    "assets/results/weekly_generation_20261019/manifest.json": "00698a96b34ad1389e27ff7a797379a297fc44d8d20af030df2f68dec0dd2e1e"
+  },
+  "training_epochs": 245,
+  "validation_points": 49,
+  "best_epoch": 195,
+  "test_records": 10235,
+  "attempted": 1536,
+  "raw_exact_group": 1526,
+  "standard_exact_group": 1525,
+  "joint_valid": 1316,
+  "valid_unique_novel": 961,
+  "actual_target_groups": {
+    "space": 92,
+    "layer": 37
+  },
+  "theory_sections_3_to_8_unchanged": true,
+  "scope": "Article reorganization from verified existing outputs; no additional training, sampling or independent physical/property result."
+}
