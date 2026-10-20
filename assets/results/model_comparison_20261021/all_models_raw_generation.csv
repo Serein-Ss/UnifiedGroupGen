@@ -1,0 +1,11 @@
+﻿model,dataset,mode,attempted,generated,exact_target_group,unknown_group,group_operation_closure,distance_valid,no_coincident_orbits,requested_groups,properties_requested,guidance,steps,sampling_seed,metric_protocol
+M1,MP20,unconditional,64,64,64,0,64,64,64,28,{},0,64,142,raw_generation_diagnostics
+M1,MP20,conditional,64,64,64,0,64,61,64,14,"{""formation_energy"": -1.0, ""band_gap"": 1.0}",2,64,142,raw_generation_diagnostics
+M2,MPTS52,unconditional,64,64,64,0,64,59,64,25,{},0,64,142,raw_generation_diagnostics
+M2,MPTS52,conditional,64,64,64,0,64,60,63,21,"{""formation_energy"": -1.0, ""energy_above_hull"": 0.0}",2,64,142,raw_generation_diagnostics
+M3,MP20,unconditional,256,256,255,0,256,246,256,56,"{""source_domain"": 0}",0,64,142,raw_generation_diagnostics
+M3,MP20,conditional,256,256,255,1,256,237,254,16,"{""source_domain"": 0, ""formation_energy"": -1.0, ""band_gap"": 1.0}",2,64,142,raw_generation_diagnostics
+M3,MPTS52,unconditional,256,256,253,3,256,242,254,54,"{""source_domain"": 1}",0,64,142,raw_generation_diagnostics
+M3,MPTS52,conditional,256,256,252,2,256,240,254,43,"{""source_domain"": 1, ""formation_energy"": -1.0, ""energy_above_hull"": 0.0}",2,64,142,raw_generation_diagnostics
+M3,C2DB,unconditional,256,256,255,1,256,241,255,36,"{""source_domain"": 2}",0,64,142,raw_generation_diagnostics
+M3,C2DB,conditional,256,256,256,0,256,237,256,19,"{""source_domain"": 2, ""formation_energy"": -1.0, ""band_gap"": 1.0}",2,64,142,raw_generation_diagnostics
