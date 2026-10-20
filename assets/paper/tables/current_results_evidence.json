@@ -1,6 +1,6 @@
 {
   "manuscript": "docs/UNIFIEDGROUPGEN_MANUSCRIPT_ZH.md",
-  "manuscript_sha256": "4e0d41384e2ef49a1fdd98c8e8d2bb1d351f0baf71870838ae65d55bda67b686",
+  "manuscript_sha256": "91ab3d5bb77a43cc916f8a0c16155cb9558bcc4f635d426d2cd7d3e2e49ba639",
   "input_sha256": {
     "assets/results/current_snapshot.json": "06be2bb505d862eca5e00f27444dd85a19cc3160873df78e6be131ea09f058de",
     "artifacts/server_snapshots/20261019_completed245/history.json": "e674c37f0483cda5a5f6aee512675fdb794e26b0e7f4552fad7f6d0078d1d288",
@@ -24,5 +24,11 @@
     "layer": 37
   },
   "theory_sections_3_to_8_unchanged": true,
-  "scope": "Article reorganization from verified existing outputs; no additional training, sampling or independent physical/property result."
+  "scope": "Article reorganization from verified existing outputs; no additional training, sampling or independent physical/property result.",
+  "training_regime": "multi_property_cfg",
+  "required_untrained_controls": [
+    "property_unconditional_training",
+    "separately_trained_single_property_cfg"
+  ],
+  "comparison_scope_updated": "2026-10-20"
 }
