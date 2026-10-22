@@ -222,7 +222,7 @@ def flow_loss_batch(model, compiled, endpoints, properties, observations=None, c
 
 @torch.no_grad()
 def sample_flow(model, compiled, properties=None, steps=64, guidance=1.0, observation=None,
-                composition=None, generator=None, return_trajectory=False):
+                composition=None, generator=None, return_trajectory=False, condition_observation=True):
     if model.training:
         raise RuntimeError("Call eval() before sampling")
     if steps < 1:
@@ -233,12 +233,16 @@ def sample_flow(model, compiled, properties=None, steps=64, guidance=1.0, observ
         state = observation.retract(state)
     trajectory = [state.clone()] if return_trajectory else None
     def velocity(z, t):
+        def predict(force_null=False):
+            value = model(compiled, z, t, properties, force_null=force_null,
+                          observation=observation if condition_observation else None, composition=composition)
+            return observation.project(value) if observation is not None else value
         if guidance == 0:
-            return model(compiled, z, t, properties, force_null=True, observation=observation, composition=composition)
-        conditional = model(compiled, z, t, properties, observation=observation, composition=composition)
+            return predict(True)
+        conditional = predict()
         if guidance == 1:
             return conditional
-        unconditional = model(compiled, z, t, properties, force_null=True, observation=observation, composition=composition)
+        unconditional = predict(True)
         return unconditional + guidance*(conditional-unconditional)
     dt = 1/steps
     for step in range(steps):

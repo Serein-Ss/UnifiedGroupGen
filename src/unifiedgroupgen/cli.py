@@ -55,6 +55,8 @@ def build_models(config, device):
                      frequencies=architecture.get("frequencies", 8), cond_dropout=config.get("cond_dropout", 0.1),
                      checkpoint_layers=architecture.get('checkpoint_layers', False),
                      edge_chunk_size=architecture.get('edge_chunk_size', 8192)).to(device)
+    proposal.condition.subset_training = config.get('property_subset_training', False)
+    flow.property_encoder.subset_training = config.get('property_subset_training', False)
     return proposal, flow
 
 
@@ -111,6 +113,8 @@ def train(args):
 
 
 def sample(args):
+    from .chemical_controls import ChemicalRules, integer_composition, feasible_formula_counts
+    from .structure_controls import Scaffold
     checkpoint = torch.load(root_path(args.checkpoint), map_location=args.device, weights_only=False)
     config = checkpoint['config']
     proposal, flow = build_models(config, args.device)
@@ -126,15 +130,6 @@ def sample(args):
                if specification.get('context') and properties.get(name) is None]
     if missing:
         raise ValueError(f'Sampling requires context values for {missing}')
-    composition = None
-    if args.composition:
-        from pymatgen.core import Composition
-        formula = Composition(args.composition)
-        composition = {}
-        for element, count in formula.items():
-            if not float(count).is_integer():
-                raise ValueError("Use integer counts for the chosen conventional cell")
-            composition[element.Z] = int(count)
     fixed = Descriptor.from_dict(json.loads(root_path(args.descriptor).read_text(encoding='utf-8'))) if args.descriptor else None
     if config.get('domain_label_support'):
         domain = properties['source_domain']
@@ -147,6 +142,45 @@ def sample(args):
                        and properties[name] is not None and not support['property_counts'].get(name)]
         if unavailable:
             raise ValueError(f'No training property labels in this calculation domain for {unavailable}')
+    if args.composition and args.formula:
+        raise ValueError('Choose exact --composition or empirical --formula, not both')
+    composition = integer_composition(args.composition) if args.composition else None
+    chemical = ChemicalRules(args.chemical_system or args.allowed_elements,
+                             args.chemical_system or args.required_elements)
+    if args.chemical_system and (args.allowed_elements or args.required_elements):
+        raise ValueError('--chemical-system means exactly this element set; do not combine set options')
+    chemical.validate_domain(proposal.legality, composition)
+    kind = fixed.kind if fixed else args.kind
+    group = fixed.number if fixed else args.group
+    if args.group is not None and fixed is not None and args.group != fixed.number:
+        raise ValueError('Fixed descriptor and requested group conflict')
+    prefix = ([proposal.vocab.index['BOS'], proposal.vocab.index[f'G:{kind}:{group}']]
+              if group is not None else None)
+    scaffold = None
+    if args.scaffold:
+        if args.scaffold_tolerance <= 0 or not np.isfinite(args.scaffold_tolerance):
+            raise ValueError('Scaffold tolerance must be positive and finite')
+        if group is None:
+            raise ValueError('Scaffold completion requires --group or --descriptor in the supplied setting')
+        if args.observations:
+            raise ValueError('Use scaffold observations or chart observations, not both')
+        atom_map = json.loads(root_path(args.atom_map).read_text(encoding='utf-8')) if args.atom_map else None
+        if atom_map is not None and fixed is None:
+            raise ValueError('Incomplete mapped orbits require --descriptor')
+        scaffold = Scaffold.from_cif(root_path(args.scaffold), kind, group, atom_map, args.scaffold_tolerance)
+        if fixed is None:
+            prefix = scaffold.prefix(proposal.vocab)
+    elif args.atom_map:
+        raise ValueError('--atom-map requires --scaffold')
+    formula_counts = None
+    if args.formula:
+        formula_counts = feasible_formula_counts(args.formula, args.formula_units, proposal.legality,
+                                                kind, chemical, prefix)
+        if fixed is not None:
+            exact = composition_of(compile_descriptor(fixed))
+            formula_counts = [counts for counts in formula_counts if counts == exact]
+            if not formula_counts:
+                raise ValueError('Fixed descriptor is incompatible with the requested formula units')
     if args.observations and fixed is None:
         raise ValueError("Chart-index observations require an explicit fixed descriptor")
     if args.count < 1 or args.steps < 1:
@@ -156,6 +190,8 @@ def sample(args):
     records = []
     started = time.monotonic()
     attempts_path = output/'samples.jsonl'
+    if attempts_path.exists():
+        raise ValueError('Sampling attempts already exist; use a new output directory')
     attempts_path.write_text('', encoding='utf-8')
     def progress(state):
         status = {'state': state, 'attempted': len(records), 'requested': args.count,
@@ -168,11 +204,22 @@ def sample(args):
     generator = torch.Generator(device=args.device).manual_seed(args.seed)
     for index in range(args.count):
         try:
-            descriptor = fixed or proposal.sample(properties, args.kind, composition, args.guidance, args.temperature, generator)
+            counts = composition
+            if formula_counts:
+                choice = int(torch.randint(len(formula_counts), (), generator=generator, device=args.device))
+                counts = formula_counts[choice]
+            # Pure-property models did not train the composition input. Keep it null;
+            # enforce counts in the discrete decoder without an unseen embedding.
+            learned_composition = counts if config.get('composition_probability', .5) > 0 else None
+            descriptor = fixed or proposal.sample(properties, kind, counts, args.guidance, args.temperature, generator,
+                                                   chemical=chemical, prefix=prefix,
+                                                   condition_composition=config.get('composition_probability', .5) > 0)
             compiled = compile_descriptor(descriptor)
-            if composition is not None and composition_of(compiled) != composition:
+            if counts is not None and composition_of(compiled) != counts:
                 raise ValueError("Fixed descriptor conflicts with requested composition")
-            observation = None
+            if not chemical.matches(composition_of(compiled)):
+                raise ValueError('Generated descriptor violates requested element sets')
+            observation = scaffold.observation(compiled) if scaffold is not None else None
             if args.observations:
                 data = json.loads(root_path(args.observations).read_text(encoding='utf-8'))
                 observation = (AffineObservation(data['matrix'], data['values']) if 'matrix' in data
@@ -184,14 +231,21 @@ def sample(args):
                 generated = compiled.expand(state)
                 generated['state'] = state
             else:
-                generated = sample_flow(flow, compiled, properties, args.steps, args.guidance, observation, composition, generator)
+                generated = sample_flow(flow, compiled, properties, args.steps, args.guidance, observation,
+                                        learned_composition, generator,
+                                        condition_observation=config.get('observation_probability', .25) > 0)
             report = validate(compiled, generated, isolate_identifier=True)
             if observation is not None:
                 a, b = observation._tensors(generated['state'])
                 report['observation_max_residual'] = float((a @ generated['state'] - b).abs().max())
+            if scaffold is not None:
+                report['scaffold'] = scaffold.report(compiled, generated['state'].cpu())
             to_structure(compiled, generated).to(filename=str(output/f'sample_{index:05d}.cif'))
             records.append({'index': index, 'descriptor': descriptor.to_dict(), 'state': generated['state'].cpu().tolist(),
                             'properties_requested': properties, 'validation': report, 'status': 'generated',
+                            'chemical_request': {'allowed': sorted(chemical.allowed) if chemical.allowed else None,
+                                                 'required': sorted(chemical.required), 'composition': counts},
+                            'scaffold_requested': bool(scaffold),
                             'generator': 'legal_prior' if args.prior else 'learned_flow'})
         except (ValueError, RuntimeError, FloatingPointError) as error:
             records.append({'index': index, 'status': 'failed', 'reason': str(error)})
@@ -250,6 +304,15 @@ def main():
     sampling.add_argument('--kind', choices=['space', 'layer', 'plane'], default='space')
     sampling.add_argument('--properties', default='{}')
     sampling.add_argument('--composition')
+    sampling.add_argument('--formula', help='Reduced empirical formula; choose feasible formula-unit counts')
+    sampling.add_argument('--formula-units', nargs='+', type=int, default=[1, 2, 3, 4])
+    sampling.add_argument('--chemical-system', help='Exact element set, e.g. Li-Fe-O; all must occur')
+    sampling.add_argument('--allowed-elements', help='Only these elements may occur')
+    sampling.add_argument('--required-elements', help='All these elements must occur; extras allowed')
+    sampling.add_argument('--group', type=int, help='Fix group token while generating remaining orbits')
+    sampling.add_argument('--scaffold', help='Fixed-cell partial CIF in the supplied group setting')
+    sampling.add_argument('--atom-map', help='JSON observed-CIF index to full-descriptor atom index')
+    sampling.add_argument('--scaffold-tolerance', type=float, default=1e-4)
     sampling.add_argument('--descriptor')
     sampling.add_argument('--observations')
     sampling.add_argument('--prior', action='store_true', help='Legal random chart prior; bypass the trained continuous flow')

@@ -1,0 +1,65 @@
+dataset: mp20_c2db51
+kind: space
+max_atoms: 192
+max_orbits: 52
+properties:
+  formation_energy:
+    type: scalar
+    per_domain: true
+  source_domain:
+    type: categorical
+    num_classes: 2
+    context: true
+cond_dropout: 0.1
+composition_probability: 0.0
+observation_probability: 0.0
+model:
+  proposal_hidden: 256
+  proposal_layers: 4
+  heads: 8
+  flow_hidden: 512
+  flow_layers: 6
+  frequencies: 128
+  checkpoint_layers: true
+  edge_chunk_size: 4096
+learning_rate: 0.0003
+batch_size: 64
+epochs: 1000
+prepared_root: artifacts/main15/joint
+element_policy: training
+require_data_audit: true
+require_full_preparation: true
+data_audit: artifacts/main15/audits/joint_ef.json
+minimum_conversion_coverage: 0.95
+precision: bf16
+edge_budget: 200000
+gradient_clip: 10
+lr_patience: 10
+early_stopping_patience: 50
+loss_weights:
+  descriptor: 1.0
+  flow: 1.0
+require_source_integrity: true
+data_revision: source_integrity_v1
+validation_interval: 5
+source_configs:
+  mp_20: configs/mp20_verified_v1.yaml
+  c2db_51: configs/c2db_verified_v1.yaml
+train_files:
+- artifacts/full_verified_v1/mp_20/train.jsonl
+- artifacts/full_verified_v1/c2db_51/train.jsonl
+val_files:
+- artifacts/full_verified_v1/mp_20/val.jsonl
+- artifacts/full_verified_v1/c2db_51/val.jsonl
+test_files:
+- artifacts/full_verified_v1/mp_20/test.jsonl
+- artifacts/full_verified_v1/c2db_51/test.jsonl
+kinds:
+- space
+- layer
+dataset_domains:
+  mp_20: 0
+  c2db_51: 1
+experiment_id: joint_ef
+experiment_family: main15_source_integrity_v1
+property_subset_training: false

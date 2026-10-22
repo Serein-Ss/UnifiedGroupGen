@@ -1,5 +1,9 @@
 # UnifiedGroupGen
 
+## 修复数据上的新训练入口（15 套主实验）
+
+仅使用 MP20、C2DB 和 MP20+C2DB；每个数据设置训练基础模型、三个单性质 CFG 模型和三性质 CFG 模型，不增加控制微调。完整更新、准备、训练、性质评估和化学/骨架控制命令见 [MAIN15_TRAINING_AND_TASKS.md](docs/MAIN15_TRAINING_AND_TASKS.md)。新队列为 `scripts/train_main15.py`，两来源评估使用 `scripts/evaluate_main15.py`，不要复用旧三来源的域编号。旧训练命令与结果保留为历史记录。
+
 > **2026-10-22 来源一致性修订：** 68条旧编码需处理，66条修复、2条MPTS52隔离；正式数据102,608条，联合划分82,183/10,190/10,235。M1/M2/M3均需干净重训，以下旧训练与生成指标保留历史身份。详见[完整审计与迁移](docs/SOURCE_INTEGRITY_AUDIT_20261022.md)。
 
 

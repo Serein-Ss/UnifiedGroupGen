@@ -6,9 +6,10 @@ from torch import nn
 
 
 class PropertyEncoder(nn.Module):
-    def __init__(self, configs, hidden, dropout=0.1):
+    def __init__(self, configs, hidden, dropout=0.1, subset_training=False):
         super().__init__()
         self.configs, self.dropout, self.hidden = configs, dropout, hidden
+        self.subset_training = subset_training
         self.encoders, self.null = nn.ModuleDict(), nn.ParameterDict()
         for name, config in configs.items():
             if config.get("type", "scalar") == "categorical":
@@ -18,17 +19,37 @@ class PropertyEncoder(nn.Module):
             self.null[name] = nn.Parameter(torch.zeros(hidden))
         self.composition = nn.Sequential(nn.Linear(118, hidden), nn.SiLU(), nn.Linear(hidden, hidden))
 
+    def _subset(self, properties, device):
+        names = [name for name, spec in self.configs.items() if not spec.get('context')
+                 and properties.get(name) is not None and math.isfinite(float(properties[name]))]
+        if not self.training or not self.subset_training or len(names) < 2:
+            return set(names)
+        # Sample task metadata on CPU; do not synchronize CUDA once per record.
+        bits = int(torch.randint(1, 2**len(names), ()))
+        return {name for index, name in enumerate(names) if bits & (1 << index)}
+
+    def _normalized(self, name, value, properties):
+        config = self.configs[name]
+        scalers = config.get('domain_scalers')
+        if scalers:
+            domain = str(int(properties['source_domain']))
+            if domain not in scalers:
+                raise ValueError(f'No trained labels for {name} in source domain {domain}')
+            config = scalers[domain]
+        return (float(value)-config.get('shift', 0))/config.get('scale', 1)
+
     def forward(self, properties, like, force_null=False, composition=None):
         result = like.new_zeros(self.hidden)
         # Whole-property dropout trains the exact null branch used by CFG.
         drop_all = force_null or (self.training and torch.rand((), device=like.device) < self.dropout)
+        selected = self._subset(properties, like.device)
         for name, config in self.configs.items():
             value = properties.get(name)
             known = value is not None and bool(torch.isfinite(torch.as_tensor(value)))
             context = config.get('context', False)
             if context and not known:
                 raise ValueError(f'Missing required context: {name}')
-            if (drop_all and not context) or not known:
+            if (not context and (drop_all or name not in selected)) or not known:
                 result = result + self.null[name]
             else:
                 if config.get("type", "scalar") == "categorical":
@@ -36,7 +57,7 @@ class PropertyEncoder(nn.Module):
                         raise ValueError(f'Invalid category for {name}: {value}')
                     value = torch.as_tensor(int(value), device=like.device)
                 else:
-                    value = like.new_tensor([(float(value) - config.get("shift", 0)) / config.get("scale", 1)])
+                    value = like.new_tensor([self._normalized(name, value, properties)])
                 result = result + self.encoders[name](value)
         # Composition is a separate hard condition; property CFG never erases it.
         counts = like.new_zeros(118)
@@ -49,6 +70,7 @@ class PropertyEncoder(nn.Module):
     def forward_batch(self, properties, like, force_null=False, compositions=None):
         compositions = compositions or [None] * len(properties)
         count = len(properties)
+        subsets = [self._subset(p, like.device) for p in properties]
         result = like.new_zeros((count, self.hidden))
         drop = (torch.rand(count, device=like.device) < self.dropout if self.training and not force_null
                 else torch.full((count,), force_null, device=like.device, dtype=torch.bool))
@@ -67,9 +89,11 @@ class PropertyEncoder(nn.Module):
                     raise ValueError(f'Invalid category for {name}')
                 inputs = torch.tensor([int(v) if k else 0 for v, k in zip(values, known)], device=like.device)
             else:
-                inputs = like.new_tensor([[(float(v)-config.get('shift', 0))/config.get('scale', 1)] if k else [0]
-                                          for v, k in zip(values, known)])
+                inputs = like.new_tensor([[self._normalized(name, v, p)] if k else [0]
+                                          for v, k, p in zip(values, known, properties)])
             use = torch.tensor(known, device=like.device) & (True if context else ~drop)
+            if not context:
+                use = use & torch.tensor([name in subset for subset in subsets], device=like.device)
             encoded = self.encoders[name](inputs)
             result = result + torch.where(use[:, None], encoded, self.null[name])
         counts = [[0]*118 for _ in compositions]
@@ -116,4 +140,16 @@ def fit_property_scalers(records, configs):
         tensor = torch.tensor(values, dtype=torch.float64)
         config["shift"] = tensor.mean().item()
         config["scale"] = max(tensor.std(unbiased=False).item(), 1e-6)
+        if config.get('per_domain'):
+            config['domain_scalers'] = {}
+            domains = {int(r['properties']['source_domain']) for r in records}
+            for domain in sorted(domains):
+                selected = [float(r['properties'][name]) for r in records
+                            if int(r['properties']['source_domain']) == domain
+                            and r['properties'].get(name) is not None
+                            and math.isfinite(float(r['properties'][name]))]
+                if selected:
+                    array = torch.tensor(selected, dtype=torch.float64)
+                    config['domain_scalers'][str(domain)] = {'shift': array.mean().item(),
+                        'scale': max(array.std(unbiased=False).item(), 1e-6), 'training_labels': len(selected)}
     return fitted

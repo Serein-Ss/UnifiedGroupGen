@@ -1,5 +1,7 @@
 # Linux / RTX 4090完整训练
 
+> **2026-10-23：当前执行计划为 15 套性质主实验，不增加控制微调。** 使用 [MAIN15_TRAINING_AND_TASKS.md](MAIN15_TRAINING_AND_TASKS.md) 的 `prepare_main15.py` / `train_main15.py`；仅 MP20、C2DB 和两者联合。下文与旧审计报告中的三来源训练命令保留作历史参考，不是本轮训练队列。
+
 > **2026-10-22：旧数据训练入口已撤销。** 请先阅读[SOURCE_INTEGRITY_AUDIT_20261022.md](SOURCE_INTEGRITY_AUDIT_20261022.md)，导入追加的source_integrity_v1数据包，并使用`*_verified_v1.yaml`及新输出目录从头训练。下文旧任务与旧目录只用于解释历史运行。
 
 本仓库包含独立代码以及完整数据包。服务器不需要原`test_CGDiT`仓库，不需要从C2DB网站重新下载数据。
