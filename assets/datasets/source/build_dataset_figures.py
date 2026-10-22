@@ -12,6 +12,7 @@ import json
 import os
 import sys
 import zipfile
+from contextlib import nullcontext
 
 os.environ.setdefault('MKL_THREADING_LAYER', 'SEQUENTIAL')
 os.environ.setdefault('OMP_NUM_THREADS', '1')
@@ -69,6 +70,7 @@ def ecdf(ax, arrays, xlabel, zero=True):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--archive', type=Path, default=PROJECT.parent/'tmp/UnifiedGroupGen.zip')
+    parser.add_argument('--verified-root', type=Path, help='Use locally certified records instead of the historical archive')
     args = parser.parse_args()
     (OUT/'tables').mkdir(parents=True, exist_ok=True)
     font_manager.findfont('Times New Roman', fallback_to_default=False)
@@ -78,11 +80,13 @@ def main():
         'svg.fonttype':'none', 'mathtext.fontset':'stix', 'axes.unicode_minus':False})
     data=[]; elements=collections.defaultdict(collections.Counter)
     ids={}; hashes={}; patterns={}; wp_seen={}; joint_counts=[]; source_checks=[]
-    with zipfile.ZipFile(args.archive) as z:
-        for name, prefix in zip(NAMES, PATHS):
+    with (nullcontext(None) if args.verified_root else zipfile.ZipFile(args.archive)) as z:
+        prefixes = [(args.verified_root/key).as_posix() for key in KEYS] if args.verified_root else PATHS
+        for name, prefix in zip(NAMES, prefixes):
             ids[name]=set();hashes[name]=set();patterns[name]=set();wp_seen[name]=set()
             for split in SPLITS:
-                path=prefix+'/'+split+'.jsonl';raw=z.read('UnifiedGroupGen/'+path)
+                path=prefix+'/'+split+'.jsonl'
+                raw=(PROJECT/path).read_bytes() if args.verified_root else z.read('UnifiedGroupGen/'+path)
                 source_checks.append({'path':path,'sha256':hashlib.sha256(raw).hexdigest()})
                 for line in raw.splitlines():
                     if not line.strip():continue
@@ -120,16 +124,19 @@ def main():
             print('Read and checked',name,flush=True)
         for name,key in zip(NAMES,KEYS):
             for split in SPLITS:
-                path=f'artifacts/full_joint_sourcegrouped/{key}/{split}.jsonl'
-                with z.open('UnifiedGroupGen/'+path) as f:
+                joint_root='artifacts/joint_verified_v1' if args.verified_root else 'artifacts/full_joint_sourcegrouped'
+                path=f'{joint_root}/{key}/{split}.jsonl'
+                with ((PROJECT/path).open('rb') if args.verified_root else z.open('UnifiedGroupGen/'+path)) as f:
                     count=sum(bool(l.strip()) for l in f)
                 joint_counts.append({'dataset':name,'split':split,'records':count})
     df=pd.DataFrame(data)
-    assert len(df)==102610
+    integrity_summary=json.loads((PROJECT/args.verified_root/'source_integrity_summary.json').read_text(encoding='utf-8')) if args.verified_root else None
+    expected_rows=integrity_summary['verified_records'] if integrity_summary else 102610
+    assert len(df)==expected_rows
     df.to_csv(OUT/'tables/record_statistics.csv.gz',index=False,compression='gzip')
     joint=pd.DataFrame(joint_counts)
     joint.to_csv(OUT/'tables/joint_split_counts.csv',index=False)
-    assert joint.records.sum()==102610
+    assert joint.records.sum()==expected_rows
     counts=df.groupby(['dataset','split']).size().unstack().reindex(NAMES)[SPLITS]
     counts.to_csv(OUT/'tables/reference_split_counts.csv')
     totals=df.groupby('dataset').size().reindex(NAMES)
@@ -167,7 +174,7 @@ def main():
 
     # Figure 1: dataset size and the two different split schemes.
     fig,axs=plt.subplots(1,3,figsize=(12.4,3.45),layout='constrained')
-    for ax,frame,title in [(axs[0],counts,'a  Original reference splits'),
+    for ax,frame,title in [(axs[0],counts,'a  Source splits after integrity exclusions' if args.verified_root else 'a  Original reference splits'),
         (axs[1],joint.pivot(index='dataset',columns='split',values='records').reindex(NAMES)[SPLITS],'b  Shared-model splits')]:
         bottom=np.zeros(3)
         for split,color in zip(SPLITS,['#3468A5','#91B6C7','#D5DEE7']):
@@ -193,7 +200,7 @@ def main():
         ax.set_title(letter+'  '+label,loc='left');ax.set_xlabel('Value')
         if col=='state_fraction':ax.set_xlim(0,1.02)
     axs[0,0].legend(frameon=False,loc='lower right')
-    savefig(fig,'02_structure_complexity','全102610条记录的经验累积分布，未截断尾部。ambient DOF=3N+6（三维）或3N+3（层状，含高度）；该比值仅描述参数化维数减少，不是速度提升倍数。')
+    savefig(fig,'02_structure_complexity',f'全{len(df)}条记录的经验累积分布，未截断尾部。ambient DOF=3N+6（三维）或3N+3（层状，含高度）；该比值仅描述参数化维数减少，不是速度提升倍数。')
 
     # Figure 3: full catalogs; independent SG and LG axes.
     fig,axs=plt.subplots(3,1,figsize=(11.2,5.1),layout='constrained')
@@ -282,14 +289,16 @@ def main():
     fig.savefig(OUT/'property_coverage_recipe.png',dpi=260,facecolor='white')
     plt.close(fig)
 
-    metadata={'archive':str(args.archive),'source_files':source_checks,'rows':len(df),
+    metadata={'archive':None if args.verified_root else str(args.archive),'source_files':source_checks,'rows':len(df),
+        'data_revision':'source_integrity_v1' if args.verified_root else 'historical',
+        'source_integrity_summary':integrity_summary,
         'validation':'All records checked: state DOF and expanded atom count match group tables.',
         'dataset_summary':summary,'captions':CAPTIONS,
         'scope':'Prepared source records across all original splits; shared splits counted separately. No structural matching or property re-evaluation.'}
     (OUT/'tables/statistics.json').write_text(json.dumps(metadata,ensure_ascii=False,indent=2,allow_nan=False)+'\n',encoding='utf-8')
     text=['# 数据集统计与图注','',
         '统计对象是服务器备份中实际用于预处理的MP20、MPTS52、C2DB来源记录；全量统计合并原始训练、验证、测试。联合模型采用另行分组划分，图1单独列出。','',
-        '所有102610条记录均核对了群表轨道重数、位置自由度、晶格自由度与state长度。这里的全量覆盖统计不能替代训练集覆盖统计。','',
+        f'所有{len(df)}条记录均核对了群表轨道重数、位置自由度、晶格自由度与state长度。这里的全量覆盖统计不能替代训练集覆盖统计。','',
         '| 数据集 | 记录数 | 群覆盖 | 元素种类 | 未装饰轨道组合 | 原始/标准胞原子数中位数 | 状态维数中位数 |',
         '|---|---:|---:|---:|---:|---:|---:|']
     for r in summary:text.append(f"| {r['dataset']} | {r['records']:,} | {r['groups_observed']}/{r['groups_catalog']} | {r['unique_elements']} | {r['orbit_patterns_undecorated']} | {r['source_atoms_median']:g}/{r['expanded_atoms_median']:g} | {r['state_dof_median']:g} |")

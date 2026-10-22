@@ -106,5 +106,17 @@
     }
   ],
   "statistics_policy": "Training history refreshed. Generation/test metrics remain valid only for the byte-identical best checkpoint and verified output/reference files. No new sampling or property/stability certification.",
-  "files_imported": 1577
+  "files_imported": 1577,
+  "source_integrity_revision": {
+    "date": "2026-10-22",
+    "status": "historical_checkpoint_requires_clean_retraining",
+    "verified_records": 102608,
+    "quarantined": 2,
+    "affected_train": {
+      "M1": 26,
+      "M2": 14,
+      "M3": 58
+    },
+    "clean_models_trained": 0
+  }
 }

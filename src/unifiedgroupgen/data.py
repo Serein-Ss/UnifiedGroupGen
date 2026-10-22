@@ -15,9 +15,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from scipy.optimize import linear_sum_assignment
-from pymatgen.core import Element, Lattice, Structure
+from pymatgen.core import Lattice, Structure
 from pymatgen.io.cif import CifParser
-from pyxtal import pyxtal
 import spglib
 from .symmetry import Descriptor, OrbitSpec, compile_descriptor, group_table, wp_arrays
 
@@ -332,30 +331,35 @@ def identified_layer_record(structure, tolerance=0.05, declared_number=None):
 
 
 def space_record(structure, tolerance=1e-3):
-    crystal = pyxtal()
-    crystal.from_seed(structure, tol=tolerance, style="pyxtal")
-    number = crystal.group.number
-    orbits, q_values = [], []
-    for site in crystal.atom_sites:
-        letter = site.wp.letter
-        a, b, axes = wp_arrays("space", number, letter)
-        # Explicitly reject mismatched Hall settings; a letter alone does not identify an affine chart.
-        reference = next(w for w in group_table("space", number) if w.letter == letter)
-        if not np.allclose(np.stack([op.affine_matrix for op in site.wp.ops]), np.stack([op.affine_matrix for op in reference.ops]), atol=1e-7):
-            raise ValueError("Noncanonical Hall setting requires explicit conversion before training")
-        q = np.linalg.lstsq(a[0], np.asarray(site.position)-b[0], rcond=None)[0]
-        if np.linalg.norm(a[0]@q+b[0]-site.position) > 1e-5:
-            raise ValueError("Cannot encode a representative in its canonical affine chart")
-        q %= 1
-        orbits.append(OrbitSpec(letter, Element(site.specie).Z))
-        q_values.extend(q.tolist())
-    descriptor = Descriptor("space", number, tuple(orbits))
+    # PyXtal.from_seed may replace a failed orbit lookup by merge(), changing
+    # multiplicity/composition. Match every standardized atom bijectively instead.
+    cell = (structure.lattice.matrix, structure.frac_coords, structure.atomic_numbers)
+    result = spglib.get_symmetry_dataset(cell, symprec=tolerance)
+    if result is None:
+        raise ValueError('Space-group identification failed; no fallback was performed')
+    hall = group_table('space', int(result.number)).hall_number
+    if result.hall_number != hall:
+        result = spglib.get_symmetry_dataset(cell, symprec=tolerance, hall_number=hall)
+    if result is None or result.hall_number != hall:
+        raise ValueError('Could not standardize to the compiler Hall setting')
+    from .source_integrity import reduced_counts
+    if reduced_counts(structure.atomic_numbers) != reduced_counts(result.std_types):
+        raise ValueError('Space-group standardization changed source composition')
+    try:
+        descriptor, q = decompose_orbits('space', int(result.number), result.std_positions,
+                                        np.asarray(result.std_types), 1e-5, result.std_lattice.T)
+    except ValueError:
+        descriptor, q = decompose_orbits('space', int(result.number), result.std_positions,
+                                        np.asarray(result.std_types), tolerance, result.std_lattice.T)
     compiled = compile_descriptor(descriptor)
-    rows = crystal.lattice.matrix
+    if reduced_counts(compiled.elements) != reduced_counts(structure.atomic_numbers):
+        raise ValueError('Orbit decomposition changed source composition')
+    rows = result.std_lattice
     k = compiled.encode_metric(rows@rows.T, tolerance=max(tolerance*10, 1e-4))
-    return descriptor, np.r_[k, q_values], {"cell": "pyxtal_conventional", "source_atoms": len(structure),
+    return descriptor, np.r_[k, q], {"cell": "spglib_space_conventional", "source_atoms": len(structure),
         "expanded_atoms": compiled.num_atoms, "symmetry_tolerance_angstrom": tolerance,
-        "source_idealization": "PyXtal/pymatgen symmetry standardization; not raw-coordinate identity"}
+        'hall_number': int(hall), 'converter': 'bijective-standard-atom-orbits-v1',
+        "source_idealization": "spglib standardization and bijective species-preserving orbit fit"}
 
 
 def convert_row(item):
@@ -368,7 +372,7 @@ def convert_row(item):
     try:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            preserve_fractional = config['kind'] == 'layer' and config.get('layer_group_policy') == 'identify'
+            preserve_fractional = coordinate_mode == 'fractional'
             structure = parse_cif(row["cif"], coordinate_mode, preserve_fractional=preserve_fractional)
         tolerance = config.get("symmetry_tolerance", 1e-3)
         if kind == "layer":
@@ -421,6 +425,11 @@ def convert_row(item):
                                       'original_csv_sha256', 'source_verification') if key in row},
                                  "orbit_order": "coordinate_dof,letter,element,source_index",
                                  "coordinate_mode": coordinate_mode, **provenance}}
+        from .source_integrity import require_source_integrity, encoding_digest
+        record['provenance']['source_integrity'] = {
+            **require_source_integrity(structure, descriptor, state, tolerance),
+            'source_cif_sha256': record['provenance']['source_cif_sha256'],
+            'encoding_sha256': encoding_digest(record)}
         return {'row': int(index), 'record': record}
     except (ValueError, RuntimeError, TypeError, KeyError, np.linalg.LinAlgError) as error:
         return {'row': int(index), 'rejection': {'id': identifier, 'row': int(index), 'reason': str(error), 'type': type(error).__name__}}
@@ -488,7 +497,7 @@ def prepare_csv(csv_path, output, config, limit=None, workers=0, resume=False):
                 'conversion_config': {key: config.get(key) for key in ('dataset', 'kind', 'coordinate_mode',
                     'symmetry_tolerance', 'group_column', 'property_columns', 'max_atoms', 'max_orbits',
                     *(['layer_group_policy'] if config['kind'] == 'layer' else []))},
-                'converter_version': 7 if config['kind'] == 'layer' else 2}
+                'converter_version': 8 if config['kind'] == 'layer' else 3}
     if resume:
         if not manifest_path.exists() or json.loads(manifest_path.read_text(encoding='utf-8')) != manifest:
             raise ValueError('Preparation resume source/configuration differs from the manifest')

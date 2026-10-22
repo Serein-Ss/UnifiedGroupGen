@@ -76,6 +76,15 @@ def inspect_records(splits, config):
                 state = np.asarray(record['state'], dtype=float)
                 if state.shape != (compiled.dof,) or not np.isfinite(state).all():
                     raise ValueError('Nonfinite or wrong-dimensional state')
+                if config.get('require_source_integrity'):
+                    from .source_integrity import PROTOCOL, encoding_digest
+                    provenance = record.get('provenance', {})
+                    integrity = provenance.get('source_integrity', {})
+                    if (integrity.get('protocol') != PROTOCOL or not integrity.get('composition_conserved')
+                            or not integrity.get('geometry_equivalent')
+                            or integrity.get('source_cif_sha256') != provenance.get('source_cif_sha256')
+                            or integrity.get('encoding_sha256') != encoding_digest(record)):
+                        raise ValueError('Missing, failed or stale source-CIF integrity certification')
                 if compiled.num_atoms > config.get('max_atoms', 192) or len(descriptor.orbits) > config.get('max_orbits', 32):
                     raise ValueError('Atom/orbit budget exceeded')
                 unknown = set(compiled.elements.tolist())-allowed
@@ -209,6 +218,11 @@ def check_training_gate(config, train_paths, val_paths, root):
     check_layer_catalog()
     if not config.get('require_data_audit'):
         return
+    legacy = {'artifacts/full/mp_20', 'artifacts/full_tol0p01/mpts_52',
+              'artifacts/full_official_tol0p1_v7/c2db_51', 'artifacts/full_joint_sourcegrouped'}
+    if config.get('prepared_root') in legacy:
+        raise ValueError('Legacy data revision was revoked by the full source-CIF integrity audit; '
+                         'use the *_verified_v1.yaml configurations and a new training output')
     if config.get('source_verified') is False:
         raise ValueError('Original coordinate/cell source is unverified; confirm it before formal training')
     check_recovered_source(config, root)

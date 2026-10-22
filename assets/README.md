@@ -1,8 +1,11 @@
 # UnifiedGroupGen 当前图表与结果
 
+> **2026-10-22 来源一致性修订：** 68条旧编码需处理，66条修复、2条MPTS52隔离；正式数据102,608条，联合划分82,183/10,190/10,235。M1/M2/M3均需干净重训，以下旧训练与生成指标保留历史身份。详见[完整审计与迁移](../docs/SOURCE_INTEGRITY_AUDIT_20261022.md)。
+
+
 更新日期：2026-10-19。最新服务器归档已核验；统一来源见 [current_snapshot.json](results/current_snapshot.json)。旧统计展示已移出当前图集，备份保存在 `artifacts/result_archive/pre_refresh_20261019/previous_presentations.zip`。所有当前图均为PNG。
 
-## 当前结果
+## 历史模型结果（数据修订前）
 
 | 项目 | 已核验结果 |
 |---|---|
@@ -19,7 +22,7 @@
 ## 图集入口
 
 - [完整训练曲线](training/training_history.png) · [训练口径与CSV](training/README.md)
-- [数据集图集](datasets/ATLAS_README.md) · [统计说明](datasets/README.md)：数据字节未变，统计值保持不变并重新核验来源。
+- [数据集图集](datasets/ATLAS_README.md) · [统计说明](datasets/README.md)：来源一致性修订后重绘，正式记录102,608条；2条源输入隔离。
 - [数学构造验证](representation/README.md)
 - [论文主图](paper/README.md) · [标准质量指标](paper/standard/main_results.csv)
 - [当前结果与待补实验](results/RESULTS_PLAN.md)

@@ -2,48 +2,48 @@
   "seed": 20261018,
   "counts": {
     "MP20": 45229,
-    "MPTS52": 40476,
+    "MPTS52": 40474,
     "C2DB": 16905
   },
   "source_files": [
     {
-      "path": "artifacts/full/mp_20/train.jsonl",
-      "sha256": "150ac1f4be772e2347baaba4f61a658c820de65f1d711b571078d1b598557437"
+      "path": "artifacts/full_verified_v1/mp_20/train.jsonl",
+      "sha256": "a0f9a0574fba45633970b69415385fc04f5f1234a18bb0817d9e87bf88ed23b7"
     },
     {
-      "path": "artifacts/full/mp_20/val.jsonl",
-      "sha256": "13c6fcef388879ed281768d181d5adc6701b82abb79d6178869ee55ff3ca947b"
+      "path": "artifacts/full_verified_v1/mp_20/val.jsonl",
+      "sha256": "52c212083e121e982951e4d88345e3f4e1ac7142083173c5f6d3a9638721eb69"
     },
     {
-      "path": "artifacts/full/mp_20/test.jsonl",
-      "sha256": "378a6f4a7cc11dff8e0f2d3f88c45aeb79a2ae1f17575fbbee81f390bdc3de80"
+      "path": "artifacts/full_verified_v1/mp_20/test.jsonl",
+      "sha256": "ee399467c8ba2000f98474524f896188fffeb34275fb5dcfa169c5d54641abd6"
     },
     {
-      "path": "artifacts/full_tol0p01/mpts_52/train.jsonl",
-      "sha256": "4bfef77f42385c85913cad38d9c62b8bc1aee3ea7f29b9738e8adcfc28f78668"
+      "path": "artifacts/full_verified_v1/mpts_52/train.jsonl",
+      "sha256": "80d985c93a57b18f05225149adcd0789965ad24dabd55a4408493142c9adf410"
     },
     {
-      "path": "artifacts/full_tol0p01/mpts_52/val.jsonl",
-      "sha256": "f24d234f43a00e124afe8a566c04b1581c64c9da58a971120e205531fc905664"
+      "path": "artifacts/full_verified_v1/mpts_52/val.jsonl",
+      "sha256": "c6efe63452510bb15726c1676b3f90c0fe0cce013e8c6fdf492783a65bf3f749"
     },
     {
-      "path": "artifacts/full_tol0p01/mpts_52/test.jsonl",
-      "sha256": "7ab4a47f988bdcd25165c0785517f7f91fb4f133064590d8625aa15c111b667f"
+      "path": "artifacts/full_verified_v1/mpts_52/test.jsonl",
+      "sha256": "6dfa5a5b91a91d07837d11525760d6090ac4a20c00f5ff59a790f1623fd38894"
     },
     {
-      "path": "artifacts/full_official_tol0p1_v7/c2db_51/train.jsonl",
-      "sha256": "9551316d60439c1e4dd59d8a7529ffdfa4fab4e513e349a6dd3c169fc96930ed"
+      "path": "artifacts/full_verified_v1/c2db_51/train.jsonl",
+      "sha256": "eabf32f291bdee7ed0e5e4093a1d1b1a3ae6d3e43b7a679318933662e539dfdf"
     },
     {
-      "path": "artifacts/full_official_tol0p1_v7/c2db_51/val.jsonl",
-      "sha256": "e0aa4db0e8586f806b9d84f63b6e888ad0f4ba9180c91271e5f70aff6d03f99e"
+      "path": "artifacts/full_verified_v1/c2db_51/val.jsonl",
+      "sha256": "1906ec81cb299d065143b43a0bf7dca37f93988b0ffea8a14f9521db7a5f17cb"
     },
     {
-      "path": "artifacts/full_official_tol0p1_v7/c2db_51/test.jsonl",
-      "sha256": "aae321c47299a2a1c2ada25f7678774b1f351d5f718d76267b6c48e1cb109792"
+      "path": "artifacts/full_verified_v1/c2db_51/test.jsonl",
+      "sha256": "6987e00ba1200b940576f0681a4186cee5084de0b0fa0b4e03e3c0ceb7ea2cfa"
     }
   ],
-  "statistics_sha256": "b5a87f09dc084d13cdee214358e599d2ef3531b34724a09b81eeca0096ff1388",
+  "statistics_sha256": "bee7961968206601c6a31e08452f53897953597834f1c86aa792f1631e461333",
   "files": [
     "08_tio2_mos2_symmetry.png",
     "09_group_distribution.png",
@@ -117,7 +117,7 @@
     "structures/c2db_51/20.png",
     "14_random_structures_c2db_51.png"
   ],
-  "scope": "All reference splits; real encoded structures, no model-generated structures",
+  "scope": "Real source-integrity-verified structures; 102608 outputs, 2 quarantined inputs. No generated material or newly trained model.",
   "style_references": [
     "SGEquiDiff Figure 1",
     "SLayerGen Figure 6",
@@ -127,5 +127,6 @@
   "structure_style": "Existing Crystal Toolkit inspired renderer: matte spheres, contact cylinders, translucent coordination hulls",
   "layer_display": "2x2 in plane; basal outline 1 Angstrom below lowest atom via display-only translation; no normal repetition",
   "units": "TiO2: fractional coordinates; MoS2: fractional in-plane coordinates and Cartesian height in Angstrom",
-  "renderer_sha256": "fd3bd084d70413794f54bc8c787892703f362b2f1e640630916d57798d5e5fa1"
+  "renderer_sha256": "fd3bd084d70413794f54bc8c787892703f362b2f1e640630916d57798d5e5fa1",
+  "data_revision": "source_integrity_v1"
 }

@@ -1,45 +1,206 @@
 {
-  "archive": "E:\\WORKSPACE\\CodePlace\\test_CGDiT\\tmp\\UnifiedGroupGen.zip",
+  "archive": null,
   "source_files": [
     {
-      "path": "artifacts/full/mp_20/train.jsonl",
-      "sha256": "150ac1f4be772e2347baaba4f61a658c820de65f1d711b571078d1b598557437"
+      "path": "artifacts/full_verified_v1/mp_20/train.jsonl",
+      "sha256": "a0f9a0574fba45633970b69415385fc04f5f1234a18bb0817d9e87bf88ed23b7"
     },
     {
-      "path": "artifacts/full/mp_20/val.jsonl",
-      "sha256": "13c6fcef388879ed281768d181d5adc6701b82abb79d6178869ee55ff3ca947b"
+      "path": "artifacts/full_verified_v1/mp_20/val.jsonl",
+      "sha256": "52c212083e121e982951e4d88345e3f4e1ac7142083173c5f6d3a9638721eb69"
     },
     {
-      "path": "artifacts/full/mp_20/test.jsonl",
-      "sha256": "378a6f4a7cc11dff8e0f2d3f88c45aeb79a2ae1f17575fbbee81f390bdc3de80"
+      "path": "artifacts/full_verified_v1/mp_20/test.jsonl",
+      "sha256": "ee399467c8ba2000f98474524f896188fffeb34275fb5dcfa169c5d54641abd6"
     },
     {
-      "path": "artifacts/full_tol0p01/mpts_52/train.jsonl",
-      "sha256": "4bfef77f42385c85913cad38d9c62b8bc1aee3ea7f29b9738e8adcfc28f78668"
+      "path": "artifacts/full_verified_v1/mpts_52/train.jsonl",
+      "sha256": "80d985c93a57b18f05225149adcd0789965ad24dabd55a4408493142c9adf410"
     },
     {
-      "path": "artifacts/full_tol0p01/mpts_52/val.jsonl",
-      "sha256": "f24d234f43a00e124afe8a566c04b1581c64c9da58a971120e205531fc905664"
+      "path": "artifacts/full_verified_v1/mpts_52/val.jsonl",
+      "sha256": "c6efe63452510bb15726c1676b3f90c0fe0cce013e8c6fdf492783a65bf3f749"
     },
     {
-      "path": "artifacts/full_tol0p01/mpts_52/test.jsonl",
-      "sha256": "7ab4a47f988bdcd25165c0785517f7f91fb4f133064590d8625aa15c111b667f"
+      "path": "artifacts/full_verified_v1/mpts_52/test.jsonl",
+      "sha256": "6dfa5a5b91a91d07837d11525760d6090ac4a20c00f5ff59a790f1623fd38894"
     },
     {
-      "path": "artifacts/full_official_tol0p1_v7/c2db_51/train.jsonl",
-      "sha256": "9551316d60439c1e4dd59d8a7529ffdfa4fab4e513e349a6dd3c169fc96930ed"
+      "path": "artifacts/full_verified_v1/c2db_51/train.jsonl",
+      "sha256": "eabf32f291bdee7ed0e5e4093a1d1b1a3ae6d3e43b7a679318933662e539dfdf"
     },
     {
-      "path": "artifacts/full_official_tol0p1_v7/c2db_51/val.jsonl",
-      "sha256": "e0aa4db0e8586f806b9d84f63b6e888ad0f4ba9180c91271e5f70aff6d03f99e"
+      "path": "artifacts/full_verified_v1/c2db_51/val.jsonl",
+      "sha256": "1906ec81cb299d065143b43a0bf7dca37f93988b0ffea8a14f9521db7a5f17cb"
     },
     {
-      "path": "artifacts/full_official_tol0p1_v7/c2db_51/test.jsonl",
-      "sha256": "aae321c47299a2a1c2ada25f7678774b1f351d5f718d76267b6c48e1cb109792"
+      "path": "artifacts/full_verified_v1/c2db_51/test.jsonl",
+      "sha256": "6987e00ba1200b940576f0681a4186cee5084de0b0fa0b4e03e3c0ceb7ea2cfa"
     }
   ],
-  "rows": 102610,
-  "validation": "All records checked: state DOF and expanded atom count match group tables.",
+  "rows": 102608,
+  "data_revision": "source_integrity_v1",
+  "source_integrity_summary": {
+    "protocol": "source-cif-integrity-v1",
+    "complete": true,
+    "datasets": {
+      "mp_20": {
+        "records": 45229,
+        "composition_failed": 2,
+        "geometry_failed_after_composition": 46,
+        "affected": 48,
+        "errors": 0,
+        "repaired_passed": 45229,
+        "source_splits": {
+          "train": {
+            "records": 27136,
+            "composition_failed": 1,
+            "geometry_failed_after_composition": 25,
+            "affected": 26,
+            "errors": 0,
+            "repaired_passed": 27136
+          },
+          "val": {
+            "records": 9047,
+            "composition_failed": 1,
+            "geometry_failed_after_composition": 10,
+            "affected": 11,
+            "errors": 0,
+            "repaired_passed": 9047
+          },
+          "test": {
+            "records": 9046,
+            "composition_failed": 0,
+            "geometry_failed_after_composition": 11,
+            "affected": 11,
+            "errors": 0,
+            "repaired_passed": 9046
+          }
+        }
+      },
+      "mpts_52": {
+        "records": 40476,
+        "composition_failed": 1,
+        "geometry_failed_after_composition": 19,
+        "affected": 20,
+        "errors": 2,
+        "repaired_passed": 40474,
+        "source_splits": {
+          "train": {
+            "records": 27380,
+            "composition_failed": 0,
+            "geometry_failed_after_composition": 14,
+            "affected": 14,
+            "errors": 1,
+            "repaired_passed": 27379
+          },
+          "val": {
+            "records": 5000,
+            "composition_failed": 0,
+            "geometry_failed_after_composition": 0,
+            "affected": 0,
+            "errors": 0,
+            "repaired_passed": 5000
+          },
+          "test": {
+            "records": 8096,
+            "composition_failed": 1,
+            "geometry_failed_after_composition": 5,
+            "affected": 6,
+            "errors": 1,
+            "repaired_passed": 8095
+          }
+        }
+      },
+      "c2db_51": {
+        "records": 16905,
+        "composition_failed": 0,
+        "geometry_failed_after_composition": 0,
+        "affected": 0,
+        "errors": 0,
+        "repaired_passed": 16905,
+        "source_splits": {
+          "train": {
+            "records": 10143,
+            "composition_failed": 0,
+            "geometry_failed_after_composition": 0,
+            "affected": 0,
+            "errors": 0,
+            "repaired_passed": 10143
+          },
+          "val": {
+            "records": 3381,
+            "composition_failed": 0,
+            "geometry_failed_after_composition": 0,
+            "affected": 0,
+            "errors": 0,
+            "repaired_passed": 3381
+          },
+          "test": {
+            "records": 3381,
+            "composition_failed": 0,
+            "geometry_failed_after_composition": 0,
+            "affected": 0,
+            "errors": 0,
+            "repaired_passed": 3381
+          }
+        }
+      }
+    },
+    "joint_historical_split_impact": {
+      "train": {
+        "mp_20": {
+          "records": 36289,
+          "affected": 40
+        },
+        "mpts_52": {
+          "records": 32464,
+          "affected": 18
+        },
+        "c2db_51": {
+          "records": 13432,
+          "affected": 0
+        }
+      },
+      "val": {
+        "mp_20": {
+          "records": 4480,
+          "affected": 3
+        },
+        "mpts_52": {
+          "records": 3976,
+          "affected": 1
+        },
+        "c2db_51": {
+          "records": 1734,
+          "affected": 0
+        }
+      },
+      "test": {
+        "mp_20": {
+          "records": 4460,
+          "affected": 5
+        },
+        "mpts_52": {
+          "records": 4036,
+          "affected": 1
+        },
+        "c2db_51": {
+          "records": 1739,
+          "affected": 0
+        }
+      }
+    },
+    "scope": "Source CIF equivalence under explicit modelling tolerance, not physical stability; original data and weights retained.",
+    "seconds": 248.93800000008196,
+    "journal_sha256": "173b92b9d2a741904d2cc3dc2e22c22ec41103830fc730278006bab638310c64",
+    "quarantined_records": 2,
+    "verified_records": 102608,
+    "all_source_records_repaired": false,
+    "passed": true,
+    "passed_scope": "All raw records accounted for. Only certified output records may train; quarantined inputs remain excluded and visible."
+  },
+  "validation": "Source-integrity-v1 records certified against original/recovered CIFs; all 102610 inputs accounted, 102608 outputs after repairs and 2 explicit quarantines. Plotter additionally checks DOF and expanded counts.",
   "dataset_summary": [
     {
       "dataset": "MP20",
@@ -49,7 +210,7 @@
       "groups_observed": 179,
       "groups_catalog": 230,
       "wyckoff_types_observed": 1013,
-      "orbit_patterns_undecorated": 4110,
+      "orbit_patterns_undecorated": 4117,
       "unique_elements": 89,
       "zero_coordinate_dof": 8446,
       "source_atoms_min": 1.0,
@@ -78,10 +239,10 @@
       "state_dof_max": 66.0,
       "state_fraction_min": 0.007936507936507936,
       "state_fraction_median": 0.1111111111111111,
-      "state_fraction_p95": 0.5317647058823473,
+      "state_fraction_p95": 0.5333333333333333,
       "state_fraction_max": 1.0,
       "volume_per_atom_A3_min": 5.7696633322788555,
-      "volume_per_atom_A3_median": 18.260190195325933,
+      "volume_per_atom_A3_median": 18.25943206558874,
       "volume_per_atom_A3_p95": 35.23924510208935,
       "volume_per_atom_A3_max": 201.55408882402972,
       "area_per_atom_A2_min": null,
@@ -95,15 +256,15 @@
     },
     {
       "dataset": "MPTS52",
-      "records": 40476,
-      "unique_ids": 40476,
-      "unique_source_cif_hashes": 40476,
+      "records": 40474,
+      "unique_ids": 40474,
+      "unique_source_cif_hashes": 40474,
       "groups_observed": 208,
       "groups_catalog": 230,
       "wyckoff_types_observed": 1302,
-      "orbit_patterns_undecorated": 6303,
+      "orbit_patterns_undecorated": 6309,
       "unique_elements": 89,
-      "zero_coordinate_dof": 3549,
+      "zero_coordinate_dof": 3548,
       "source_atoms_min": 1.0,
       "source_atoms_median": 18.0,
       "source_atoms_p95": 46.0,
@@ -133,8 +294,8 @@
       "state_fraction_p95": 0.5138888888888888,
       "state_fraction_max": 1.0,
       "volume_per_atom_A3_min": 5.339887980166305,
-      "volume_per_atom_A3_median": 17.416913246914238,
-      "volume_per_atom_A3_p95": 34.25670930165805,
+      "volume_per_atom_A3_median": 17.41626369630651,
+      "volume_per_atom_A3_p95": 34.25695831885034,
       "volume_per_atom_A3_max": 896.3879641494638,
       "area_per_atom_A2_min": null,
       "area_per_atom_A2_median": null,
@@ -200,15 +361,12 @@
   ],
   "captions": {
     "01_dataset_overview": "原始参考划分与联合重划分分别统计；总量均按来源记录计数。空间群和层群使用各自230/80的分母，编号不视为同一类别空间。",
-    "02_structure_complexity": "全102610条记录的经验累积分布，未截断尾部。ambient DOF=3N+6（三维）或3N+3（层状，含高度）；该比值仅描述参数化维数减少，不是速度提升倍数。",
+    "02_structure_complexity": "全102608条记录的经验累积分布，未截断尾部。ambient DOF=3N+6（三维）或3N+3（层状，含高度）；该比值仅描述参数化维数减少，不是速度提升倍数。",
     "03_symmetry_distribution": "各自全群编号范围上的来源记录比例；空白编号表示未在此数据集出现。空间群与层群轴分别解释。",
     "04_element_coverage": "分母为各数据集结构记录数，每种元素在每条记录中只计一次。白色表示0；非原子丰度分布，避免标准胞扩展倍数影响。",
     "05_property_labels": "上：有限数值标签的覆盖率，缺失不补零。下：有标签记录的完整经验分布；各数据源计算流程及能量参考可能不同，叠图仅描述数据，不表示标签完全可交换。完整范围含异常长尾。",
     "06_overlap_and_fixed_sites": "前两图为去重ID与原始CIF字节哈希的集合交集，数值为真实计数、颜色为log10(count+1)，不等于完整结构匹配。相同哈希证明原始字节相同；不同哈希不能排除等价结构。",
     "07_lattice_and_layer_geometry": "由存档k和群相容度量解码周期测度，V或A=sqrt(det H)。3D体积/原子与2D面积/原子分开；2D层厚=max(h)-min(h)，不包含真空，也不加范德华原子半径。保留完整分布，3D体积横轴用对数。"
   },
-  "scope": "Prepared source records across all original splits; shared splits counted separately. No structural matching or property re-evaluation.",
-  "archive_sha256": "0491f7034501737fbb2bce97a4a56d65f6fdf7e41cc255681288326d932e7f43",
-  "verified_snapshot": "artifacts/server_snapshots/20261019_completed245",
-  "source_identity_unchanged": true
+  "scope": "Verified source records across original source partitions after integrity exclusions; no new model training, sampling or physical-property evaluation."
 }

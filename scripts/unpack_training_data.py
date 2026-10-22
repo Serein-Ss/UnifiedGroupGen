@@ -95,8 +95,9 @@ def unpack(bundle, root):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root', type=Path, default=ROOT)
+    parser.add_argument('--bundle', type=Path, default=ROOT/'datasets')
     args = parser.parse_args()
-    print(json.dumps(unpack(ROOT / 'datasets', args.root)))
+    print(json.dumps(unpack(args.bundle, args.root)))
 
 
 if __name__ == '__main__':
