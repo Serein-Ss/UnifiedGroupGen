@@ -1,5 +1,7 @@
 # 修复数据上的 15 套主实验与硬约束任务
 
+当前服务器步骤：先按 [参数测速与筛选](REMOTE_MAIN15_START.md) 完成候选测试和单模型整轮确认；下文训练矩阵为后续计划，暂不直接启动整批队列。
+
 本方案不增加控制微调。性质编码保持每种性质独立 MLP；群—轨道编译器与图网络候选速度主干保持原方式。旧数据模型保留为历史结果，不用于恢复这批训练。
 
 等价计算加速、4090 同批测速、显存检查与续训选项见 [TRAINING_ACCELERATION.md](TRAINING_ACCELERATION.md)。15 套 YAML 和数据保持不变；`train_main15.py` 支持 `--checkpoint`/`--no-checkpoint`、`--edge-chunk-size` 运行覆盖。

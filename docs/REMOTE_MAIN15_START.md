@@ -1,8 +1,9 @@
-# 本地配对测试期间启动4090正式训练
+# 4090先测速，再确定单模型训练参数
 
-本地RTX3060继续执行三组优化前后各30轮的配对检查；服务器可独立开始修复数据上的新模型。
+本地RTX3060继续执行三组优化前后各30轮的配对检查。服务器当前只开展运行参数测速，
+先确定候选参数，再确认单个模型的整轮耗时；15套模型暂不排入训练队列。
 当前加速内核的输出与梯度检查已通过，完整配对训练及生成质量比较仍在进行。
-服务器使用 `train_main15.py`，不需要运行本地的 `paired_training_study.py`。
+服务器此阶段使用 `benchmark.py`，不需要运行本地的 `paired_training_study.py`。
 
 ## 1. 更新代码与环境
 
@@ -70,49 +71,102 @@ PY
 `u`无目标性质；`ef/eg/eh`分别是形成能、带隙、凸包能单性质；`all`是三性质CFG及子集训练。
 两来源联合模型保留来源上下文，仍不属于目标性质条件。
 
-## 3. 先启动三个基础模型
+## 3. 当前只执行运行参数测速
 
 先确认服务器没有另一个本项目训练队列占用GPU：
 
 ```bash
 ps -ww -eo pid,ppid,etime,args | grep -E 'train_main15.py|unifiedgroupgen.cli.*train'
 nvidia-smi
-python scripts/train_main15.py --models mp20_u c2db51_u joint_u --plan
-
-mkdir -p artifacts/runs
-CUDA_VISIBLE_DEVICES=0 nohup python -u scripts/train_main15.py \
-  --models mp20_u c2db51_u joint_u --device cuda --resume \
-  > artifacts/runs/main15_base.driver.log 2>&1 &
-echo $!
 ```
 
-默认激活检查点开启、边块4096、batch64、BF16、每5轮验证，保持正式配置。
-每套最多1000轮，允许原策略早停。`--resume`仅恢复此新队列中同配置、同划分的检查点；
-没有新检查点时从头训练。输出位于 `artifacts/runs/main15_seed42/`。
+如已经执行了先前的正式训练命令，需要先依据实际PID停止该队列及训练子进程，再测速。
+本地3060的配对测试继续；它不会占用远程4090。
+
+先固定batch64、BF16、相同真实数据批次、初始种子、模型和群约束，仅比较：
+
+| 候选 | 激活重计算 | 边块大小 |
+|---|---|---:|
+| A | 开启 | 4096 |
+| B | 关闭 | 4096 |
+| C | 关闭 | 16384 |
+| D | 关闭 | 32768 |
+
+对MP20、C2DB与联合的三性质代表配置各测四项，共12个短测速。
+每项6个真实批次、6步预热、24步计时，包含前向、反向、梯度裁剪和AdamW更新，
+只在内存中运行，不保存模型权重，不启动正式训练。
+三性质模型用于参数筛选，不代表其性能已优于其他条件配置。
 
 ```bash
-tail -n 20 -F artifacts/runs/main15_base.driver.log
-tail -n 10 -F artifacts/runs/main15_seed42/mp20_u.log
-watch -n 5 python -m json.tool artifacts/runs/main15_seed42/mp20_u/model.status.json
+export UGG_TUNE_DIR="artifacts/benchmarks/4090_tuning_$(date +%Y%m%d_%H%M%S)"
+mkdir -p "$UGG_TUNE_DIR"
+
+for tune_model in mp20_all c2db51_all joint_all; do
+  for tune_setting in checkpoint:4096 no-checkpoint:4096 no-checkpoint:16384 no-checkpoint:32768; do
+    tune_mode=${tune_setting%:*}
+    tune_chunk=${tune_setting#*:}
+    tune_path="$UGG_TUNE_DIR/${tune_model}_${tune_mode}_${tune_chunk}"
+    echo "[START] $tune_model $tune_setting"
+    if CUDA_VISIBLE_DEVICES=0 python scripts/benchmark.py \
+      --config "configs/main15/${tune_model}.yaml" --device cuda \
+      --seed 42 --batch-size 64 --threads 4 \
+      --selection random --batches 6 --warmup 6 --steps 24 \
+      "--$tune_mode" --edge-chunk-size "$tune_chunk" \
+      --output "$tune_path.json" > "$tune_path.log" 2>&1; then
+      echo "[DONE] $tune_path.json"
+    else
+      echo "[FAILED] inspect $tune_path.log"
+    fi
+  done
+done
 ```
 
-第一个任务结束后，详细日志切换为 `c2db51_u.log`、`joint_u.log`。
-Ctrl+C退出看日志不停止后台训练。
+同一数据设置四项的 `record_ids`、`atoms`、`batch_sizes` 和配置/划分哈希应一致。
+失败日志必须保留，不能把所有失败都认定为显存不足；先查看实际异常。
+若基础候选都失败，先修复错误再扩大搜索。
 
-## 4. 后续十二套性质模型
-
-三个基础模型队列结束后，再启动下面这一条。不要同时运行两个同seed队列。
+## 4. 打印汇总，确定下一阶段候选
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 nohup python -u scripts/train_main15.py --device cuda --resume \
-  > artifacts/runs/main15_remaining.driver.log 2>&1 &
-echo $!
+python - <<'PY'
+import json, os
+from pathlib import Path
+root = Path(os.environ['UGG_TUNE_DIR'])
+print('model | recompute | chunk | median s/step | samples/s | allocated GiB | reserved GiB')
+for model in ('mp20_all', 'c2db51_all', 'joint_all'):
+    reports = []
+    for mode, chunk in (('checkpoint',4096), ('no-checkpoint',4096),
+                        ('no-checkpoint',16384), ('no-checkpoint',32768)):
+        path = root/f'{model}_{mode}_{chunk}.json'
+        if not path.exists():
+            print(model, mode, chunk, 'FAILED / missing result; inspect its log')
+            continue
+        r = json.loads(path.read_text())
+        reports.append(r)
+        print(model, r['checkpoint_layers'], r['edge_chunk_size'],
+              round(r['median_seconds_per_step'],4), round(r['records_per_second'],2),
+              round(r['peak_cuda_bytes']/2**30,2), round(r['peak_cuda_reserved_bytes']/2**30,2), sep=' | ')
+    if reports:
+        keys = ('record_ids','atoms','batch_sizes','config_sha256','train_split_sha256','val_split_sha256')
+        assert all(all(r[k] == reports[0][k] for k in keys) for r in reports), 'Unmatched timing inputs'
+print('Results:', root)
+PY
 ```
 
-它会跳过已完成的三个基础模型，再按清单完成其余十二套。
-若希望一次排入全部15套，可直接使用本节命令替代第3节的启动命令，不能两条一起执行。
-旧锁只在确认对应队列和训练子进程均退出后处理，不删除权重或数据。
+选择以 `records_per_second` 和实际步耗时为主，显存保留余量；不要以显存占满或某一瞬间
+`GPU-Util=100%` 为最优标准。最优是当前候选及负载下的实测最优，不是全局保证。
+不同数据设置可使用不同候选，不强求一个设置覆盖全部模型。
 
-本地配对结果完成后再比较是否存在明显退化；本次服务器启动不等于质量结论已经成立。
+下一阶段只对最快的候选及默认设置倒序复测，并测试高边数真实批次 `--selection largest`，
+检查是否OOM、损失/梯度非有限或吞吐明显下降。短测留出数GB显存余量仍不能保证全数据绝不OOM。
+然后比较CPU线程1/2/4/8，控制其他参数相同；每次启动前同步设置相应OMP/MKL线程与`--threads`。
+结果确认后仅对单个模型做5轮整轮试跑，覆盖一次验证、权重保存、最大实际图和缓存建立。
+比较稳定训练轮及完整5轮窗口的实际墙钟时间，再确定正式运行设置。
+
+batch64和精度先保持不变。增大batch会改变每轮更新次数及优化统计，若要调整需单独比较学习率
+和有效batch等训练定义，不能把它当作此次等价运行优化自动套用到15套配置。
+本阶段的命令不会启动任何正式训练；将上述汇总与失败日志用于下一步选择即可。
+
+本地配对结果完成后再比较是否存在明显退化；GPU测速不等于生成质量结论已经成立。
 测速及运行选项见 [TRAINING_ACCELERATION.md](TRAINING_ACCELERATION.md)，
 完整任务与评估见 [MAIN15_TRAINING_AND_TASKS.md](MAIN15_TRAINING_AND_TASKS.md)。
