@@ -6,6 +6,8 @@
 
 保持模型参数、群约束和 15 套配置的训练加速与服务器测速/续训步骤见 [TRAINING_ACCELERATION.md](docs/TRAINING_ACCELERATION.md)。
 
+本地配对测试期间，4090服务器可按 [最新更新与启动步骤](docs/REMOTE_MAIN15_START.md) 开始修复数据上的基础模型训练；本地三组30轮优化前后比较方案见 [PAIRED_ACCELERATION_STUDY.md](docs/PAIRED_ACCELERATION_STUDY.md)，完整质量比较仍在运行。
+
 > **2026-10-22 来源一致性修订：** 68条旧编码需处理，66条修复、2条MPTS52隔离；正式数据102,608条，联合划分82,183/10,190/10,235。M1/M2/M3均需干净重训，以下旧训练与生成指标保留历史身份。详见[完整审计与迁移](docs/SOURCE_INTEGRITY_AUDIT_20261022.md)。
 
 
