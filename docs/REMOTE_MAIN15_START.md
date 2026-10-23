@@ -60,6 +60,72 @@ CPU线程通过CLI全局参数 `--threads` 以及子进程OMP/MKL环境同时生
 2026-10-23 本地PyTorch2.2.1 CPU定向验证7项通过：覆盖计时汇总、仅单模型/固定5轮入口、
 验证间隔和断点恢复一致性。没有在本轮启动新的GPU试跑；实际4090耗时由服务器补齐。
 
+### 2026-10-23：服务器线程结果核验与首个5轮试跑
+
+用户下载的 `4090_thread_audit_20261023_160203.zip` 含12份JSON及12份日志。
+MP20、C2DB和联合设置的批次、原子数、TRAIN/VAL/计时池哈希、模型预算、精度、
+元素域及原始配置哈希一致。联合t1与t2/t4/t8的差异仅为拟合后配置哈希，来自：
+
+| 未用于分来源编码的全局统计量 | 1线程 | 2/4/8线程 | 最大绝对差 |
+|---|---:|---:|---:|
+| formation_energy.shift | -1.0622617682556588 | -1.062261768255659 | 2.22e-16 |
+| formation_energy.scale | 0.9822379762335863 | 0.9822379762335818 | 4.55e-15 |
+| energy_above_hull.scale | 0.15032534579428797 | 0.15032534579428627 | 1.69e-15 |
+
+本地PyTorch2.2.1在同一修复TRAIN上切换线程数，复现了相同差异。
+原因是CPU并行均值/标准差归约顺序改变；原汇总对完整配置SHA要求相同，因而拒绝。
+联合模型实际由 `PropertyEncoder._normalized` 读取 `domain_scalers`，这些分来源参数
+完全相同，所列全局shift/scale不参与该编码。此次修复只补充测速审计脚本，
+不改变训练归一化、模型、数据或严格续训配置校验。
+
+新入口保留原始SHA，并且只接受具有完全相同分来源scaler、数值差不超过1e-12的
+未使用全局统计量差异；数据、批次、元素域、有效scaler或无法解释的哈希变化仍拒绝。
+
+```bash
+python scripts/audit_runtime_threads.py \
+  --directory artifacts/benchmarks/4090_threads_20261023_153242
+```
+
+当前实测最高吞吐候选均为关闭激活重计算、边块32768、batch64、BF16：
+
+| 数据设置 | 线程 | 平均秒/步 | 样本/秒 | 保留显存GiB |
+|---|---:|---:|---:|---:|
+| MP20 | 8 | 0.1199 | 533.97 | 7.47 |
+| C2DB | 4 | 0.1098 | 583.11 | 0.41 |
+| 联合 | 4 | 0.1244 | 514.65 | 4.37 |
+
+MP20的8线程比1线程仅快约0.29%，本次选8线程做整轮试跑，不视为稳定显著优势。
+高边数批次曾在4线程下通过，三种数据设置的保留显存为8.22/2.15/8.26 GiB。
+以上是短测候选，不是全局最优或正式整轮提速保证。
+
+只启动MP20三性质代表模型一次5轮试跑，其他模型暂不启动：
+
+```bash
+cd /root/private_data/rszhong/workspace/UnifiedGroupGen
+conda activate cgdit
+git pull --ff-only
+export MKL_THREADING_LAYER=SEQUENTIAL
+export OMP_NUM_THREADS=8
+export MKL_NUM_THREADS=8
+export PYTHONPATH="$PWD/src"
+export PYTHONIOENCODING=utf-8
+python scripts/prepare_main15.py --verify-only
+
+export UGG_PILOT_DIR="artifacts/runtime_pilots/mp20_all_t8_$(date +%Y%m%d_%H%M%S)"
+mkdir -p artifacts/runtime_pilots
+CUDA_VISIBLE_DEVICES=0 nohup python -u scripts/train_timing_pilot.py \
+  --model mp20_all --threads 8 --device cuda \
+  --no-checkpoint --edge-chunk-size 32768 \
+  --output "$UGG_PILOT_DIR" > "${UGG_PILOT_DIR}.driver.log" 2>&1 &
+echo "Pilot PID: $!"
+echo "Pilot output: $UGG_PILOT_DIR"
+tail -n 30 -F "${UGG_PILOT_DIR}.driver.log"
+```
+
+输出模型仅用于5轮速度/显存诊断，不用来宣称收敛或材料生成质量。
+完成后检查 `timing.json`、`timing.csv` 的训练/验证/保存耗时和实际显存，
+再决定是否进一步试跑其他来源或开展正式实验。
+
 ## 1. 更新代码与环境
 
 ```bash
