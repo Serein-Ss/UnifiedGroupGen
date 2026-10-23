@@ -226,3 +226,29 @@ python scripts/pack_loss_study.py \
 Download the ZIP and SHA256 through the existing server file transfer tool.
 Provide the local path for analysis of losses, gradients, constraints and quality.
 A short single-seed ablation does not establish final convergence or property/stability performance.
+
+
+## Read-only live summary
+
+```bash
+python scripts/loss_study_status.py --study artifacts/loss_balance_4090_seed42
+watch -n 30 'python scripts/loss_study_status.py --study artifacts/loss_balance_4090_seed42'
+```
+
+This standard-library-only command reads the protocol, six histories and status
+files, diagnostic gradient samples and evaluation receipts. It does not start,
+stop or modify training. It shows saved-epoch train/validation/checkpoint time,
+raw component losses, both arms on one common loss scale, validation epoch,
+weighted shared gradients, clipping fraction, historical allocated/reserved GPU
+peaks and current whole-GPU usage. The last three lines of the active child log
+help track CPU reference-fingerprint work as well as GPU sampling.
+
+Training ETA uses recent noninitial epoch medians, available validation timings
+and the current batch fraction. Pending datasets are scaled from measured MP20
+throughput; otherwise the earlier 4090 pilot is the fallback. Sampling ETA uses
+current observed seconds/attempt once at least ten attempts are available,
+otherwise the earlier 4090 64-step sampling timings. The CPU standard-metric
+allowance is 1-3 hours apportioned over unfinished metric jobs, not an observed
+ETA or a confidence interval. Queued waiting time is excluded. If the Linux
+controller PID no longer exists, ETA represents remaining work after recovery.
+The summary preserves the distinction between finished execution and quality.
