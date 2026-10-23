@@ -5,6 +5,30 @@
 当前加速内核的输出与梯度检查已通过，完整配对训练及生成质量比较仍在进行。
 服务器此阶段使用 `benchmark.py`，不需要运行本地的 `paired_training_study.py`。
 
+## 一键执行完整12组测速
+
+在服务器激活cgdit、更新代码后可直接执行：
+
+```bash
+conda activate cgdit
+cd /root/private_data/rszhong/workspace/UnifiedGroupGen
+git pull --ff-only
+mkdir -p artifacts/benchmarks
+nohup bash scripts/benchmark_4090_grid.sh \
+  > artifacts/benchmarks/4090_grid.driver.log 2>&1 &
+echo $!
+tail -n 30 -F artifacts/benchmarks/4090_grid.driver.log
+```
+
+该脚本包括下文环境检查、修复数据导入与本机审计、12个运行参数测速和结果汇总。
+沿用现有PyTorch，只安装项目editable元数据及固定PyXtal；GPU0已有计算进程时退出，
+不会自动停止其他任务。每次生成新的时间戳目录，结束后输出其绝对路径，保存
+`summary.csv`、`summary.json`、`status.tsv`、12组原始结果/失败日志。
+汇总包括平均/中位步耗时、样本吞吐、分配/保留显存与相对默认设置的加速比，
+并核对同一数据设置的批次、模型配置、精度和数据哈希一致。
+最快候选只供下一阶段压力与整轮复测，不自动启动训练。
+下文分步命令供手动执行与核对；选择一键脚本时不用重复执行。
+
 ## 1. 更新代码与环境
 
 ```bash
