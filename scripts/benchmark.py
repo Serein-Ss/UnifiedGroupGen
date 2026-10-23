@@ -149,7 +149,8 @@ def main():
         optimizer.zero_grad(set_to_none=True)
         with torch.autocast(torch.device(args.device).type, dtype=dtype, enabled=cuda and precision != 'fp32'):
             losses = joint_loss(proposal, flow, records, config.get('composition_probability', 0.5),
-                                config.get('observation_probability', 0.25))
+                                config.get('observation_probability', 0.25),
+                                config.get('coordinate_length_scale', 1.0))
             loss = weights['descriptor']*losses['descriptor'].mean()+weights['flow']*losses['flow'].mean()
         if not torch.isfinite(loss):
             raise FloatingPointError('Benchmark loss is nonfinite')

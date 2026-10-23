@@ -168,3 +168,8 @@ MPTS52和共享模型还没有本机完整轮实测；按数据记录/节点/边
 
 数学/代码测试和数据审计通过不等于材料性能已经验证。完成的`pipeline.json`意味着训练、完整测试集损失和生成尝试均运行完成。
 仍需检查生成有效率、对称性/轨道符合性、性质命中、弛豫及物理稳定性；目前不声称这些实验已完成。
+
+
+## Coordinate-loss paired study (six short runs)
+
+See [LOSS_BALANCE_STUDY.md](LOSS_BALANCE_STUDY.md#remote-4090-execution) for the full repaired-data 4090 loss ablation, gradient diagnostics and automatic result ZIP export. This runs six 20-epoch comparisons and does not launch main15 formal training.

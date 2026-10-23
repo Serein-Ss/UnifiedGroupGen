@@ -11,6 +11,7 @@ import torch
 from tqdm import tqdm
 from .constraints import AffineObservation
 from .flow import flow_loss_batch
+from .loss_diagnostics import gradient_diagnostics
 from .symmetry import Descriptor, compile_descriptor
 
 
@@ -58,7 +59,8 @@ def batch_indices(records, batch_size, edge_budget, shuffle=True):
     return batches
 
 
-def joint_loss(proposal, flow, records, composition_probability=0.5, observation_probability=0.25):
+def joint_loss(proposal, flow, records, composition_probability=0.5, observation_probability=0.25,
+               coordinate_length_scale=1.0):
     like = next(flow.parameters())
     descriptors, compiled, cpu_endpoints = zip(*[_training_entry(r, like.dtype) for r in records])
     endpoints = torch.cat(cpu_endpoints).to(like.device).split([z.numel() for z in cpu_endpoints])
@@ -79,7 +81,11 @@ def joint_loss(proposal, flow, records, composition_probability=0.5, observation
     properties = [r['properties'] for r in records]
     descriptor = proposal.loss_batch(descriptors, properties, compositions)
     continuous = flow_loss_batch(flow, compiled, endpoints, properties, observations, compositions)
-    return {'descriptor': descriptor, 'flow': continuous['loss'],
+    if not np.isfinite(coordinate_length_scale) or coordinate_length_scale <= 0:
+        raise ValueError('coordinate_length_scale must be finite and positive (angstrom)')
+    objective = (continuous['loss'] if coordinate_length_scale == 1.0 else
+                 continuous['lattice']+continuous['coordinates']/coordinate_length_scale**2)
+    return {'descriptor': descriptor, 'flow': objective,
             'lattice': continuous['lattice'], 'coordinates': continuous['coordinates']}
 
 
@@ -167,6 +173,12 @@ def run_training(args, config, records, validation, proposal, flow, train_paths,
     weights = config.get('loss_weights', {'descriptor': 1.0, 'flow': 1.0})
     if not 0 <= config.get('composition_probability', 0.5) <= 1 or not 0 <= config.get('observation_probability', 0.25) <= 1:
         raise ValueError('Condition probabilities must lie in [0,1]')
+    length_scale = config.get('coordinate_length_scale', 1.0)
+    if not np.isfinite(length_scale) or length_scale <= 0:
+        raise ValueError('coordinate_length_scale must be finite and positive (angstrom)')
+    diagnostic_interval = config.get('gradient_diagnostics_interval', 0)
+    if not isinstance(diagnostic_interval, int) or isinstance(diagnostic_interval, bool) or diagnostic_interval < 0:
+        raise ValueError('gradient_diagnostics_interval must be a nonnegative integer')
     preparation_started = time.perf_counter()
     records = prepare_training_records(records, next(flow.parameters()).dtype)
     validation = prepare_training_records(validation, next(flow.parameters()).dtype)
@@ -185,7 +197,7 @@ def run_training(args, config, records, validation, proposal, flow, train_paths,
             torch.cuda.reset_peak_memory_stats()
         proposal.train(); flow.train()
         keys = ('descriptor', 'flow', 'lattice', 'coordinates')
-        totals = torch.zeros(5, device=args.device, dtype=torch.float64)
+        totals = torch.zeros(6, device=args.device, dtype=torch.float64)
         batches = batch_indices(records, batch_size, edge_budget)
         save_status(output, {'state': 'running', 'phase': 'train', 'epoch': epoch,
                              'step': 0, 'steps': len(batches), 'completed_epochs': completed})
@@ -198,16 +210,26 @@ def run_training(args, config, records, validation, proposal, flow, train_paths,
             optimizer.zero_grad(set_to_none=True)
             with torch.autocast(device_type=torch.device(args.device).type, dtype=dtype, enabled=precision != 'fp32'):
                 losses = joint_loss(proposal, flow, chunk, config.get('composition_probability', 0.5),
-                                    config.get('observation_probability', 0.25))
+                                    config.get('observation_probability', 0.25), length_scale)
                 loss = weights['descriptor']*losses['descriptor'].mean()+weights['flow']*losses['flow'].mean()
             if not torch.isfinite(loss):
                 raise FloatingPointError(f"Nonfinite batch loss: {[r['id'] for r in chunk]}")
+            diagnostic = None
+            if diagnostic_interval and (step == 1 or step % diagnostic_interval == 0 or step == len(batches)):
+                diagnostic = gradient_diagnostics(proposal, flow, losses, weights, length_scale)
             scaler.scale(loss).backward()
             scaler.unscale_(optimizer)
             norm = torch.nn.utils.clip_grad_norm_(parameters, config.get('gradient_clip', 10), error_if_nonfinite=True)
+            if diagnostic is not None:
+                diagnostic.update(epoch=epoch, step=step, records=[{'dataset': r.get('dataset'), 'id': r['id']} for r in chunk],
+                                  total_preclip_norm=float(norm), clip_threshold=config.get('gradient_clip', 10),
+                                  clipped=bool(norm > config.get('gradient_clip', 10)))
+                with output.with_suffix('.gradients.jsonl').open('a', encoding='utf-8') as stream:
+                    stream.write(json.dumps(diagnostic, allow_nan=False)+'\n')
             scaler.step(optimizer); scaler.update()
             totals[:4] += torch.stack([losses[key].detach().sum() for key in keys]).double()
             totals[4] += norm.detach().double()
+            totals[5] += (norm.detach() > config.get('gradient_clip', 10)).double()
             seen += len(chunk)
             if step % 25 == 0 or step == len(batches):
                 host = torch.cat((totals, loss.detach().double().reshape(1))).cpu().tolist()
@@ -216,7 +238,7 @@ def run_training(args, config, records, validation, proposal, flow, train_paths,
                                          lr=f'{optimizer.param_groups[0]["lr"]:.2g}', refresh=False)
                 progress = {'event': 'progress', 'state': 'running', 'phase': 'train',
                             'epoch': epoch, 'step': step, 'steps': len(batches),
-                            'loss': host[5], 'seconds': time.perf_counter()-started,
+                            'loss': host[-1], 'seconds': time.perf_counter()-started,
                             'completed_epochs': completed}
                 save_status(output, progress)
         progress_bar.close()
@@ -240,7 +262,7 @@ def run_training(args, config, records, validation, proposal, flow, train_paths,
                     for step, indices in enumerate(tqdm(val_batches, desc=f'Validation {epoch+1}/{epochs}',
                                                        file=sys.stdout, disable=not sys.stdout.isatty(),
                                                        dynamic_ncols=True, ascii=True, mininterval=1, leave=False), 1):
-                        losses = joint_loss(proposal, flow, [validation[i] for i in indices], 0, 0)
+                        losses = joint_loss(proposal, flow, [validation[i] for i in indices], 0, 0, length_scale)
                         totals += torch.stack([losses[key].sum() for key in keys]).double()
                         if step % 25 == 0 or step == len(val_batches):
                             save_status(output, {'state': 'running', 'phase': 'validation', 'epoch': epoch,
@@ -266,10 +288,16 @@ def run_training(args, config, records, validation, proposal, flow, train_paths,
                    'seconds': time.perf_counter()-started,
                    'training_seconds': training_seconds, 'validation_seconds': validation_seconds,
                    'learning_rate': optimizer.param_groups[0]['lr'], 'gradient_norm_mean': gradient_norm_mean,
+                   'gradient_clipped_fraction': host[5]/len(batches),
+                   'coordinate_length_scale_angstrom': length_scale,
                    'train_records': len(records), 'val_records': len(validation),
                    'runtime_options': runtime,
                    'peak_cuda_bytes': torch.cuda.max_memory_allocated() if devices else 0,
                    'peak_cuda_reserved_bytes': torch.cuda.max_memory_reserved() if devices else 0}
+        for phase in (training, validated):
+            if phase is not None:
+                phase['coordinates_dimensionless'] = phase['coordinates']/length_scale**2
+                phase['flow_raw'] = phase['lattice']+phase['coordinates']
         train_loss = weights['descriptor']*training['descriptor']+weights['flow']*training['flow']
         val_text = f'{val_loss:.4f}' if val_loss is not None else 'skipped'
         checkpoint = {'config': config, 'epoch': epoch, 'proposal': proposal.state_dict(), 'flow': flow.state_dict(),

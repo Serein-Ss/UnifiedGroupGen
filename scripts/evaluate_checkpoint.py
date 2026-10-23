@@ -71,7 +71,8 @@ def main():
     batches = batch_indices(supported, config['batch_size'], config['edge_budget'], shuffle=False)
     with torch.no_grad():
         for step, indices in enumerate(batches, 1):
-            losses = joint_loss(proposal, flow, [supported[i] for i in indices], 0, 0)
+            losses = joint_loss(proposal, flow, [supported[i] for i in indices], 0, 0,
+                                config.get('coordinate_length_scale', 1.0))
             for key in totals:
                 if not torch.isfinite(losses[key]).all():
                     raise FloatingPointError(f'Nonfinite held-out {key} loss at step {step}')
@@ -93,6 +94,8 @@ def main():
               'label_coverage': len(supported)/len(records) if records else 0,
               'unsupported_records': unsupported,
               'loss_on_supported_records': {key: value/len(supported) if supported else None for key, value in totals.items()},
+              'coordinate_length_scale_angstrom': config.get('coordinate_length_scale', 1.0),
+              'loss_definition': 'flow=lattice+coordinates/length_scale**2; coordinates reports raw angstrom-squared error',
               'checkpoint_epoch': checkpoint['epoch'], 'checkpoint_sha256': file_hash(checkpoint_path),
               'test_split_sha256': [file_hash(path) for path in records_paths], 'seed': 918,
               'heldout_audit': heldout_audit, 'source_breakdown': sources,
