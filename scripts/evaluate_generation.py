@@ -10,6 +10,7 @@ from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor
 import importlib.metadata
 import json
+import multiprocessing
 from pathlib import Path
 import sys
 import warnings
@@ -95,14 +96,19 @@ def reference_fingerprints(paths, dataset, output, enabled, workers=1):
     records = [r for path in paths for r in read_jsonl(path) if r['dataset'] == dataset]
     payloads = [(r, enabled) for r in records]
     rows, features = [], []
-    pool = ProcessPoolExecutor(max_workers=workers) if workers > 1 else None
+    # Evaluation follows CUDA inference. Fresh interpreters avoid inheriting
+    # locks from the parent's PyTorch/OpenMP/BLAS thread pools on Linux.
+    pool = (ProcessPoolExecutor(max_workers=workers, mp_context=multiprocessing.get_context('spawn'))
+            if workers > 1 else None)
+    print(json.dumps({'phase': 'reference_start', 'dataset': dataset, 'requested': len(records),
+                      'workers': workers, 'start_method': 'spawn' if pool else 'serial'}), flush=True)
     try:
         results = pool.map(reference_record_metrics, payloads, chunksize=4) if pool else map(reference_record_metrics, payloads)
         for count, (row, pair) in enumerate(results, 1):
             rows.append(row)
             if pair is not None:
                 features.append(pair)
-            if count % 100 == 0:
+            if count == 1 or count % 100 == 0:
                 print(json.dumps({'phase': 'reference', 'dataset': dataset, 'records': count,
                                   'requested': len(records), 'workers': workers}), flush=True)
     finally:

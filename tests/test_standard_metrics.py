@@ -37,10 +37,14 @@ def test_reference_metrics_parallel_matches_serial_order_and_failures():
         records = folder/'records.jsonl'
         records.write_text(''.join(json.dumps(r)+'\n' for r in (bulk, layer, broken)), encoding='utf-8')
         wrapper = folder/'check.py'
-        wrapper.write_text('import sys\nfrom pathlib import Path\n'
+        wrapper.write_text('import sys\nimport multiprocessing as mp\nimport torch\nfrom pathlib import Path\n'
             f'sys.path.insert(0, {str(ROOT/"scripts")!r})\n'
             'from evaluate_generation import reference_fingerprints\n'
             'if __name__ == "__main__":\n'
+            '    if "fork" in mp.get_all_start_methods():\n'
+            '        mp.set_start_method("fork", force=True)\n'
+            '    torch.set_num_threads(4)\n'
+            '    torch.ones(64, 64).matmul(torch.ones(64, 64))\n'
             f'    folder = Path({str(folder)!r})\n'
             '    first = folder/"serial"; first.mkdir()\n'
             '    second = folder/"parallel"; second.mkdir()\n'
@@ -53,6 +57,7 @@ def test_reference_metrics_parallel_matches_serial_order_and_failures():
             '    assert "error" in a["rows"][-1]\n', encoding='utf-8')
         result = subprocess.run([sys.executable, str(wrapper)], cwd=ROOT, capture_output=True, text=True, timeout=120)
         assert result.returncode == 0, result.stdout+'\n'+result.stderr
+        assert '"start_method": "spawn"' in result.stdout
 
 
 def test_representation_catalog_and_real_degrees_of_freedom():

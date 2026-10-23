@@ -154,7 +154,8 @@ def display(study, result):
     if pid and sys.platform.startswith('linux'):
         cmdline = Path(f'/proc/{pid}/cmdline')
         try:
-            alive = b'loss_balance_study.py' in cmdline.read_bytes()
+            command = cmdline.read_bytes()
+            alive = any(name in command for name in (b'loss_balance_study.py', b'resume_loss_evaluation.py'))
         except OSError:
             alive = False
         print('主控进程:', '存在' if alive else '不存在或PID已被复用')

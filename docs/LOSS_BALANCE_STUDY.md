@@ -252,3 +252,50 @@ allowance is 1-3 hours apportioned over unfinished metric jobs, not an observed
 ETA or a confidence interval. Queued waiting time is excluded. If the Linux
 controller PID no longer exists, ETA represents remaining work after recovery.
 The summary preserves the distinction between finished execution and quality.
+
+
+## Linux reference-pool stall and evaluation-only recovery
+
+On Python 3.10 Linux the default process start method is fork. Creating a CPU
+ProcessPoolExecutor after PyTorch/CUDA/OpenMP activity can inherit locked thread
+state. A pool whose workers have existed for tens of minutes with near-zero
+cumulative CPU time, futex waits and no reference progress is strong evidence
+of a stall, although a native stack trace is needed to establish the exact lock.
+Old wall-clock completion estimates do not apply while a worker is stalled.
+
+The live evaluator now explicitly requests a spawn context and prints
+`reference_start` and the first completed reference. A regression test warms
+PyTorch threads, selects fork globally when available, and checks that the
+pool still uses spawn with identical serial/parallel 3D/2D results.
+
+Existing studies execute frozen scripts. Updating the repository does not
+replace code inside an already running worker or modify frozen source hashes.
+The evaluation-only recovery launcher selects spawn before importing the
+original frozen evaluator. It leaves all frozen source, training data, weights,
+property settings, random seeds and sampling budgets unchanged.
+
+Read-only recovery plan (safe while the old task is present):
+
+```bash
+python scripts/resume_loss_evaluation.py \
+  --study artifacts/loss_balance_4090_seed42 --plan
+```
+
+The plan hashes original inputs and frozen files, verifies every completed
+20-epoch checkpoint, and identifies completed model evaluations to reuse. No
+process is stopped and no study output is written by `--plan`.
+
+Only after the operator has authorized and finished stopping the old controller
+AND its stuck descendants, `--run` resumes pending evaluations. It refuses to
+run while the original controller or matching workers are present. Completed
+tests, sampling attempts and metric files are reused by the frozen evaluator;
+partial sampling is preserved and requires review rather than silent reruns.
+The stale pipeline lock and previous status are archived under `recovery/`.
+Each recovery worker starts a fresh interpreter and selects spawn before
+loading the frozen PyTorch code. Training is not an available recovery action.
+At the end the original comparison/PNG report is generated and a ZIP is packed.
+The provenance receipt and recovery launcher are included in that ZIP.
+
+This launcher does not stop any process automatically and does not start main15.
+Source: Python 3.10 multiprocessing contexts documentation,
+https://docs.python.org/3.10/library/multiprocessing.html#contexts-and-start-methods
