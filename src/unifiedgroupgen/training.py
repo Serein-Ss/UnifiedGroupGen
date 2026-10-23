@@ -223,9 +223,12 @@ def run_training(args, config, records, validation, proposal, flow, train_paths,
         host = totals.cpu().tolist()
         training = {key: value/len(records) for key, value in zip(keys, host)}
         gradient_norm_mean = host[4]/len(batches)
+        training_seconds = time.perf_counter()-started
         devices = [torch.device(args.device).index or 0] if args.device.startswith('cuda') else []
         validated, val_loss, improved = None, None, False
+        validation_started = None
         if (epoch+1) % interval == 0 or epoch == epochs-1:
+            validation_started = time.perf_counter()
             proposal.eval(); flow.eval()
             totals = torch.zeros(4, device=args.device, dtype=torch.float64)
             save_status(output, {'state': 'running', 'phase': 'validation', 'epoch': epoch,
@@ -257,13 +260,16 @@ def run_training(args, config, records, validation, proposal, flow, train_paths,
             last_validation = epoch
         if args.device.startswith('cuda'):
             torch.cuda.synchronize()
+        validation_seconds = time.perf_counter()-validation_started if validation_started is not None else 0.0
         history = {'epoch': epoch, 'train': training, 'val': validated, 'val_loss': val_loss,
                    'validated': validated is not None, 'best_val_loss': best if np.isfinite(best) else None,
                    'seconds': time.perf_counter()-started,
+                   'training_seconds': training_seconds, 'validation_seconds': validation_seconds,
                    'learning_rate': optimizer.param_groups[0]['lr'], 'gradient_norm_mean': gradient_norm_mean,
                    'train_records': len(records), 'val_records': len(validation),
                    'runtime_options': runtime,
-                   'peak_cuda_bytes': torch.cuda.max_memory_allocated() if devices else 0}
+                   'peak_cuda_bytes': torch.cuda.max_memory_allocated() if devices else 0,
+                   'peak_cuda_reserved_bytes': torch.cuda.max_memory_reserved() if devices else 0}
         train_loss = weights['descriptor']*training['descriptor']+weights['flow']*training['flow']
         val_text = f'{val_loss:.4f}' if val_loss is not None else 'skipped'
         checkpoint = {'config': config, 'epoch': epoch, 'proposal': proposal.state_dict(), 'flow': flow.state_dict(),
@@ -280,9 +286,11 @@ def run_training(args, config, records, validation, proposal, flow, train_paths,
             save_checkpoint(output.with_suffix('.best.pt'), checkpoint)
         history['checkpoint_seconds'] = time.perf_counter()-checkpoint_started
         history['wall_seconds'] = time.perf_counter()-started
+        history['other_seconds'] = history['wall_seconds']-training_seconds-validation_seconds-history['checkpoint_seconds']
         print(f'Epoch {epoch+1}/{epochs} | {len(batches)}/{len(batches)} batches | train={train_loss:.4f} '
               f'| val={val_text} | lr={history["learning_rate"]:.2g} | time={history["seconds"]:.1f}s '
-              f'| wall={history["wall_seconds"]:.1f}s', flush=True)
+              f'| wall={history["wall_seconds"]:.1f}s | train_t={training_seconds:.1f}s '
+              f'| val_t={validation_seconds:.1f}s | save_t={history["checkpoint_seconds"]:.1f}s', flush=True)
         with output.with_suffix('.history.jsonl').open('a', encoding='utf-8') as stream:
             stream.write(json.dumps(history)+'\n')
         completed = epoch+1

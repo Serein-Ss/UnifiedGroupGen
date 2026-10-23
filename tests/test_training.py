@@ -241,6 +241,12 @@ def test_five_epoch_validation_schedule_and_mid_interval_resume(tmp_path, monkey
         history = [json.loads(line) for line in (tmp_path/f'{name}.history.jsonl').read_text().splitlines()]
         assert [h['epoch']+1 for h in history if h['validated']] == [5, 7]
         assert all(h['val_loss'] is None and h['val'] is None for h in history if not h['validated'])
+        for h in history:
+            phases = ('training_seconds', 'validation_seconds', 'checkpoint_seconds', 'other_seconds')
+            assert all(h[key] >= 0 for key in phases)
+            assert sum(h[key] for key in phases) == pytest.approx(h['wall_seconds'], abs=1e-6)
+            assert h['validation_seconds'] > 0 if h['validated'] else h['validation_seconds'] == 0
+            assert h['peak_cuda_reserved_bytes'] >= h['peak_cuda_bytes']
         assert [epoch for path, epoch in saves if path == f'{name}.pt'] == list(range(7))
     for model in ('proposal', 'flow'):
         for key in full[model]:

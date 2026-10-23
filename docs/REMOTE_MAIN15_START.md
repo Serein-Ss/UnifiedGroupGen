@@ -29,6 +29,37 @@ tail -n 30 -F artifacts/benchmarks/4090_grid.driver.log
 最快候选只供下一阶段压力与整轮复测，不自动启动训练。
 下文分步命令供手动执行与核对；选择一键脚本时不用重复执行。
 
+### 线程结果确认后的单模型5轮入口
+
+线程测速结果返回后，分别为MP20、C2DB及联合选择吞吐快且压力检查通过的运行候选。
+当前不预设最优线程数。5轮计时入口为 `scripts/train_timing_pilot.py`，
+必填单个 `--model`、选定的 `--threads` 与独立 `--output`；只允许三套代表配置，
+训练轮数固定为5、验证间隔固定为5，不调用15套队列。接口可先通过以下只读命令查看：
+
+```bash
+python scripts/train_timing_pilot.py --help
+```
+
+输出目录限制在 `artifacts/runtime_pilots/`，不覆盖正式或配对实验；从初始化开始，
+固定种子42，原始模型配置、完整TRAIN/VAL、性质CFG、batch和精度保持不变。
+CPU线程通过CLI全局参数 `--threads` 以及子进程OMP/MKL环境同时生效。
+默认关闭激活重计算、边块32768，仍允许显式选择压力测试确认过的候选。
+它保存5轮权重供后续检查，但不继续开展正式训练。
+
+每轮记录 `training_seconds`、`validation_seconds`、`checkpoint_seconds`、
+`other_seconds`、`wall_seconds` 以及分配/保留显存峰值；第1至4轮验证耗时为0，
+第5轮执行完整验证。保存耗时包括当轮实际发生的最新/最优检查点写入。
+训练时间包括批次组装、前后向、优化和训练统计；验证时间包括验证计算和指标/调度更新。
+原有 `seconds` 字段保持保存权重前轮耗时的含义。
+
+完成后自动生成 `timing.csv`、`timing.json` 和 `pilot.json`。
+汇总保留冷启动第1轮，并单列第2至4轮训练耗时中位数、5轮各阶段总和、整个子进程墙钟时间。
+`process_overhead_outside_epoch_timing_seconds` 包含启动、读取/准备数据及轮外日志/状态等，
+不应解释为单独的数据加载耗时。线程结果确认后再提供填好实际参数的启动命令。
+
+2026-10-23 本地PyTorch2.2.1 CPU定向验证7项通过：覆盖计时汇总、仅单模型/固定5轮入口、
+验证间隔和断点恢复一致性。没有在本轮启动新的GPU试跑；实际4090耗时由服务器补齐。
+
 ## 1. 更新代码与环境
 
 ```bash
