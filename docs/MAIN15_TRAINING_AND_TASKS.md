@@ -2,6 +2,8 @@
 
 本方案不增加控制微调。性质编码保持每种性质独立 MLP；群—轨道编译器与图网络候选速度主干保持原方式。旧数据模型保留为历史结果，不用于恢复这批训练。
 
+等价计算加速、4090 同批测速、显存检查与续训选项见 [TRAINING_ACCELERATION.md](TRAINING_ACCELERATION.md)。15 套 YAML 和数据保持不变；`train_main15.py` 支持 `--checkpoint`/`--no-checkpoint`、`--edge-chunk-size` 运行覆盖。
+
 ## 1. 训练矩阵
 
 三个数据设置：`mp20`、`c2db51`、`joint`（仅 MP20+C2DB）。每种设置五个后缀：

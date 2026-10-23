@@ -24,9 +24,14 @@ def main():
     parser.add_argument('--device', default='cuda')
     parser.add_argument('--resume', action='store_true')
     parser.add_argument('--plan', action='store_true')
+    parser.add_argument('--checkpoint', action=argparse.BooleanOptionalAction, default=None,
+                        help='Activation recomputation only; model checkpoints are always saved')
+    parser.add_argument('--edge-chunk-size', type=int)
     args = parser.parse_args()
     if len(set(args.models)) != len(args.models):
         parser.error('Duplicate model names')
+    if args.edge_chunk_size is not None and args.edge_chunk_size < 1:
+        parser.error('edge-chunk-size must be positive')
     jobs = []
     for name in args.models:
         output = f'artifacts/runs/main15_seed{args.seed}/{name}/model.pt'
@@ -35,6 +40,10 @@ def main():
                    '--output', output, '--validation-interval', '5']
         if args.resume and (ROOT/output).exists():
             command += ['--resume', output]
+        if args.checkpoint is not None:
+            command.append('--checkpoint' if args.checkpoint else '--no-checkpoint')
+        if args.edge_chunk_size is not None:
+            command += ['--edge-chunk-size', str(args.edge_chunk_size)]
         jobs.append({'name': name, 'command': command, 'output': output})
     if args.plan:
         print(json.dumps(jobs, indent=2))

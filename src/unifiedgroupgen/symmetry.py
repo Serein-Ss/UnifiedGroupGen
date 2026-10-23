@@ -151,6 +151,17 @@ class CompiledDescriptor:
         for i, a in enumerate(self.blocks):
             self.coordinate_basis[start:start + len(a), :, self.offsets[i]:self.offsets[i + 1]] = a
             start += len(a)
+        # Each orbit has at most three independent coordinates. Keep its small
+        # basis beside the full diagnostic chart, without padding to total q.
+        self.projection_basis = np.zeros((self.num_atoms, 3, 3))
+        self.projection_unused = np.ones((len(self.blocks), 3), dtype=bool)
+        start = 0
+        for i, a in enumerate(self.blocks):
+            width = self.offsets[i+1]-self.offsets[i]
+            self.projection_basis[start:start+len(a), :, :width] = a
+            self.projection_unused[i, :width] = False
+            start += len(a)
+        self.projection_indices = np.flatnonzero(~self.projection_unused.reshape(-1))
         self.dof = self.lattice_dof + self.coordinate_dof
         self.state_periodic = np.array([False] * self.lattice_dof + self.q_periodic)
         self.periodic_indices = np.flatnonzero(self.state_periodic)
@@ -167,7 +178,9 @@ class CompiledDescriptor:
                                                 self.coordinate_basis, self.elements, self.atom_orbit,
                                                 self.periodic, self.state_periodic, self.periodic_indices,
                                                 self.orbit_letters, self.edge_index,
-                                                self.padded_metric_basis, self.padded_root)}
+                                                self.padded_metric_basis, self.padded_root,
+                                                self.projection_basis, self.projection_unused,
+                                                self.projection_indices)}
         self._tensor_cache = {}
 
     def tensor(self, array, like, dtype=None):

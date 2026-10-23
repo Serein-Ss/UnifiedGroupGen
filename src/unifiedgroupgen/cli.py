@@ -38,6 +38,23 @@ def composition_of(compiled):
     return {int(z): int(n) for z, n in zip(values, counts)}
 
 
+def fit_training_config(config, records):
+    """Use the same TRAIN-only element domain and property scalers in training and timing."""
+    config = dict(config)
+    if config.get('element_policy', 'training') == 'training' and not config.get('allowed_elements'):
+        config['allowed_elements'] = sorted({o['atomic_number'] for r in records for o in r['descriptor']['orbits']})
+    config['properties'] = fit_property_scalers(records, config.get('properties', {}))
+    if config.get('dataset_domains'):
+        config['domain_label_support'] = {}
+        for dataset, domain in config['dataset_domains'].items():
+            rows = [r for r in records if r['dataset'] == dataset]
+            config['domain_label_support'][str(domain)] = {
+                'kinds': sorted({r['descriptor']['kind'] for r in rows}),
+                'property_counts': {name: sum(r['properties'].get(name) is not None for r in rows)
+                                    for name, specification in config['properties'].items() if not specification.get('context')}}
+    return config
+
+
 def build_models(config, device):
     from .symmetry_preflight import check_layer_catalog
     check_layer_catalog()
@@ -94,17 +111,7 @@ def train(args):
     train_keys = {(r['dataset'], r['id']) for r in records}
     if train_keys & {(r['dataset'], r['id']) for r in validation}:
         raise ValueError("Training/validation identifier overlap")
-    if config.get('element_policy', 'training') == 'training' and not config.get('allowed_elements'):
-        config['allowed_elements'] = sorted({o['atomic_number'] for r in records for o in r['descriptor']['orbits']})
-    config['properties'] = fit_property_scalers(records, config.get('properties', {}))
-    if config.get('dataset_domains'):
-        config['domain_label_support'] = {}
-        for dataset, domain in config['dataset_domains'].items():
-            rows = [r for r in records if r['dataset'] == dataset]
-            config['domain_label_support'][str(domain)] = {
-                'kinds': sorted({r['descriptor']['kind'] for r in rows}),
-                'property_counts': {name: sum(r['properties'].get(name) is not None for r in rows)
-                                    for name, specification in config['properties'].items() if not specification.get('context')}}
+    config = fit_training_config(config, records)
     proposal, flow = build_models(config, args.device)
     output = artifact_path(args.output or f"artifacts/{config['dataset']}/model.pt")
     if args.resume:

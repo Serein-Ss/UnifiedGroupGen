@@ -5,7 +5,6 @@ constraints; the bare message network is not claimed to be SO(3)-equivariant.
 """
 
 import math
-import numpy as np
 import torch
 from torch import nn
 from .conditioning import PropertyEncoder
@@ -23,10 +22,20 @@ class MessageLayer(nn.Module):
         self.norm = nn.LayerNorm(hidden)
 
     def forward(self, h, edges, edge_index, degree, chunk_size=8192):
+        # Split the SAME affine map; do not repeat node projections per edge.
+        hidden = h.shape[-1]
+        linear = self.edge[0]
+        source_h = nn.functional.linear(h, linear.weight[:, :hidden])
+        target_h = nn.functional.linear(h, linear.weight[:, hidden:2*hidden])
+        # AMP does not cache non-leaf weight slices. Cast this shared slice
+        # once per layer, rather than once per edge chunk.
+        edge_weight = linear.weight[:, 2*hidden:].to(source_h.dtype)
+        edge_bias = linear.bias.to(source_h.dtype)
         aggregate = torch.zeros_like(h)
         for start in range(0, edges.shape[0], chunk_size):
             source, target = edge_index[:, start:start+chunk_size]
-            messages = self.edge(torch.cat((h[source], h[target], edges[start:start+chunk_size]), dim=-1))
+            edge_h = nn.functional.linear(edges[start:start+chunk_size], edge_weight, edge_bias)
+            messages = self.edge[2](self.edge[1](source_h[source] + target_h[target] + edge_h))
             aggregate = aggregate.index_add(0, source, messages.to(aggregate.dtype))
         aggregate = aggregate / degree[:, None].clamp_min(1)
         return self.norm(h + self.node(torch.cat((h, aggregate), dim=-1)))
@@ -60,7 +69,7 @@ class OrbitFlow(nn.Module):
         offset = {"space": 0, "layer": 230, "plane": 310}[descriptor.kind]
         return offset + descriptor.number
 
-    def _features(self, compiled, state, lattice, global_h, observation):
+    def _features(self, compiled, state, lattice, global_h, observation, null_observation=None):
         # Geometry and constraint solves stay FP32/FP64 even under neural-network AMP.
         with torch.autocast(device_type=state.device.type, enabled=False):
             coords = compiled.tensor(compiled.b, state) + compiled.coordinate_velocity(state[compiled.lattice_dof:])
@@ -69,18 +78,24 @@ class OrbitFlow(nn.Module):
         letters = compiled.tensor(compiled.orbit_letters, state, torch.long)
         orbit_ids = compiled.tensor(compiled.atom_orbit, state, torch.long)
         h = self.atom_embedding(compiled.tensor(compiled.elements, state, torch.long)) + self.orbit_embedding(letters[orbit_ids]) + global_h
-        observed_base, observed_mask = (observation.features(state) if observation is not None
-                                        else (torch.zeros_like(state), torch.zeros_like(state)))
-        padded_k = state.new_zeros(6)
-        padded_mask = state.new_zeros(6)
-        padded_k[:compiled.lattice_dof] = observed_base[:compiled.lattice_dof]
-        padded_mask[:compiled.lattice_dof] = observed_mask[:compiled.lattice_dof]
-        h = h + self.observation_encoder(torch.cat((padded_k, padded_mask)))
-        # Per-site physical observed position; mask amplitude also signals which orbit is constrained.
-        a = compiled.tensor(compiled.coordinate_basis, state)
-        observed_pos = torch.einsum('iaq,q->ia', a, observed_base[compiled.lattice_dof:])
-        observed_site_mask = torch.einsum('iaq,q->ia', a.abs(), observed_mask[compiled.lattice_dof:])
-        h = h + self.site_encoder(torch.cat((observed_pos, observed_site_mask), dim=-1))
+        if observation is None:
+            # Biases remain trainable: zero input is not zero encoder output.
+            if null_observation is None:
+                null_observation = (self.observation_encoder(state.new_zeros(12)),
+                                    self.site_encoder(state.new_zeros(6)))
+            h = h + null_observation[0]
+            h = h + null_observation[1]
+        else:
+            observed_base, observed_mask = observation.features(state)
+            padded_k = state.new_zeros(6)
+            padded_mask = state.new_zeros(6)
+            padded_k[:compiled.lattice_dof] = observed_base[:compiled.lattice_dof]
+            padded_mask[:compiled.lattice_dof] = observed_mask[:compiled.lattice_dof]
+            h = h + self.observation_encoder(torch.cat((padded_k, padded_mask)))
+            a = compiled.tensor(compiled.coordinate_basis, state)
+            observed_pos = torch.einsum('iaq,q->ia', a, observed_base[compiled.lattice_dof:])
+            observed_site_mask = torch.einsum('iaq,q->ia', a.abs(), observed_mask[compiled.lattice_dof:])
+            h = h + self.site_encoder(torch.cat((observed_pos, observed_site_mask), dim=-1))
         edge_index = compiled.tensor(compiled.edge_index, state, torch.long)
         source, target = edge_index
         diff = coords[target] - coords[source]
@@ -91,6 +106,28 @@ class OrbitFlow(nn.Module):
         edge_features = torch.cat((phase.sin().flatten(-2), phase.cos().flatten(-2),
                                    nonperiodic_diff, h_metric.reshape(1, 9).expand(len(source), -1)), dim=-1)
         return h, edge_features, edge_index, lattice
+
+    def _project_coordinates(self, compiled, candidates, lattices, states, node_graph):
+        """The original metric least-squares projection, solved in orbit blocks."""
+        if not any(c.coordinate_dof for c in compiled):
+            return [z.new_zeros(0) for z in states], None
+        orbit_offsets = [0]
+        for c in compiled:
+            orbit_offsets.append(orbit_offsets[-1]+len(c.blocks))
+        basis = torch.cat([c.tensor(c.projection_basis, z) for c, z in zip(compiled, states)])
+        orbit = torch.cat([c.tensor(c.atom_orbit, z, torch.long)+offset
+                           for c, z, offset in zip(compiled, states, orbit_offsets)])
+        metrics = lattices.transpose(1, 2) @ lattices
+        weighted = basis.transpose(1, 2) @ metrics[node_graph]
+        gram = states[0].new_zeros((orbit_offsets[-1], 3, 3)).index_add(0, orbit, weighted @ basis)
+        rhs = states[0].new_zeros((orbit_offsets[-1], 3, 1)).index_add(
+            0, orbit, weighted @ candidates.to(basis.dtype).unsqueeze(-1))
+        unused = torch.cat([c.tensor(c.projection_unused, z, torch.bool) for c, z in zip(compiled, states)])
+        gram = gram + torch.diag_embed(unused.to(gram.dtype))
+        solution, info = torch.linalg.solve_ex(gram, rhs, check_errors=False)
+        velocities = [solution[start:stop].reshape(-1)[c.tensor(c.projection_indices, z, torch.long)]
+                      for c, z, start, stop in zip(compiled, states, orbit_offsets, orbit_offsets[1:])]
+        return velocities, info
 
     def forward(self, compiled, state, time, properties=None, force_null=False, observation=None, composition=None):
         return self.forward_batch([compiled], [state], [time], [properties or {}], force_null,
@@ -115,14 +152,17 @@ class OrbitFlow(nn.Module):
             bases = torch.stack([c.tensor(c.padded_metric_basis, z) for c, z in zip(compiled, states)])
             roots = torch.stack([c.tensor(c.padded_root, z) for c, z in zip(compiled, states)])
             metrics = roots @ torch.matrix_exp(torch.einsum('bk,bkij->bij', k, bases)) @ roots
-            lattices = torch.linalg.cholesky(metrics).transpose(1, 2)
+            factors, metric_info = torch.linalg.cholesky_ex(metrics, check_errors=False)
+            lattices = factors.transpose(1, 2)
         times = torch.stack([torch.as_tensor(t, device=flat.device, dtype=flat.dtype) for t in times])
         phases = self._time_frequencies.to(flat)*math.pi*times[:, None]
         global_h = self.time_encoder(torch.cat((phases.sin(), phases.cos()), -1))
         global_h = global_h + self.lattice_encoder((lattices.transpose(1, 2) @ lattices).reshape(count, 9))
         groups = torch.tensor([self.group_id(c.descriptor) for c in compiled], device=flat.device)
         global_h = global_h + self.group_embedding(groups) + conditions
-        features = [self._features(c, z, lattice, context, o)
+        null_observation = ((self.observation_encoder(flat.new_zeros(12)), self.site_encoder(flat.new_zeros(6)))
+                            if any(o is None for o in observations) else None)
+        features = [self._features(c, z, lattice, context, o, null_observation)
                     for c, z, lattice, context, o in zip(compiled, states, lattices, global_h, observations)]
         h = torch.cat([f[0] for f in features])
         edges = torch.cat([f[1] for f in features])
@@ -144,30 +184,17 @@ class OrbitFlow(nn.Module):
         proposals = self.lattice_head(pooled).reshape(count, 3, 3)
         velocities = []
         with torch.autocast(device_type=h.device.type, enabled=False):
-            # Padding introduces identity equations only for unused coordinates.
-            max_atoms = max(c.num_atoms for c in compiled)
-            max_q = max(c.coordinate_dof for c in compiled)
-            q_velocities = states[0].new_zeros((count, max_q))
-            if max_q:
-                a_cpu = np.zeros((count, max_atoms, 3, max_q), dtype=np.float64)
-                node_indices = np.full((count, max_atoms), offsets[-1], dtype=np.int64)
-                for i, c in enumerate(compiled):
-                    a_cpu[i, :c.num_atoms, :, :c.coordinate_dof] = c.coordinate_basis
-                    node_indices[i, :c.num_atoms] = np.arange(offsets[i], offsets[i+1])
-                a = torch.as_tensor(a_cpu, device=flat.device, dtype=flat.dtype)
-                nodes = torch.as_tensor(node_indices, device=flat.device)
-                candidate = torch.cat((candidates.to(flat.dtype), flat.new_zeros((1, 3))))[nodes]
-                m = lattices.transpose(1, 2) @ lattices
-                gram = torch.einsum('biaq,bac,bicr->bqr', a, m, a)
-                rhs = torch.einsum('biaq,bac,bic->bq', a, m, candidate)
-                q_dofs = torch.tensor([c.coordinate_dof for c in compiled], device=flat.device)
-                unused = torch.arange(max_q, device=flat.device)[None] >= q_dofs[:, None]
-                gram = gram + torch.diag_embed(unused.to(flat.dtype))
-                q_velocities = torch.linalg.solve(gram, rhs[..., None])[..., 0]
+            q_velocities, projection_info = self._project_coordinates(compiled, candidates, lattices, states, node_graph)
+            # Combine CUDA error checks into one synchronization, without hiding failures.
+            infos = [metric_info.reshape(-1)]
+            if projection_info is not None:
+                infos.append(projection_info.reshape(-1))
+            if torch.cat(infos).ne(0).any():
+                raise torch.linalg.LinAlgError('Metric factorization or orbit projection failed')
             proposed = proposals.to(flat.dtype)
             k_velocities = torch.einsum('bkij,bij->bk', bases, (proposed+proposed.transpose(1, 2))/2)
             for i, (c, observation) in enumerate(zip(compiled, observations)):
-                velocity = torch.cat((k_velocities[i, :c.lattice_dof], q_velocities[i, :c.coordinate_dof]))
+                velocity = torch.cat((k_velocities[i, :c.lattice_dof], q_velocities[i]))
                 velocities.append(observation.project(velocity) if observation is not None else velocity)
         return (velocities, [feature[3] for feature in features]) if return_lattices else velocities
 

@@ -96,6 +96,8 @@ class PropertyEncoder(nn.Module):
                 use = use & torch.tensor([name in subset for subset in subsets], device=like.device)
             encoded = self.encoders[name](inputs)
             result = result + torch.where(use[:, None], encoded, self.null[name])
+        if all(composition is None for composition in compositions):
+            return result + self.composition(like.new_zeros(118))
         counts = [[0]*118 for _ in compositions]
         for row, composition in zip(counts, compositions):
             for atomic_number, number in (composition or {}).items():
