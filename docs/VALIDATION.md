@@ -1,5 +1,13 @@
 # 本次实际验证记录
 
+## 2026-10-24：15 套正式调度参数与执行顺序
+
+- 正式调度默认依次为 MP20/C2DB/联合基础、MP20/C2DB/联合三性质、再按数据设置分组的九套单性质模型。运行覆盖采用 MP20 256/400000、C2DB 768/200000、联合 256/400000（batch/边预算），统一 3 Å、坐标损失除以 9、4 线程、关闭激活重计算、边分块 32768、五轮验证。模型架构、15 份 YAML 与数据文件不变。
+- `tests/test_main15_schedule.py`、`test_training_acceleration.py`、`test_main15_controls.py`：**29 passed、6 skipped，57.02 秒**。覆盖计划无子进程/无文件副作用、全套顺序/条件/参数、YAML 内容和字节不变、模拟串行执行与完成任务跳过、尺度不一致拒绝恢复，以及已有加速/控制回归。
+- 实际微型 CPU 训练的运行参数恢复、五轮验证/中断恢复、按训练轮计数的耐心规则：**3 passed、1 skipped，4.89 秒**。确认历史中的流损失等于晶格损失加原始坐标损失除以 9，连续与恢复训练的模型权重逐位一致。日志：`artifacts/main15/formal_schedule_training_tests.log`。
+- 以上使用 PyTorch 2.2.1 CPU / PyXtal 1.1.3；7 项跳过均因 CUDA 不可用。本轮不声称重新完成 GPU 吞吐或收敛验证。
+- `prepare_main15.py --verify-only` 三组门禁全部通过：MP20 27136/9047/9046，C2DB 10143/3381/3381，联合 37279/12428/12427。日志：`artifacts/main15/formal_schedule_data_verify.log`。实际只读导出 15 套命令至 `artifacts/main15/formal_schedule_plan.json`；没有启动正式训练。
+
 > **2026-10-22 来源一致性修订：** 68条旧编码需处理，66条修复、2条MPTS52隔离；正式数据102,608条，联合划分82,183/10,190/10,235。M1/M2/M3均需干净重训，以下旧训练与生成指标保留历史身份。详见[完整审计与迁移](SOURCE_INTEGRITY_AUDIT_20261022.md)。
 
 

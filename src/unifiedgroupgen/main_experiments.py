@@ -8,6 +8,18 @@ REGIMES = {'u': (), 'ef': ('formation_energy',), 'eg': ('band_gap',),
            'all': ('formation_energy', 'band_gap', 'energy_above_hull')}
 SOURCES = {'mp20': ('mp_20', 'configs/mp20_verified_v1.yaml'),
            'c2db51': ('c2db_51', 'configs/c2db_verified_v1.yaml')}
+TRAINING_ORDER = (
+    'mp20_u', 'c2db51_u', 'joint_u',
+    'mp20_all', 'c2db51_all', 'joint_all',
+    'mp20_ef', 'mp20_eg', 'mp20_eh',
+    'c2db51_ef', 'c2db51_eg', 'c2db51_eh',
+    'joint_ef', 'joint_eg', 'joint_eh',
+)
+RUNTIME_BY_DATASET = {
+    'mp20': {'batch_size': 256, 'edge_budget': 400000},
+    'c2db51': {'batch_size': 768, 'edge_budget': 200000},
+    'joint': {'batch_size': 256, 'edge_budget': 400000},
+}
 
 
 def configurations(root):
@@ -40,10 +52,7 @@ def configurations(root):
             if dataset == 'joint':
                 config['properties']['source_domain'] = {'type': 'categorical', 'num_classes': 2, 'context': True}
             result[name] = config
-    # Start with the three base models, then the 12 property models.
-    names = [f'{d}_u' for d in ('mp20', 'c2db51', 'joint')]
-    names += [name for name in result if name not in names]
-    return {name: result[name] for name in names}
+    return {name: result[name] for name in TRAINING_ORDER}
 
 
 def paths(config, root):

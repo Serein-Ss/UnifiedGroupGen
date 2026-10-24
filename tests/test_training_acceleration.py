@@ -157,7 +157,7 @@ def test_benchmark_uses_train_scalers_domains_and_main15_probabilities(tmp_path,
     assert not list(tmp_path.glob('*.pt'))
 
 
-def test_main15_forwards_only_compute_options_without_mutating_configs(monkeypatch, capsys):
+def test_main15_forwards_runtime_options_without_mutating_configs(monkeypatch, capsys):
     module = script('train_main15')
     monkeypatch.setattr(sys, 'argv', ['train_main15', '--models', 'mp20_u', 'joint_all', '--plan',
                                     '--no-checkpoint', '--edge-chunk-size', '32768'])
@@ -167,4 +167,6 @@ def test_main15_forwards_only_compute_options_without_mutating_configs(monkeypat
     for job in jobs:
         assert '--no-checkpoint' in job['command']
         assert job['command'][job['command'].index('--edge-chunk-size')+1] == '32768'
-        assert '--batch-size' not in job['command']
+        assert job['command'][job['command'].index('--batch-size')+1] == '256'
+        assert job['command'][job['command'].index('--edge-budget')+1] == '400000'
+        assert job['command'][job['command'].index('--coordinate-length-scale')+1] == '3.0'

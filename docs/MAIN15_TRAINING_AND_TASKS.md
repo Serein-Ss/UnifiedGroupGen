@@ -1,10 +1,10 @@
 # 修复数据上的 15 套主实验与硬约束任务
 
-当前服务器步骤：先按 [参数测速与筛选](REMOTE_MAIN15_START.md) 完成候选测试和单模型整轮确认；下文训练矩阵为后续计划，暂不直接启动整批队列。
+当前服务器步骤：运行参数已根据测速及三组 5 轮试跑接入调度脚本。先按 [服务器计划检查](REMOTE_MAIN15_START.md) 核验数据、15 套顺序和运行参数；本次不启动正式训练。
 
 本方案不增加控制微调。性质编码保持每种性质独立 MLP；群—轨道编译器与图网络候选速度主干保持原方式。旧数据模型保留为历史结果，不用于恢复这批训练。
 
-等价计算加速、4090 同批测速、显存检查与续训选项见 [TRAINING_ACCELERATION.md](TRAINING_ACCELERATION.md)。15 套 YAML 和数据保持不变；`train_main15.py` 支持 `--checkpoint`/`--no-checkpoint`、`--edge-chunk-size` 运行覆盖。
+等价计算加速、4090 同批测速、显存检查与续训选项见 [TRAINING_ACCELERATION.md](TRAINING_ACCELERATION.md)。15 套 YAML 和数据保持不变；下列运行参数通过 CLI 覆盖，并写入检查点及调度身份记录。
 
 ## 1. 训练矩阵
 
@@ -48,36 +48,43 @@ python scripts/train_main15.py --plan
 
 `--configs-only` 只生成配置，不是数据验证；`--verify-only` 检查已经完成的门禁。配置生成器不覆盖内容不同的现有实验定义。
 
-## 3. 执行训练
+## 3. 正式调度参数与顺序（当前仅检查计划）
 
-先运行三套基础模型：
+| 数据设置 | batch size 上限 | 每批边预算 |
+| --- | ---: | ---: |
+| MP20 | 256 | 400000 |
+| C2DB51 | 768 | 200000 |
+| MP20+C2DB51 | 256 | 400000 |
+
+共同设置：4 CPU 线程、bf16、关闭激活重计算、边分块 32768、每 5 轮验证；坐标参考长度 3 Å，坐标速度平方损失除以 3²=9。初始学习率 0.0003、最大 1000 轮、梯度裁剪和早停规则沿用原配置，不随 batch 自动缩放。边预算可能使实际批次小于 batch size 上限；不以填满显存为目标。关闭激活重计算不影响保存模型检查点。
+
+默认串行顺序如下，一套结束后才进入下一套；前六套结束后继续其余九套，不自动暂停：
+
+1. `mp20_u`：MP20 基础
+2. `c2db51_u`：C2DB 基础
+3. `joint_u`：联合基础
+4. `mp20_all`：MP20 三性质
+5. `c2db51_all`：C2DB 三性质
+6. `joint_all`：联合三性质
+7. `mp20_ef`：MP20 形成能
+8. `mp20_eg`：MP20 带隙
+9. `mp20_eh`：MP20 凸包上能量
+10. `c2db51_ef`：C2DB 形成能
+11. `c2db51_eg`：C2DB 带隙
+12. `c2db51_eh`：C2DB 凸包上能量
+13. `joint_ef`：联合形成能
+14. `joint_eg`：联合带隙
+15. `joint_eh`：联合凸包上能量
 
 ```bash
-mkdir -p artifacts/runs
-CUDA_VISIBLE_DEVICES=0 nohup python -u scripts/train_main15.py \
-  --models mp20_u c2db51_u joint_u --device cuda \
-  > artifacts/runs/main15_base.driver.log 2>&1 &
-echo $!
+python scripts/train_main15.py --device cuda --seed 42 --plan
 ```
 
-基础模型完成并检查结果后，运行全部清单；`--resume` 跳过同一运行目录中已完成的模型，恢复已中断模型，未开始的模型从头训练：
+`--plan` 只打印 JSON，不初始化模型、不调用训练子进程、不创建运行锁或权重。完整服务器核验命令见 [REMOTE_MAIN15_START.md](REMOTE_MAIN15_START.md)。当前不要删除 `--plan`。
 
-```bash
-CUDA_VISIBLE_DEVICES=0 nohup python -u scripts/train_main15.py --resume --device cuda \
-  > artifacts/runs/main15_remaining.driver.log 2>&1 &
-echo $!
-```
+后续获准启动时，同 seed 队列由 `runner.lock` 防止重复；`--resume` 跳过已完成模型、恢复中断模型，从头运行未开始模型。身份文件同时校验全部 15 套 YAML 哈希与运行参数；不同参数或缺失身份的旧权重会被拒绝，不能把试跑权重放入正式运行目录。显式 `--models` 可选择子清单，但不改变全套身份校验。
 
-也可以首次直接运行完整 15 套：`python -u scripts/train_main15.py --device cuda`。**不要同时启动以上队列。**同 seed 的 runner.lock 防止重复队列，旧锁仅在确认对应父子训练进程均已结束后手动移除。
-
-```bash
-tail -F artifacts/runs/main15_base.driver.log
-tail -F artifacts/runs/main15_seed42/mp20_u.log
-watch -n 5 python -m json.tool artifacts/runs/main15_seed42/mp20_u/model.status.json
-nvidia-smi
-```
-
-每套训练同时优化描述 Transformer 和流网络，另存 `model.pt`、`model.best.pt`、`model.history.jsonl`、`model.status.json`。不能将旧实验的检查点传给新配置恢复。`--seed` 用于独立训练重复；采样重复不等于独立训练种子。
+每套训练同时优化描述 Transformer 和流网络，另存 `model.pt`、`model.best.pt`、`model.history.jsonl`、`model.status.json`。默认输出根目录是 `artifacts/runs/main15_seed42`；调度状态为 `runner.json`，逐模型日志为 `<模型名>.log`。`--seed` 用于独立训练重复；采样重复不等于独立训练种子。
 
 ## 4. 完整测试、无条件/性质采样
 

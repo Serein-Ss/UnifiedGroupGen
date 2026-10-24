@@ -1,4 +1,63 @@
-# 4090先测速，再确定单模型训练参数
+# 4090 正式训练计划检查
+
+## 当前步骤：参数已选定，只更新与检查，不启动训练
+
+已接入三组试跑参数：MP20 `256/400000`、C2DB51 `768/200000`、联合 `256/400000`（batch/边预算）。共同采用 3 Å、坐标损失除以 9、4 线程、关闭激活重计算、边分块 32768、每 5 轮验证。顺序为三个基础、三个三性质、九个单性质，详见 [训练清单](MAIN15_TRAINING_AND_TASKS.md#3-正式调度参数与顺序当前仅检查计划)。
+
+现有服务器直接执行以下命令；沿用 cgdit，不安装或替换 PyTorch：
+
+```bash
+cd /root/private_data/rszhong/workspace/UnifiedGroupGen
+conda activate cgdit
+git status --short
+git pull --ff-only
+git log -1 --oneline
+
+export MKL_THREADING_LAYER=SEQUENTIAL
+export OMP_NUM_THREADS=4
+export MKL_NUM_THREADS=4
+export PYTHONPATH="$PWD/src"
+export PYTHONIOENCODING=utf-8
+
+python scripts/prepare_main15.py --verify-only
+python -m pytest -q tests/test_main15_schedule.py
+mkdir -p artifacts/main15
+python scripts/train_main15.py --device cuda --seed 42 --plan \
+  > artifacts/main15/training_plan_seed42.json
+
+python - <<'PY'
+import json
+from pathlib import Path
+expected = ['mp20_u', 'c2db51_u', 'joint_u', 'mp20_all', 'c2db51_all', 'joint_all',
+            'mp20_ef', 'mp20_eg', 'mp20_eh', 'c2db51_ef', 'c2db51_eg', 'c2db51_eh',
+            'joint_ef', 'joint_eg', 'joint_eh']
+jobs = json.loads(Path('artifacts/main15/training_plan_seed42.json').read_text())
+assert [j['name'] for j in jobs] == expected
+for i, job in enumerate(jobs, 1):
+    cmd = job['command']
+    def value(flag):
+        return cmd[cmd.index(flag) + 1]
+    batch, edges = (768, 200000) if job['name'].startswith('c2db51_') else (256, 400000)
+    assert int(value('--batch-size')) == batch
+    assert int(value('--edge-budget')) == edges
+    assert float(value('--coordinate-length-scale')) == 3
+    assert value('--threads') == '4' and cmd.index('--threads') < cmd.index('train')
+    assert value('--edge-chunk-size') == '32768'
+    assert value('--validation-interval') == '5' and '--no-checkpoint' in cmd
+    n = 0 if job['name'].endswith('_u') else 3 if job['name'].endswith('_all') else 1
+    assert len(job['target_properties']) == n
+    assert job['cond_dropout'] == (0 if n == 0 else .1)
+    print(f"{i:02d} {job['name']:12s} batch={batch} edges={edges} "
+          f"scale=3A q_loss=/9 targets={job['target_properties']}")
+print('PASS: 15套顺序、运行参数和性质配置一致；本命令未启动训练。')
+PY
+```
+
+`prepare_main15.py --verify-only` 核验修复数据与现有审计门禁，不重建数据、不训练；门禁失败时先解决错误，不跳过。`--plan` 不创建训练进程。保存的计划位于 `artifacts/main15/training_plan_seed42.json`。如门禁尚未导入，按 [数据准备步骤](MAIN15_TRAINING_AND_TASKS.md#2-服务器更新与准备) 补齐。
+
+## 以下为历史测速步骤，已完成时无需重复执行
+
+### 4090先测速，再确定单模型训练参数
 
 本地RTX3060继续执行三组优化前后各30轮的配对检查。服务器当前只开展运行参数测速，
 先确定候选参数，再确认单个模型的整轮耗时；15套模型暂不排入训练队列。

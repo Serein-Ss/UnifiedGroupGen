@@ -7,13 +7,14 @@ os.environ.setdefault('MKL_NUM_THREADS', '4')
 import argparse
 import json
 import hashlib
+import math
 from pathlib import Path
 import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT/'src'))
-from unifiedgroupgen.main_experiments import configurations
+from unifiedgroupgen.main_experiments import configurations, RUNTIME_BY_DATASET
 
 
 def main():
@@ -24,27 +25,46 @@ def main():
     parser.add_argument('--device', default='cuda')
     parser.add_argument('--resume', action='store_true')
     parser.add_argument('--plan', action='store_true')
-    parser.add_argument('--checkpoint', action=argparse.BooleanOptionalAction, default=None,
+    parser.add_argument('--threads', type=int, default=4)
+    parser.add_argument('--coordinate-length-scale', type=float, default=3.0)
+    parser.add_argument('--checkpoint', action=argparse.BooleanOptionalAction, default=False,
                         help='Activation recomputation only; model checkpoints are always saved')
-    parser.add_argument('--edge-chunk-size', type=int)
+    parser.add_argument('--edge-chunk-size', type=int, default=32768)
     args = parser.parse_args()
     if len(set(args.models)) != len(args.models):
         parser.error('Duplicate model names')
-    if args.edge_chunk_size is not None and args.edge_chunk_size < 1:
+    if args.threads < 1:
+        parser.error('threads must be positive')
+    if not math.isfinite(args.coordinate_length_scale) or args.coordinate_length_scale <= 0:
+        parser.error('coordinate-length-scale must be finite and positive')
+    if args.edge_chunk_size < 1:
         parser.error('edge-chunk-size must be positive')
+    runtime = {name: {**RUNTIME_BY_DATASET[name.split('_')[0]],
+                     'threads': args.threads,
+                     'coordinate_length_scale': args.coordinate_length_scale,
+                     'checkpoint_layers': args.checkpoint,
+                     'edge_chunk_size': args.edge_chunk_size,
+                     'validation_interval': 5} for name in configs}
     jobs = []
     for name in args.models:
         output = f'artifacts/runs/main15_seed{args.seed}/{name}/model.pt'
-        command = ['-m', 'unifiedgroupgen.cli', '--seed', str(args.seed), 'train',
+        options = runtime[name]
+        command = ['-m', 'unifiedgroupgen.cli', '--seed', str(args.seed),
+                   '--threads', str(args.threads), 'train',
                    '--config', f'configs/main15/{name}.yaml', '--device', args.device,
-                   '--output', output, '--validation-interval', '5']
+                   '--output', output, '--validation-interval', '5',
+                   '--batch-size', str(options['batch_size']),
+                   '--edge-budget', str(options['edge_budget']),
+                   '--coordinate-length-scale', str(args.coordinate_length_scale)]
         if args.resume and (ROOT/output).exists():
             command += ['--resume', output]
-        if args.checkpoint is not None:
-            command.append('--checkpoint' if args.checkpoint else '--no-checkpoint')
-        if args.edge_chunk_size is not None:
-            command += ['--edge-chunk-size', str(args.edge_chunk_size)]
-        jobs.append({'name': name, 'command': command, 'output': output})
+        command.append('--checkpoint' if args.checkpoint else '--no-checkpoint')
+        command += ['--edge-chunk-size', str(args.edge_chunk_size)]
+        jobs.append({'name': name, 'command': command, 'output': output,
+                     'runtime_options': options,
+                     'target_properties': [key for key, value in configs[name]['properties'].items()
+                                           if not value.get('context', False)],
+                     'cond_dropout': configs[name]['cond_dropout']})
     if args.plan:
         print(json.dumps(jobs, indent=2))
         return
@@ -61,10 +81,13 @@ def main():
         temporary.replace(directory/'runner.json')
     try:
         identity = {'seed': args.seed, 'configs': {name: hashlib.sha256(
-            (ROOT/f'configs/main15/{name}.yaml').read_bytes()).hexdigest() for name in configs}}
+            (ROOT/f'configs/main15/{name}.yaml').read_bytes()).hexdigest() for name in configs},
+                    'runtime_options': runtime}
         identity_path = directory/'identity.json'
         if identity_path.exists() and json.loads(identity_path.read_text(encoding='utf-8')) != identity:
-            raise ValueError('Run directory belongs to different experiment configurations')
+            raise ValueError('Run directory belongs to different experiment configurations or runtime options')
+        if not identity_path.exists() and any((directory/name/'model.pt').exists() for name in configs):
+            raise ValueError('Existing model checkpoints have no verified runtime identity')
         identity_path.write_text(json.dumps(identity, indent=2), encoding='utf-8')
         for job in jobs:
             path = ROOT/job['output']
@@ -78,7 +101,9 @@ def main():
             job['state'] = 'running'; save()
             print('[START] '+job['name'], flush=True)
             with (directory/f'{job["name"]}.log').open('a', encoding='utf-8') as stream:
-                env = {**os.environ, 'PYTHONPATH': str(ROOT/'src')}
+                env = {**os.environ, 'PYTHONPATH': str(ROOT/'src'),
+                       'MKL_THREADING_LAYER': 'SEQUENTIAL', 'OMP_NUM_THREADS': str(args.threads),
+                       'MKL_NUM_THREADS': str(args.threads), 'PYTHONIOENCODING': 'utf-8'}
                 process = subprocess.Popen([sys.executable, '-u', *job['command']], cwd=ROOT,
                                            stdout=stream, stderr=subprocess.STDOUT, env=env)
                 job['pid'] = process.pid; save()
