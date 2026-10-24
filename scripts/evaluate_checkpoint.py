@@ -43,7 +43,9 @@ def main():
     records_paths = [root_path(path) for path in args.records]
     checkpoint = torch.load(checkpoint_path, map_location=args.device, weights_only=False)
     heldout_audit = check_heldout_inputs(checkpoint, records_paths)
-    config = checkpoint['config']
+    runtime = checkpoint.get('runtime_options', {})
+    config = {**checkpoint['config'], **{key: runtime[key] for key in
+              ('batch_size', 'edge_budget', 'coordinate_length_scale') if key in runtime}}
     proposal, flow = build_models(config, args.device)
     proposal.load_state_dict(checkpoint['proposal']); flow.load_state_dict(checkpoint['flow'])
     proposal.eval(); flow.eval()

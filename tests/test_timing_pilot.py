@@ -46,8 +46,31 @@ def test_pilot_summary_separates_phases_and_keeps_cold_epoch(tmp_path):
 def test_pilot_forwards_batch_and_edge_budget_without_changing_config(tmp_path):
     module = pilot_module()
     args = SimpleNamespace(threads=4, device='cuda', checkpoint=False, edge_chunk_size=32768,
-                           batch_size=128, edge_budget=400000)
+                           batch_size=128, edge_budget=400000, coordinate_length_scale=3.)
     job = module.command(tmp_path/'mp20_all.yaml', tmp_path, args)
     assert job[job.index('--batch-size')+1] == '128'
     assert job[job.index('--edge-budget')+1] == '400000'
+    assert job[job.index('--coordinate-length-scale')+1] == '3.0'
     assert job[job.index('--epochs')+1] == '5' and '--resume' not in job
+
+
+def test_summary_checks_scale_and_exports_component_losses(tmp_path):
+    module = pilot_module()
+    rows = [{'epoch': i, 'validated': i == 4, 'val_loss': 6. if i == 4 else None,
+        'training_seconds': 2., 'validation_seconds': 1. if i == 4 else 0.,
+        'checkpoint_seconds': .1, 'other_seconds': .1, 'wall_seconds': 3.2 if i == 4 else 2.2,
+        'peak_cuda_bytes': 0, 'peak_cuda_reserved_bytes': 0, 'coordinate_length_scale_angstrom': 3.,
+        'train_loss': 6., 'train': {'descriptor': 1., 'lattice': 2., 'coordinates': 27., 'coordinates_dimensionless': 3.},
+        'train_batches': 2, 'mean_actual_batch': 2., 'train_records_per_second': 2.,
+        'runtime_options': {'batch_size': 4, 'edge_budget': 400000, 'coordinate_length_scale': 3.}}
+        for i in range(5)]
+    path = tmp_path/'model.history.jsonl'
+    path.write_text(''.join(json.dumps(r)+'\n' for r in rows))
+    report = module.summarize(tmp_path, 15., expected_scale=3.)
+    assert report['coordinate_loss_weight'] == pytest.approx(1/9)
+    assert report['rows'][0]['train_coordinates'] == 27. and report['rows'][0]['train_coordinates_dimensionless'] == 3.
+    assert report['runtime_options']['batch_size'] == 4
+    rows[0]['coordinate_length_scale_angstrom'] = 1.
+    path.write_text(''.join(json.dumps(r)+'\n' for r in rows))
+    with pytest.raises(ValueError, match='scale differs'):
+        module.summarize(tmp_path, 15., expected_scale=3.)

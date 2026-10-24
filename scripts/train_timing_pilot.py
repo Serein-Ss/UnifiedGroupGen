@@ -4,6 +4,7 @@ import argparse
 import csv
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import statistics
@@ -14,16 +15,28 @@ import time
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def summarize(output, process_seconds):
+def summarize(output, process_seconds, expected_scale=None):
     history = [json.loads(s) for s in (output/'model.history.jsonl').read_text(encoding='utf-8').splitlines() if s]
     if [r['epoch'] for r in history] != list(range(5)):
         raise ValueError('Pilot requires exactly five completed epochs starting from initialization')
     if [r['epoch']+1 for r in history if r['validated']] != [5]:
         raise ValueError('Pilot validation schedule must be epochs 1-4 skipped, epoch 5 validated')
+    if expected_scale is not None and any(r['coordinate_length_scale_angstrom'] != expected_scale for r in history):
+        raise ValueError('Pilot coordinate loss scale differs from the requested setting')
     keys = ('training_seconds', 'validation_seconds', 'checkpoint_seconds', 'other_seconds', 'wall_seconds')
     rows = [{ 'epoch': r['epoch']+1, **{k: r[k] for k in keys}, 'val_loss': r['val_loss'],
               'allocated_GiB': r['peak_cuda_bytes']/2**30,
               'reserved_GiB': r['peak_cuda_reserved_bytes']/2**30} for r in history]
+    for row, entry in zip(rows, history):
+        row.update(train_total=entry.get('train_loss'), gradient_norm_mean=entry.get('gradient_norm_mean'),
+                   clipped_fraction=entry.get('gradient_clipped_fraction'),
+                   coordinate_length_scale_angstrom=entry.get('coordinate_length_scale_angstrom'),
+                   train_records_per_second=entry.get('train_records_per_second'),
+                   train_batches=entry.get('train_batches'), mean_actual_batch=entry.get('mean_actual_batch'))
+        for phase in ('train', 'val'):
+            loss = entry.get(phase) or {}
+            for key in ('descriptor', 'lattice', 'coordinates', 'coordinates_dimensionless'):
+                row[phase+'_'+key] = loss.get(key)
     with (output/'timing.csv').open('w', encoding='utf-8', newline='') as stream:
         writer = csv.DictWriter(stream, fieldnames=list(rows[0]))
         writer.writeheader(); writer.writerows(rows)
@@ -31,6 +44,9 @@ def summarize(output, process_seconds):
               'process_seconds': process_seconds,
               'process_overhead_outside_epoch_timing_seconds': process_seconds-sum(r['wall_seconds'] for r in rows),
               'warm_training_median_epochs_2_to_4': statistics.median(r['training_seconds'] for r in rows[1:4]),
+              'coordinate_length_scale_angstrom': expected_scale,
+              'coordinate_loss_weight': expected_scale**-2 if expected_scale is not None else None,
+              'runtime_options': history[-1].get('runtime_options', {}),
               'validation_epochs': [5], 'scope': 'One timing pilot, not main15 training or a quality/convergence result'}
     (output/'timing.json').write_text(json.dumps(report, indent=2, allow_nan=False), encoding='utf-8')
     print('\nEpoch | train_s | validation_s | save_s | other_s | wall_s | reserved_GiB', flush=True)
@@ -45,7 +61,7 @@ def command(config, output, args):
             'train', '--config', str(config), '--device', args.device, '--epochs', '5',
             '--validation-interval', '5', '--output', str(output/'model.pt'),
             '--checkpoint' if args.checkpoint else '--no-checkpoint', '--edge-chunk-size', str(args.edge_chunk_size)]
-    for name in ('batch_size', 'edge_budget'):
+    for name in ('batch_size', 'edge_budget', 'coordinate_length_scale'):
         value = getattr(args, name, None)
         if value is not None:
             job.extend(['--'+name.replace('_', '-'), str(value)])
@@ -58,6 +74,7 @@ def main():
     parser.add_argument('--threads', type=int, required=True)
     parser.add_argument('--batch-size', type=int)
     parser.add_argument('--edge-budget', type=int)
+    parser.add_argument('--coordinate-length-scale', type=float, default=3.0)
     parser.add_argument('--checkpoint', action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument('--edge-chunk-size', type=int, default=32768)
     parser.add_argument('--device', default='cuda')
@@ -68,12 +85,17 @@ def main():
         parser.error('threads and edge-chunk-size must be positive')
     if any(v is not None and v < 1 for v in (args.batch_size, args.edge_budget)):
         parser.error('batch-size and edge-budget must be positive')
+    if not math.isfinite(args.coordinate_length_scale) or args.coordinate_length_scale <= 0:
+        parser.error('coordinate-length-scale must be finite and positive')
     output = (ROOT/args.output).resolve()
     if not output.is_relative_to((ROOT/'artifacts/runtime_pilots').resolve()):
         parser.error('Pilot output must be under artifacts/runtime_pilots, separate from main15 and paired runs')
     config = ROOT/f'configs/main15/{args.model}.yaml'
     job = command(config, output, args)
     plan = {'state': 'planned', 'model': args.model, 'epochs': 5, 'threads': args.threads,
+            'batch_size': args.batch_size, 'edge_budget': args.edge_budget,
+            'coordinate_length_scale_angstrom': args.coordinate_length_scale,
+            'coordinate_loss_weight': args.coordinate_length_scale**-2,
             'config_sha256': hashlib.sha256(config.read_bytes()).hexdigest(), 'command': job}
     if args.plan:
         print(json.dumps(plan, indent=2))
@@ -89,7 +111,7 @@ def main():
     started = time.perf_counter()
     try:
         subprocess.run(job, cwd=ROOT, env=environment, check=True)
-        summarize(output, time.perf_counter()-started)
+        summarize(output, time.perf_counter()-started, args.coordinate_length_scale)
         plan.update(state='complete')
         print('[COMPLETE] '+str(output), flush=True)
     except BaseException as error:

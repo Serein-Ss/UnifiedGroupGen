@@ -56,7 +56,8 @@ def test_full_test_evaluation_retains_unsupported_labels(tmp_path, monkeypatch):
               'max_orbits': 4, 'batch_size': 2, 'edge_budget': 100}
     proposal, flow = build_models(config, 'cpu')
     checkpoint, records, output = tmp_path/'model.pt', tmp_path/'test.jsonl', tmp_path/'result.json'
-    torch.save({'config': config, 'proposal': proposal.state_dict(), 'flow': flow.state_dict(), 'epoch': 0}, checkpoint)
+    torch.save({'config': config, 'proposal': proposal.state_dict(), 'flow': flow.state_dict(), 'epoch': 0,
+                'runtime_options': {'coordinate_length_scale': 3., 'batch_size': 1, 'edge_budget': 20}}, checkpoint)
     rows = []
     for element in (14, 18):
         descriptor = Descriptor('space', 2, (OrbitSpec('i', element),))
@@ -72,6 +73,9 @@ def test_full_test_evaluation_retains_unsupported_labels(tmp_path, monkeypatch):
     assert result['label_coverage'] == 0.5
     assert result['unsupported_records'] == [{'id': '18', 'unseen_elements': [18]}]
     assert all(np.isfinite(value) for value in result['loss_on_supported_records'].values())
+    assert result['coordinate_length_scale_angstrom'] == 3.
+    loss = result['loss_on_supported_records']
+    assert loss['flow'] == pytest.approx(loss['lattice']+loss['coordinates']/9, rel=1e-5)
 
 
 def test_original_ase_recovery_requires_exact_identity_and_fidelity(tmp_path):

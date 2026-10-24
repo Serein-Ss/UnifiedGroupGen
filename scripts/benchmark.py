@@ -164,7 +164,8 @@ def main():
         scaler.step(optimizer); scaler.update()
     elapsed, measured_records, peak, reserved = [], 0, 0, 0
     measured_steps = len(batches) if args.full_pass else args.steps
-    for step in range(measured_steps+args.warmup):
+    warmup_steps = max(args.warmup, len(batches)) if args.full_pass else args.warmup
+    for step in range(measured_steps+warmup_steps):
         batch = batches[step % len(batches)]
         if cuda:
             torch.cuda.synchronize(); torch.cuda.reset_peak_memory_stats()
@@ -175,7 +176,7 @@ def main():
             peak = max(peak, torch.cuda.max_memory_allocated())
             reserved = max(reserved, torch.cuda.max_memory_reserved())
         duration = time.perf_counter()-started
-        if step >= args.warmup:
+        if step >= warmup_steps:
             elapsed.append(duration); measured_records += len(batch)
         elif step == 0:
             cold_seconds = duration
@@ -197,7 +198,8 @@ def main():
               'properties': config.get('properties', {}), 'allowed_elements': config.get('allowed_elements'),
               'data_revision': config.get('data_revision'), 'config_sha256': file_hash(root_path(args.config)),
               'fitted_config_sha256': hashlib.sha256(json.dumps(config, sort_keys=True).encode()).hexdigest(),
-              'seed': args.seed, 'threads': args.threads, 'warmup': args.warmup, 'cold_step_seconds': cold_seconds,
+              'seed': args.seed, 'threads': args.threads, 'warmup': warmup_steps,
+              'requested_warmup': args.warmup, 'cold_step_seconds': cold_seconds,
               'device': torch.cuda.get_device_name(torch.device(args.device)) if cuda else 'cpu',
               'precision': precision, 'requested_precision': requested_precision, 'torch': torch.__version__,
               **hashes, 'scope': 'Short training-step timing, no weights saved; reference compares dense messages '

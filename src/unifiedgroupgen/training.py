@@ -133,7 +133,9 @@ def run_training(args, config, records, validation, proposal, flow, train_paths,
     start_epoch, best, stale, last_validation = 0, float('inf'), 0, -1
     runtime = {'checkpoint_layers': flow.checkpoint_layers, 'edge_chunk_size': flow.edge_chunk_size,
                'validation_interval': config.get('validation_interval', 5),
-               'edge_budget': config.get('edge_budget', 200000)}
+               'edge_budget': config.get('edge_budget', 200000),
+               'batch_size': config.get('batch_size', 8),
+               'coordinate_length_scale': config.get('coordinate_length_scale', 1.0)}
     if args.resume:
         saved = torch.load(args.resume, map_location=args.device, weights_only=False)
         if saved['config'] != config or any(saved[key] != value for key, value in hashes.items()):
@@ -161,6 +163,12 @@ def run_training(args, config, records, validation, proposal, flow, train_paths,
         runtime['validation_interval'] = args.validation_interval
     if getattr(args, 'edge_budget', None) is not None:
         runtime['edge_budget'] = args.edge_budget
+    if args.batch_size is not None:
+        runtime['batch_size'] = args.batch_size
+    if getattr(args, 'coordinate_length_scale', None) is not None:
+        runtime['coordinate_length_scale'] = args.coordinate_length_scale
+    if not isinstance(runtime['batch_size'], int) or isinstance(runtime['batch_size'], bool) or runtime['batch_size'] < 1:
+        raise ValueError('batch_size must be a positive integer')
     if not isinstance(runtime['edge_budget'], int) or isinstance(runtime['edge_budget'], bool) or runtime['edge_budget'] < 1:
         raise ValueError('edge_budget must be a positive integer')
     if runtime['edge_chunk_size'] < 1:
@@ -169,7 +177,7 @@ def run_training(args, config, records, validation, proposal, flow, train_paths,
     if not isinstance(interval, int) or isinstance(interval, bool) or interval < 1:
         raise ValueError('validation_interval must be a positive integer')
     flow.checkpoint_layers, flow.edge_chunk_size = runtime['checkpoint_layers'], runtime['edge_chunk_size']
-    batch_size = args.batch_size if args.batch_size is not None else config.get('batch_size', 8)
+    batch_size = runtime['batch_size']
     edge_budget = runtime['edge_budget']
     epochs = args.epochs if args.epochs is not None else config.get('epochs', 100)
     if epochs < 1:
@@ -178,7 +186,7 @@ def run_training(args, config, records, validation, proposal, flow, train_paths,
     weights = config.get('loss_weights', {'descriptor': 1.0, 'flow': 1.0})
     if not 0 <= config.get('composition_probability', 0.5) <= 1 or not 0 <= config.get('observation_probability', 0.25) <= 1:
         raise ValueError('Condition probabilities must lie in [0,1]')
-    length_scale = config.get('coordinate_length_scale', 1.0)
+    length_scale = runtime['coordinate_length_scale']
     if not np.isfinite(length_scale) or length_scale <= 0:
         raise ValueError('coordinate_length_scale must be finite and positive (angstrom)')
     diagnostic_interval = config.get('gradient_diagnostics_interval', 0)
@@ -295,6 +303,8 @@ def run_training(args, config, records, validation, proposal, flow, train_paths,
                    'learning_rate': optimizer.param_groups[0]['lr'], 'gradient_norm_mean': gradient_norm_mean,
                    'gradient_clipped_fraction': host[5]/len(batches),
                    'coordinate_length_scale_angstrom': length_scale,
+                   'train_batches': len(batches), 'mean_actual_batch': seen/len(batches),
+                   'train_records_per_second': seen/training_seconds,
                    'train_records': len(records), 'val_records': len(validation),
                    'runtime_options': runtime,
                    'peak_cuda_bytes': torch.cuda.max_memory_allocated() if devices else 0,
@@ -304,6 +314,7 @@ def run_training(args, config, records, validation, proposal, flow, train_paths,
                 phase['coordinates_dimensionless'] = phase['coordinates']/length_scale**2
                 phase['flow_raw'] = phase['lattice']+phase['coordinates']
         train_loss = weights['descriptor']*training['descriptor']+weights['flow']*training['flow']
+        history['train_loss'] = train_loss
         val_text = f'{val_loss:.4f}' if val_loss is not None else 'skipped'
         checkpoint = {'config': config, 'epoch': epoch, 'proposal': proposal.state_dict(), 'flow': flow.state_dict(),
                       'optimizer': optimizer.state_dict(), 'scheduler': scheduler.state_dict(), 'scaler': scaler.state_dict(),

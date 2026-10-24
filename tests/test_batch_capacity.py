@@ -75,6 +75,7 @@ def test_benchmark_full_pass_respects_runtime_edge_cap_on_cpu(tmp_path, monkeypa
     report = json.loads(output.read_text())
     assert report['batch_sizes'] == [2, 2] and report['batch_edges'] == [4, 4]
     assert report['measured_steps'] == 2 and report['measured_records'] == 4
+    assert report['warmup'] == 2 and report['requested_warmup'] == 1
     assert report['edge_budget'] == 4 and config.read_bytes() == original
 
 
