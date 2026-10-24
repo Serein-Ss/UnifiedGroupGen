@@ -6,6 +6,8 @@
 
 保持模型参数、群约束和 15 套配置的训练加速与服务器测速/续训步骤见 [TRAINING_ACCELERATION.md](docs/TRAINING_ACCELERATION.md)。
 
+旧 M1/M2/M3 的分模块测试、十组各 4096 次生成及前期 FE/BG 预测器桥接见 [LEGACY_4096_EVALUATION.md](docs/LEGACY_4096_EVALUATION.md)。该工具使用独立输出、CPU 和单线程，可只下载评估脚本而不更新正在训练的工作树。
+
 4090 正式调度已接入试跑参数：MP20 batch 256/边预算 400000，C2DB batch 768/200000，联合 batch 256/400000；统一 3 Å、坐标损失除以 9。顺序为三个基础、三个三性质、九个单性质。当前只执行 [服务器更新与计划检查](docs/REMOTE_MAIN15_START.md)，暂不启动15套队列。历史加速配对方案见 [PAIRED_ACCELERATION_STUDY.md](docs/PAIRED_ACCELERATION_STUDY.md)。
 
 > **2026-10-22 来源一致性修订：** 68条旧编码需处理，66条修复、2条MPTS52隔离；正式数据102,608条，联合划分82,183/10,190/10,235。M1/M2/M3均需干净重训，以下旧训练与生成指标保留历史身份。详见[完整审计与迁移](docs/SOURCE_INTEGRITY_AUDIT_20261022.md)。

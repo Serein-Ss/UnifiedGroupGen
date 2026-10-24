@@ -19,7 +19,7 @@ import pandas as pd
 import yaml
 from pymatgen.core import Lattice, Structure
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(os.environ.get('UGG_PROJECT_ROOT', Path(__file__).resolve().parents[1])).resolve()
 sys.path.insert(0, str(ROOT/'src'))
 from unifiedgroupgen.cli import artifact_path, root_path
 from unifiedgroupgen.data import read_jsonl
@@ -327,10 +327,16 @@ def main():
     else:
         jobs = [(args.dataset+'_explicit', args.dataset, root_path(args.samples))]
     assessments, provenance = defaultdict(dict), None
+    property_tolerances = None
     if args.assessments:
         provenance = json.loads(root_path(args.assessment_metadata).read_text(encoding='utf-8'))
         if not provenance.get('evaluator') or not provenance.get('units'):
             raise ValueError('Assessment metadata requires evaluator and units')
+        property_tolerances = provenance.get('property_tolerances')
+        if property_tolerances is not None and (set(property_tolerances) !=
+                {'formation_energy', 'band_gap', 'energy_above_hull'} or
+                any(not np.isfinite(v) or v <= 0 for v in property_tolerances.values())):
+            raise ValueError('Property tolerances must specify all three finite positive thresholds')
         values = pd.read_csv(root_path(args.assessments))
         if 'energy_above_hull' in values and not provenance.get('energy_reference'):
             raise ValueError('Hull assessments require an explicit compatible energy reference')
@@ -404,6 +410,7 @@ def main():
             references[dataset] = reference_fingerprints(test_paths, dataset, output, not args.no_fingerprints,
                                                         args.reference_workers)
         rows, report = evaluate_samples(samples, references[dataset], training[kind], kind, assessments[name],
+            tolerances=property_tolerances,
             use_fingerprints=not args.no_fingerprints, reidentify=args.reidentify,
             structural_cutoff=args.structural_cutoff, composition_cutoff=args.composition_cutoff)
         report['samples_sha256'] = file_hash(samples)
