@@ -41,16 +41,23 @@ def summarize(output, process_seconds):
 
 
 def command(config, output, args):
-    return [sys.executable, '-u', '-m', 'unifiedgroupgen.cli', '--seed', '42', '--threads', str(args.threads),
+    job = [sys.executable, '-u', '-m', 'unifiedgroupgen.cli', '--seed', '42', '--threads', str(args.threads),
             'train', '--config', str(config), '--device', args.device, '--epochs', '5',
             '--validation-interval', '5', '--output', str(output/'model.pt'),
             '--checkpoint' if args.checkpoint else '--no-checkpoint', '--edge-chunk-size', str(args.edge_chunk_size)]
+    for name in ('batch_size', 'edge_budget'):
+        value = getattr(args, name, None)
+        if value is not None:
+            job.extend(['--'+name.replace('_', '-'), str(value)])
+    return job
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--model', choices=['mp20_all', 'c2db51_all', 'joint_all'], required=True)
     parser.add_argument('--threads', type=int, required=True)
+    parser.add_argument('--batch-size', type=int)
+    parser.add_argument('--edge-budget', type=int)
     parser.add_argument('--checkpoint', action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument('--edge-chunk-size', type=int, default=32768)
     parser.add_argument('--device', default='cuda')
@@ -59,6 +66,8 @@ def main():
     args = parser.parse_args()
     if min(args.threads, args.edge_chunk_size) < 1:
         parser.error('threads and edge-chunk-size must be positive')
+    if any(v is not None and v < 1 for v in (args.batch_size, args.edge_budget)):
+        parser.error('batch-size and edge-budget must be positive')
     output = (ROOT/args.output).resolve()
     if not output.is_relative_to((ROOT/'artifacts/runtime_pilots').resolve()):
         parser.error('Pilot output must be under artifacts/runtime_pilots, separate from main15 and paired runs')

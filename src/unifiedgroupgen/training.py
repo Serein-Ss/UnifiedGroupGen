@@ -132,7 +132,8 @@ def run_training(args, config, records, validation, proposal, flow, train_paths,
               'val_split_sha256': [file_hash(p) for p in val_paths]}
     start_epoch, best, stale, last_validation = 0, float('inf'), 0, -1
     runtime = {'checkpoint_layers': flow.checkpoint_layers, 'edge_chunk_size': flow.edge_chunk_size,
-               'validation_interval': config.get('validation_interval', 5)}
+               'validation_interval': config.get('validation_interval', 5),
+               'edge_budget': config.get('edge_budget', 200000)}
     if args.resume:
         saved = torch.load(args.resume, map_location=args.device, weights_only=False)
         if saved['config'] != config or any(saved[key] != value for key, value in hashes.items()):
@@ -158,6 +159,10 @@ def run_training(args, config, records, validation, proposal, flow, train_paths,
         runtime['edge_chunk_size'] = args.edge_chunk_size
     if getattr(args, 'validation_interval', None) is not None:
         runtime['validation_interval'] = args.validation_interval
+    if getattr(args, 'edge_budget', None) is not None:
+        runtime['edge_budget'] = args.edge_budget
+    if not isinstance(runtime['edge_budget'], int) or isinstance(runtime['edge_budget'], bool) or runtime['edge_budget'] < 1:
+        raise ValueError('edge_budget must be a positive integer')
     if runtime['edge_chunk_size'] < 1:
         raise ValueError('edge_chunk_size must be positive')
     interval = runtime['validation_interval']
@@ -165,7 +170,7 @@ def run_training(args, config, records, validation, proposal, flow, train_paths,
         raise ValueError('validation_interval must be a positive integer')
     flow.checkpoint_layers, flow.edge_chunk_size = runtime['checkpoint_layers'], runtime['edge_chunk_size']
     batch_size = args.batch_size if args.batch_size is not None else config.get('batch_size', 8)
-    edge_budget = config.get('edge_budget', 200000)
+    edge_budget = runtime['edge_budget']
     epochs = args.epochs if args.epochs is not None else config.get('epochs', 100)
     if epochs < 1:
         raise ValueError('Total training epochs must be positive')

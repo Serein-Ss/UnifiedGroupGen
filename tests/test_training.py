@@ -181,18 +181,19 @@ def test_runtime_tuning_is_recorded_and_restored_without_changing_resume_config(
     records = [record('a'), record('b')]; validation = [record('v')]
     train_file, val_file = tmp_path/'train.jsonl', tmp_path/'val.jsonl'
     train_file.write_text('train'); val_file.write_text('val')
-    def run(path, epochs, resume=None, checkpoint=None, chunk=None):
+    def run(path, epochs, resume=None, checkpoint=None, chunk=None, edge_budget=None):
         random.seed(42); np.random.seed(42); torch.manual_seed(42)
         proposal, flow = build_models(config, 'cpu')
         args = SimpleNamespace(device='cpu', resume=resume, batch_size=None, epochs=epochs,
-                               checkpoint=checkpoint, edge_chunk_size=chunk)
+                               checkpoint=checkpoint, edge_chunk_size=chunk, edge_budget=edge_budget)
         run_training(args, config, records, validation, proposal, flow, [train_file], [val_file], path)
         return torch.load(path, weights_only=False)
-    full = run(tmp_path/'full.pt', 2, checkpoint=False, chunk=32)
-    run(tmp_path/'resumed.pt', 1, checkpoint=False, chunk=32)
+    full = run(tmp_path/'full.pt', 2, checkpoint=False, chunk=32, edge_budget=2)
+    run(tmp_path/'resumed.pt', 1, checkpoint=False, chunk=32, edge_budget=2)
     resumed = run(tmp_path/'resumed.pt', 2, resume=tmp_path/'resumed.pt')
     assert full['config'] == resumed['config'] == config
-    assert resumed['runtime_options'] == {'checkpoint_layers': False, 'edge_chunk_size': 32, 'validation_interval': 5}
+    assert resumed['runtime_options'] == {'checkpoint_layers': False, 'edge_chunk_size': 32, 'validation_interval': 5,
+                                         'edge_budget': 2}
     for model in ('proposal', 'flow'):
         for key in full[model]:
             assert torch.equal(full[model][key], resumed[model][key])

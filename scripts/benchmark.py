@@ -65,6 +65,8 @@ def main():
     parser.add_argument('--descriptor', help='Explicit synthetic descriptor for resource stress tests')
     parser.add_argument('--atoms', type=int, help='Explicit synthetic P1 atom count; default uses real TRAIN batches')
     parser.add_argument('--batch-size', type=int, help='Default: configured batch size')
+    parser.add_argument('--edge-budget', type=int, help='Runtime edge cap; original audited config stays unchanged')
+    parser.add_argument('--full-pass', action='store_true', help='Time every timing-pool batch once after warmup; overrides --steps/--batches')
     parser.add_argument('--batches', type=int, default=1)
     parser.add_argument('--selection', choices=['first', 'random', 'largest'], default='first')
     parser.add_argument('--shuffle-records', action='store_true', help='Alias for --selection random')
@@ -83,6 +85,8 @@ def main():
         parser.error('steps, warmup, batches, threads and batch-size must be positive')
     if args.edge_chunk_size is not None and args.edge_chunk_size < 1:
         parser.error('edge-chunk-size must be positive')
+    if args.edge_budget is not None and args.edge_budget < 1:
+        parser.error('edge-budget must be positive')
     if args.atoms is not None and args.atoms < 1:
         parser.error('atoms must be positive')
     if args.records and (args.descriptor or args.atoms is not None):
@@ -120,11 +124,12 @@ def main():
         raise ValueError('Timing pool is empty')
     records = prepare_training_records(records)
     selection = 'random' if args.shuffle_records else args.selection
-    batches = batch_indices(records, batch_size, config.get('edge_budget', 200000), shuffle=selection != 'first')
+    edge_budget = args.edge_budget if args.edge_budget is not None else config.get('edge_budget', 200000)
+    batches = batch_indices(records, batch_size, edge_budget, shuffle=selection != 'first')
     if selection == 'largest':
         batches.sort(key=lambda b: sum(records[i]['_training'][1].num_atoms*(records[i]['_training'][1].num_atoms-1)
                                        for i in b), reverse=True)
-    batches = [[records[i] for i in b] for b in batches[:args.batches]]
+    batches = [[records[i] for i in b] for b in (batches if args.full_pass else batches[:args.batches])]
     proposal, flow = build_models(config, args.device)
     if args.implementation == 'reference':
         install_reference(flow)
@@ -158,7 +163,8 @@ def main():
         torch.nn.utils.clip_grad_norm_(parameters, config.get('gradient_clip', 10), error_if_nonfinite=True)
         scaler.step(optimizer); scaler.update()
     elapsed, measured_records, peak, reserved = [], 0, 0, 0
-    for step in range(args.steps+args.warmup):
+    measured_steps = len(batches) if args.full_pass else args.steps
+    for step in range(measured_steps+args.warmup):
         batch = batches[step % len(batches)]
         if cuda:
             torch.cuda.synchronize(); torch.cuda.reset_peak_memory_stats()
@@ -176,8 +182,10 @@ def main():
     report = {'config': args.config, 'implementation': args.implementation,
               'proposal_parameters': sum(p.numel() for p in proposal.parameters()),
               'flow_parameters': sum(p.numel() for p in flow.parameters()),
-              'batch_size': batch_size, 'edge_budget': config.get('edge_budget', 200000),
+              'batch_size': batch_size, 'edge_budget': edge_budget,
+              'full_pass': args.full_pass, 'measured_steps': measured_steps, 'measured_records': measured_records,
               'batch_sizes': [len(b) for b in batches], 'selection': selection,
+              'batch_edges': [sum(r['_training'][1].num_atoms*(r['_training'][1].num_atoms-1) for r in b) for b in batches],
               'atoms': [[r['_training'][1].num_atoms for r in b] for b in batches],
               'record_ids': [[r['id'] for r in b] for b in batches],
               'seconds_per_step': statistics.mean(elapsed), 'median_seconds_per_step': statistics.median(elapsed),

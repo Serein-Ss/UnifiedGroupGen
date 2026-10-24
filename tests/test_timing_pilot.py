@@ -41,3 +41,13 @@ def test_pilot_summary_separates_phases_and_keeps_cold_epoch(tmp_path):
     (tmp_path/'model.history.jsonl').write_text(''.join(json.dumps(r)+'\n' for r in rows))
     with pytest.raises(ValueError, match='five completed epochs'):
         module.summarize(tmp_path, 50.)
+
+
+def test_pilot_forwards_batch_and_edge_budget_without_changing_config(tmp_path):
+    module = pilot_module()
+    args = SimpleNamespace(threads=4, device='cuda', checkpoint=False, edge_chunk_size=32768,
+                           batch_size=128, edge_budget=400000)
+    job = module.command(tmp_path/'mp20_all.yaml', tmp_path, args)
+    assert job[job.index('--batch-size')+1] == '128'
+    assert job[job.index('--edge-budget')+1] == '400000'
+    assert job[job.index('--epochs')+1] == '5' and '--resume' not in job

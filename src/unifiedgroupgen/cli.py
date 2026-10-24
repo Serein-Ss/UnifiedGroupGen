@@ -299,6 +299,7 @@ def main():
     training.add_argument('--device', default='cpu')
     training.add_argument('--epochs', type=int)
     training.add_argument('--batch-size', type=int)
+    training.add_argument('--edge-budget', type=int, help='Runtime edge cap without editing the audited configuration')
     training.add_argument('--output')
     training.add_argument('--resume')
     training.add_argument('--checkpoint', action=argparse.BooleanOptionalAction, default=None,
