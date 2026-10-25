@@ -15,6 +15,9 @@ import sys
 import time
 
 GIB = 2**30
+INITIAL_WORKERS = 2
+MAX_WORKERS = 3
+TRAINING_CPU_RESERVE = 4
 
 
 def read(path, default=None):
@@ -153,7 +156,7 @@ def resources():
     effective = min([len(allowed), *quotas])
     available = min([mem['MemAvailable'], *memory_free])
     budget = min(16*GIB, available/4)
-    capacity = max(0, min(8, math.floor(effective)-4, math.floor(budget/GIB)))
+    capacity = max(0, min(MAX_WORKERS, math.floor(effective)-TRAINING_CPU_RESERVE, math.floor(budget/GIB)))
     # Prefer distinct physical cores; do not change any training affinity.
     chosen, cores = [], set()
     for cpu in reversed(allowed):
@@ -169,7 +172,8 @@ def resources():
     return {'allowed_cpus': allowed, 'cpu_quotas': quotas, 'effective_cpus': effective,
             'memory_limit_gib': min([mem['MemTotal'], *limits])/GIB,
             'available_memory_gib': available/GIB, 'evaluation_budget_gib': budget/GIB,
-            'capacity': capacity, 'evaluation_cpus': chosen[:capacity], 'training_cpu_reserve': 4,
+            'capacity': capacity, 'evaluation_cpus': chosen[:capacity], 'training_cpu_reserve': TRAINING_CPU_RESERVE,
+            'initial_workers': INITIAL_WORKERS, 'maximum_workers': MAX_WORKERS,
             'tools': {name: shutil.which(name) for name in ('nice', 'ionice', 'taskset')}}
 
 
@@ -387,22 +391,22 @@ class TrainingGuard:
         d = self.data
         if d['baseline'] is None:
             if len(rows) < 3:
-                return min(4, capacity), 'Waiting for 3 baseline training epochs'
+                return min(INITIAL_WORKERS, capacity), 'Waiting for 3 baseline training epochs'
             d.update(baseline=statistics.median(r['train_records_per_second'] for r in rows[-5:]),
                      last_epoch=rows[-1]['epoch'], new_rates=[])
-            return min(4, capacity), 'Baseline recorded; observe 3 new epochs at four workers'
+            return min(INITIAL_WORKERS, capacity), 'Baseline recorded; observe 3 new epochs at two workers'
         fresh = [r for r in rows if r['epoch'] > d['last_epoch']]
         if fresh:
             d['new_rates'] = (d['new_rates']+[r['train_records_per_second'] for r in fresh])[-5:]
             d['last_epoch'] = fresh[-1]['epoch']
         rates = d['new_rates']
         if len(rates) >= 2 and statistics.median(rates[-2:]) < d['baseline']*.90:
-            return min(2, capacity), 'Training throughput below 90% baseline; hold new work'
+            return min(1, capacity), 'Training throughput below 90% baseline; hold new work'
         if len(rates) >= 3:
             if statistics.median(rates[-3:]) < d['baseline']*.95:
-                return min(4, capacity), 'Training throughput below 95% baseline; restrict to four'
-            return min(8, capacity), '3 new epochs stable; eight workers permitted within resource cap'
-        return min(4, capacity), 'Observing training before promotion'
+                return min(INITIAL_WORKERS, capacity), 'Training throughput below 95% baseline; restrict to two'
+            return min(MAX_WORKERS, capacity), '3 new epochs stable; three workers permitted within resource cap'
+        return min(INITIAL_WORKERS, capacity), 'Observing training before promotion'
 
 
 def set_eval_affinity(active, cpus):
@@ -476,8 +480,11 @@ def run(root, study, capacity, take_over, resume):
             if prior.get('state') == 'complete':
                 verify_completed(study, job, prior)
                 verified_results[job['name']] = prior
+                print('[REUSE VERIFIED]', job['name'], flush=True)
         identity = source['identity']
         source, active = handoff(study, jobs, take_over)
+        for name, info in active.items():
+            print('[ADOPT]', name, '| existing PID', info['pid'], '| not restarted', flush=True)
         if source['identity'] != identity:
             raise ValueError('Campaign identity changed during takeover')
         for job in jobs:
@@ -490,7 +497,7 @@ def run(root, study, capacity, take_over, resume):
             serial_lock.write_text(str(os.getpid()))
         status = {**source, 'state': 'running', 'pid': os.getpid(),
                   'process_start': processes()[os.getpid()]['start'],
-                  'parallel_tool_sha256': digest(Path(__file__)), 'parallel_protocol': 'cpu_dependency_v1',
+                  'parallel_tool_sha256': digest(Path(__file__)), 'parallel_protocol': 'cpu_dependency_v2_2to3',
                   'active': active, 'initial_resource_check': capacity, 'updated_at': time.time()}
         status.pop('child_pid', None)
         guard = TrainingGuard(previous.get('guard'))
@@ -521,7 +528,7 @@ def run(root, study, capacity, take_over, resume):
                     print('[FAILED]', name, str(error), flush=True)
                 del active[name]
             limits = resources()
-            cap = min(capacity['capacity'], limits['capacity'])
+            cap = min(MAX_WORKERS, capacity['capacity'], limits['capacity'])
             trainer = read(root/'artifacts/runs/main15_seed42/runner.json', {})
             current = next((j for j in trainer.get('jobs', []) if j.get('state') == 'running'), None)
             if trainer.get('state') == 'complete':
@@ -529,19 +536,19 @@ def run(root, study, capacity, take_over, resume):
             elif current:
                 tp = processes().get(current.get('pid'))
                 if not live(tp) or not training_process(tp):
-                    slots, reason = 2, 'Training PID unavailable; hold new work'
+                    slots, reason = min(1, cap), 'Training PID unavailable; hold new work'
                 else:
                     rows = history(root/f'artifacts/runs/main15_seed42/{current["name"]}/model.history.jsonl')
                     slots, reason = guard.update(current['name'], rows, cap)
                     progress = root/f'artifacts/runs/main15_seed42/{current["name"]}/model.status.json'
                     maximum_age = max(600, 3*statistics.median(r.get('seconds', 600) for r in rows[-5:])) if rows else 1800
                     if not progress.exists() or time.time()-progress.stat().st_mtime > maximum_age:
-                        slots, reason = min(2, cap), 'Training progress stale; hold new work'
+                        slots, reason = min(1, cap), 'Training progress stale; hold new work'
             else:
-                slots, reason = min(4, cap), 'Training transition or unknown status; hold new work'
+                slots, reason = min(INITIAL_WORKERS, cap), 'Training transition or unknown status; hold new work'
             cpus = capacity['evaluation_cpus'][:max(1, slots)]
             rss = set_eval_affinity(active, cpus)
-            hold = slots < 4 or current is None and trainer.get('state') != 'complete'
+            hold = slots < INITIAL_WORKERS or current is None and trainer.get('state') != 'complete'
             budget = capacity['evaluation_budget_gib']*GIB
             if limits['available_memory_gib'] < 4 or rss > budget:
                 hold, reason = True, 'Memory guard: no new jobs'
@@ -586,11 +593,14 @@ def show_status(root, study):
     state = read(study/'parallel.status.json', read(study/'pipeline.json', {}))
     print(time.strftime('%F %T'), '| state:', state.get('state'), '| updated seconds ago:', round(time.time()-state.get('updated_at', time.time()), 1))
     table = processes()
+    print('Scheduler protocol:', state.get('parallel_protocol', 'serial; no parallel takeover recorded'))
     print('Controller PID:', state.get('pid'), '| alive:', live(table.get(state.get('pid')), state.get('process_start')))
     print('Worker limit:', state.get('worker_limit'), '| CPUs:', state.get('evaluation_cpus'), '| RSS GiB:', state.get('evaluation_rss_gib'))
     print('Guard:', state.get('guard_reason'), '| new dispatch held:', state.get('dispatch_held'))
     print('Training throughput guard:', state.get('guard'))
     jobs, done = state.get('identity', {}).get('jobs', []), state.get('jobs', {})
+    actual = [(j['name'], pid, p['ppid']) for j in jobs for pid, p in table.items() if matching_worker(p, j)]
+    print('Actual live evaluation tasks:', len(actual), '| (task, PID, PPID):', actual)
     print('Complete:', sum(r.get('state') == 'complete' for r in done.values()), '/', len(jobs))
     print('Previously reused:', sum(r.get('state') == 'complete' and bool(r.get('reused_from')) for r in done.values()),
           '| adopted tasks:', sum(bool(r.get('adopted')) for r in done.values()))
@@ -613,6 +623,9 @@ def show_status(root, study):
         if job.get('state') == 'running':
             print(job['name'], '| PID:', job.get('pid'), '| alive:', live(table.get(job.get('pid'))))
             print(read(root/f'artifacts/runs/main15_seed42/{job["name"]}/model.status.json', {}))
+            recent = history(root/f'artifacts/runs/main15_seed42/{job["name"]}/model.history.jsonl')[-5:]
+            print('Recent training (epoch, seconds, records/s):',
+                  [(r['epoch'], round(r.get('training_seconds', 0), 1), round(r['train_records_per_second'], 2)) for r in recent])
     print('ETA for all jobs requires measured property/metric speeds; concurrent task ETAs must not be summed.')
 
 
@@ -643,11 +656,11 @@ def main():
     if not args.run:
         source = read(study/'pipeline.json', {})
         jobs = validate_manifest(root, study, source)
-        print(json.dumps({'initial_workers': 4, 'maximum_workers': 8, 'capacity': capacity['capacity'],
-                          'training_cpu_reserve': 4, 'jobs': [{**j, 'depends_on': dependency(j),
+        print(json.dumps({'initial_workers': INITIAL_WORKERS, 'maximum_workers': MAX_WORKERS, 'capacity': capacity['capacity'],
+                          'training_cpu_reserve': TRAINING_CPU_RESERVE, 'jobs': [{**j, 'depends_on': dependency(j),
                           'state': source.get('jobs', {}).get(j['name'], {}).get('state', 'pending')} for j in jobs]}, indent=2))
         return
-    if capacity['capacity'] < 4 or not all(capacity['tools'].values()):
+    if capacity['capacity'] < INITIAL_WORKERS or not all(capacity['tools'].values()):
         parser.error('Insufficient verified CPU/RAM or missing nice/ionice/taskset; serial evaluation unchanged')
     run(root, study, capacity, args.takeover_serial, args.resume)
 

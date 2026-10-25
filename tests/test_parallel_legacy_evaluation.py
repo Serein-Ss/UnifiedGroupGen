@@ -64,21 +64,22 @@ def rows(rates):
 
 def test_training_guard_promotes_only_after_three_fresh_epochs_and_throttles():
     g = m.TrainingGuard()
-    assert g.update('joint_u', rows([100]*3), 8)[0] == 4
-    assert g.update('joint_u', rows([100]*3), 8)[0] == 4
-    assert g.update('joint_u', rows([100]*5), 8)[0] == 4
-    assert g.update('joint_u', rows([100]*6), 8)[0] == 8
-    assert g.update('joint_u', rows([100]*6), 6)[0] == 6
-    assert g.update('joint_u', rows([100]*6+[80, 80]), 8)[0] == 2
-    assert g.update('mp20_all', rows([200]*8), 8)[0] == 4
+    assert g.update('joint_u', rows([100]*3), 3)[0] == 2
+    assert g.update('joint_u', rows([100]*3), 3)[0] == 2
+    assert g.update('joint_u', rows([100]*5), 3)[0] == 2
+    assert g.update('joint_u', rows([100]*6), 3)[0] == 3
+    assert g.update('joint_u', rows([100]*6), 2)[0] == 2
+    assert g.update('joint_u', rows([100]*6), 64)[0] == 3
+    assert g.update('joint_u', rows([100]*6+[80, 80]), 3)[0] == 1
+    assert g.update('mp20_all', rows([200]*8), 3)[0] == 2
     assert g.data['baseline'] == 200
 
 
 def test_training_guard_mild_slowdown_and_missing_baseline():
     g = m.TrainingGuard()
-    assert g.update('joint_u', rows([100]*2), 8)[0] == 4
-    g.update('joint_u', rows([100]*3), 8)
-    assert g.update('joint_u', rows([100]*3+[93]*3), 8)[0] == 4
+    assert g.update('joint_u', rows([100]*2), 3)[0] == 2
+    g.update('joint_u', rows([100]*3), 3)
+    assert g.update('joint_u', rows([100]*3+[93]*3), 3)[0] == 2
     assert m.TrainingGuard(g.data).data == g.data
 
 
@@ -97,10 +98,13 @@ def test_resources_respect_cgroup_quota_memory_and_cpu_reserve(tmp_path, monkeyp
     monkeypatch.setattr(m.os, 'sched_getaffinity', lambda pid: set(range(64)), raising=False)
     monkeypatch.setattr(m, 'cgroup_paths', lambda name: [tmp_path])
     r = m.resources()
-    assert r['effective_cpus'] == 8 and r['capacity'] == 4
+    assert r['effective_cpus'] == 8 and r['capacity'] == 3
     assert r['memory_limit_gib'] == 32 and r['evaluation_budget_gib'] == 4
-    (tmp_path/'cpu.max').write_text('400000 100000')
-    assert m.resources()['capacity'] == 0
+    for quota, capacity in [(7, 3), (6, 2), (5, 1), (4, 0)]:
+        (tmp_path/'cpu.max').write_text(f'{quota*100000} 100000')
+        result = m.resources()
+        assert result['effective_cpus'] == quota and result['capacity'] == capacity
+        assert result['training_cpu_reserve'] == 4
 
 
 def test_seal_preserves_failures_and_ignores_future_child_outputs(tmp_path):
@@ -202,9 +206,9 @@ def test_launcher_cpu_only_single_thread_and_unchanged_scientific_arguments(tmp_
         return SimpleNamespace(pid=11)
     monkeypatch.setattr(m.subprocess, 'Popen', popen)
     monkeypatch.setattr(m, 'processes', lambda: {11: process(['fixture'])})
-    m.launch(tmp_path, tmp_path, j, [5, 6, 7, 8])
+    m.launch(tmp_path, tmp_path, j, [5, 6])
     assert captured['command'][-len(j['command']):] == j['command']
-    assert captured['command'][:9] == ['nice', '-n', '19', 'ionice', '-c', '3', 'taskset', '-c', '5,6,7,8']
+    assert captured['command'][:9] == ['nice', '-n', '19', 'ionice', '-c', '3', 'taskset', '-c', '5,6']
     assert captured['env']['CUDA_VISIBLE_DEVICES'] == ''
     assert captured['env']['OMP_NUM_THREADS'] == captured['env']['MKL_NUM_THREADS'] == '1'
     assert captured['start_new_session']
@@ -229,7 +233,7 @@ def test_scheduler_adopts_completes_and_reuses_without_launching_training(tmp_pa
     finish_sample(j)
     source = {'identity': {'jobs': [j]}, 'jobs': {j['name']: {'state': 'running'}}}
     m.save(tmp_path/'pipeline.json', source)
-    limits = {'capacity': 8, 'evaluation_cpus': list(range(8)), 'evaluation_budget_gib': 16,
+    limits = {'capacity': 3, 'evaluation_cpus': list(range(3)), 'evaluation_budget_gib': 16,
               'available_memory_gib': 64}
     monkeypatch.setattr(m, 'validate_manifest', lambda *a: [j])
     monkeypatch.setattr(m, 'handoff', lambda *a: (source, {j['name']: {
@@ -309,7 +313,7 @@ def test_manifest_rejects_wrong_budget_gpu_or_training(tmp_path, monkeypatch, pr
         m.validate_manifest(tmp_path, study, state)
 
 
-def test_full_dag_reuses_tests_adopts_sample_and_observes_four_before_eight(tmp_path, monkeypatch):
+def test_full_dag_reuses_tests_adopts_sample_and_observes_two_before_three(tmp_path, monkeypatch):
     study, source = manifest_fixture(tmp_path, monkeypatch)
     study.mkdir(parents=True)
     jobs = source['identity']['jobs']
@@ -328,7 +332,7 @@ def test_full_dag_reuses_tests_adopts_sample_and_observes_four_before_eight(tmp_
     table = {m.os.getpid(): process(['parallel']), 99: process(['python', 'train'])}
     calls = {'history': 0}
     launched, verified, snapshots = [], [], []
-    limits = {'capacity': 8, 'evaluation_cpus': list(range(8)), 'evaluation_budget_gib': 16,
+    limits = {'capacity': 3, 'evaluation_cpus': list(range(3)), 'evaluation_budget_gib': 16,
               'available_memory_gib': 64}
     monkeypatch.setattr(m, 'validate_manifest', lambda *a: jobs)
     monkeypatch.setattr(m, 'verify_completed', lambda study, j, r: verified.append(j['name']))
@@ -362,4 +366,40 @@ def test_full_dag_reuses_tests_adopts_sample_and_observes_four_before_eight(tmp_
     assert len(verified) == 3 and len(launched) == 29
     assert adopted not in launched and len(set(launched)) == len(launched)
     assert all(n <= slots for slots, n in snapshots if slots)
-    assert 4 in [s for s, _ in snapshots] and 8 in [s for s, _ in snapshots]
+    assert 2 in [s for s, _ in snapshots] and 3 in [s for s, _ in snapshots]
+    assert max(n for _, n in snapshots) <= 3
+    assert result['parallel_protocol'] == 'cpu_dependency_v2_2to3'
+
+
+@pytest.mark.parametrize('capacity, allowed', [(3, True), (2, True), (1, False)])
+def test_main_allows_two_to_three_workers_without_reducing_training_reserve(tmp_path, monkeypatch, capacity, allowed):
+    limits = {'capacity': capacity, 'effective_cpus': capacity+4, 'training_cpu_reserve': 4,
+              'tools': {'nice': '/usr/bin/nice', 'ionice': '/usr/bin/ionice', 'taskset': '/usr/bin/taskset'}}
+    called = []
+    monkeypatch.setattr(m.sys, 'platform', 'linux')
+    monkeypatch.setattr(m.sys, 'argv', ['parallel', '--project-root', str(tmp_path), '--run', '--takeover-serial'])
+    monkeypatch.setattr(m, 'resources', lambda: limits)
+    monkeypatch.setattr(m, 'run', lambda *args: called.append(args))
+    if allowed:
+        m.main()
+        assert len(called) == 1 and called[0][2]['training_cpu_reserve'] == 4
+        assert called[0][3:] == (True, False)
+    else:
+        with pytest.raises(SystemExit) as error:
+            m.main()
+        assert error.value.code == 2 and not called
+
+
+def test_status_reports_actual_worker_and_serial_fallback_read_only(tmp_path, monkeypatch, capsys):
+    j = job(tmp_path)
+    m.save(tmp_path/'pipeline.json', {'pid': 10, 'state': 'running',
+        'identity': {'jobs': [j]}, 'jobs': {j['name']: {'state': 'running'}}})
+    table = {10: process(['python', 'campaign.py']), 11: process(['python', '-u', *j['command']], 10)}
+    monkeypatch.setattr(m, 'processes', lambda: table)
+    monkeypatch.setattr(m.os, 'kill', lambda *args: pytest.fail('Read-only status sent a signal'))
+    monkeypatch.setattr(m, 'launch', lambda *args: pytest.fail('Read-only status started work'))
+    m.show_status(tmp_path, tmp_path)
+    output = capsys.readouterr().out
+    assert 'serial; no parallel takeover recorded' in output
+    assert 'Actual live evaluation tasks: 1' in output
+    assert not (tmp_path/'parallel.status.json').exists()
