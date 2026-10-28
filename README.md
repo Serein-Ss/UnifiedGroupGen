@@ -164,4 +164,10 @@ MP20/MPTS52 使用 PyXtal 的常规晶胞表示，因此展开后原子数可能
 
 ## 基础来源
 
+统一的原始结构评价见 [CSP／从头生成与性质协议](docs/UNIFIED_EVALUATION.md) 和
+[15套模型的服务器计划、执行与恢复命令](docs/REMOTE_UNIFIED_EVALUATION.md)。
+新增入口 `scripts/evaluate_structures.py` 输出逐样本CSV、汇总JSON和PNG；
+`scripts/evaluate_main15_unified.py` 默认只写计划，显式 `--run` 才执行。
+旧指标入口与协议保留，性质代理、精确群符合性、结构有效性和物理稳定性分别标记。
+
 本实现参考 [CGDiT/newton](https://github.com/Serein-Ss/test_CGDiT/tree/newton) 的性质编码、CFG、周期消息传递和轨道处理，以及 [CrystalFlow](https://github.com/ixsluo/CrystalFlow) 的晶格/坐标联合流匹配。代码采用独立小模块实现，无需导入父目录 CGDiT，也不依赖 torch-scatter 或 PyG。原检查点不能直接载入本模型；这是结构约束和参数维度改变后的新模型。
