@@ -391,7 +391,7 @@ def evaluate(samples, task, kind, output, reference_files=(), novelty_files=(), 
             row[name+'_status']='passed' if row.get(name) else ('calculation_failed' if row.get(name) is None and row['generation_success'] else 'failed')
         if row['generation_success'] and row.get('fingerprint_success') is False:
             row['fingerprint_status']='calculation_failed'
-    report = {'protocol_id': PROTOCOL, 'task': task, 'kind': kind, 'dataset': dataset, 'requested':len(rows),
+    report = {'protocol_id': PROTOCOL, 'task': task, 'sampling_task':request.get('sampling_task',task), 'kind': kind, 'dataset': dataset, 'requested':len(rows),
         'generation':{'requested':len(rows),'generated':len(generated_rows),'failed':len(rows)-len(generated_rows),
                       'success_rate':len(generated_rows)/len(rows)},
         'common':common,'diagnostics':diagnostics,'properties':properties,

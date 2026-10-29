@@ -1,5 +1,7 @@
 import json
 import importlib.util
+import os
+import signal
 import subprocess
 import sys
 import tempfile
@@ -55,9 +57,22 @@ def test_reference_metrics_parallel_matches_serial_order_and_failures():
             '    assert a["requested"] == 3 and len(a["fingerprints"]) == 2\n'
             '    assert [r["id"] for r in a["rows"]] == ["bulk", "layer", "broken"]\n'
             '    assert "error" in a["rows"][-1]\n', encoding='utf-8')
-        result = subprocess.run([sys.executable, str(wrapper)], cwd=ROOT, capture_output=True, text=True, timeout=120)
-        assert result.returncode == 0, result.stdout+'\n'+result.stderr
-        assert '"start_method": "spawn"' in result.stdout
+        # This is a numerical/process compatibility test, not a speed benchmark.
+        # Cold imports plus serial and spawned 2D Voronoi calculations can exceed
+        # 120 seconds on a CPU-quota-limited host. Keep a finite watchdog.
+        process=subprocess.Popen([sys.executable,str(wrapper)],cwd=ROOT,stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,text=True,start_new_session=os.name=='posix')
+        try:
+            stdout,stderr=process.communicate(timeout=300)
+        except subprocess.TimeoutExpired:
+            if os.name=='posix': os.killpg(process.pid,signal.SIGKILL)
+            else: process.kill()
+            stdout,stderr=process.communicate()
+            pytest.fail('Reference test exceeded 300s; its own subprocess group was stopped.\n'+stdout+'\n'+stderr)
+        assert process.returncode == 0, stdout+'\n'+stderr
+        assert '"start_method": "spawn"' in stdout
+        assert '"torch_threads": 1' in stdout
+        assert stdout.count('"phase": "reference_complete"')==2
 
 
 def test_representation_catalog_and_real_degrees_of_freedom():

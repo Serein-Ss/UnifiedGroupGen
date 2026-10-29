@@ -109,7 +109,9 @@ def campaign_summary(output, state):
         if not path.exists(): continue
         report=__import__('json').loads(path.read_text(encoding='utf-8'))
         row={'model':model,'job':job,'task':report['task'],'kind':report['kind'],'dataset':report['dataset'],
-             'requested':report['requested'],'seconds':entry['seconds'],'protocol':report['protocol_id']}
+             'requested':report['requested'],'generated':report['generation']['generated'],
+             'generation_failed':report['generation']['failed'],'valid_structures':report['common']['basic_valid']['passed'],
+             'seconds':entry['seconds'],'protocol':report['protocol_id']}
         for key in ('generation_success','basic_valid','legacy_joint_valid','exact_target_group','target_operation_containment','composition_satisfied'):
             row[key]=report['common'][key]['rate']
         if report['task']=='csp':
@@ -117,8 +119,21 @@ def campaign_summary(output, state):
                 for k,v in values.items():
                     if k.isdigit(): row[profile+'_match_at_'+k]=v['match_rate']
         else:
-            row['vun_yield']=report['dng']['vun_yield']['rate']
+            for key in ('unique_valid','novel_valid','vun_yield'):
+                row[key]=report['dng'][key]['rate']
+            for profile,values in report['dng'].get('coverage',{}).items():
+                for key in ('cov_precision','cov_recall','amsd_recall','amsd_precision','amcd_recall','amcd_precision'):
+                    row[profile+'_'+key]=values.get(key)
         row['valid_joint_property_hit']=report['properties']['valid_joint_hit']['rate']
+        targets=report['identity']['request'].get('properties',{})
+        row['property_targets']=__import__('json').dumps(targets,sort_keys=True)
+        row['proxy_domain_status']=report['properties']['evaluator'].get('domain_status')
+        for name,values in report['properties']['quantities'].items():
+            row[name+'_predicted_mean']=values['predictions']['mean']
+            row[name+'_target_error']=values['target_error']['mean']
+            row[name+'_hit_rate']=values['hit']['rate']
+            row[name+'_valid_hit_rate']=values['valid_hit']['rate']
+            row[name+'_wasserstein_same_proxy']=values['wasserstein_same_proxy']['value']
         rows.append(row)
     fields=sorted({k for r in rows for k in r})
     with (output/'summary.csv').open('w',newline='',encoding='utf-8-sig') as stream:

@@ -13,6 +13,7 @@ import json
 import multiprocessing
 from pathlib import Path
 import sys
+import time
 import warnings
 import numpy as np
 import pandas as pd
@@ -83,6 +84,18 @@ def reference_record_metrics(payload):
     return row, pair
 
 
+def initialize_reference_worker():
+    """Keep spawned reference workers from multiplying BLAS/OpenMP threads."""
+    import torch
+    from threadpoolctl import threadpool_limits
+    for name in ('OMP_NUM_THREADS','MKL_NUM_THREADS','OPENBLAS_NUM_THREADS','NUMEXPR_NUM_THREADS'):
+        os.environ[name]='1'
+    torch.set_num_threads(1)
+    threadpool_limits(limits=1)
+    print(json.dumps({'phase':'reference_worker_start','pid':os.getpid(),
+                      'torch_threads':torch.get_num_threads()}),flush=True)
+
+
 def reference_fingerprints(paths, dataset, output, enabled, workers=1):
     versions = {name: importlib.metadata.version(name) for name in ('matminer', 'pymatgen', 'numpy')}
     identity = {'files': {str(path): file_hash(path) for path in paths}, 'dataset': dataset, 'versions': versions,
@@ -98,12 +111,14 @@ def reference_fingerprints(paths, dataset, output, enabled, workers=1):
     rows, features = [], []
     # Evaluation follows CUDA inference. Fresh interpreters avoid inheriting
     # locks from the parent's PyTorch/OpenMP/BLAS thread pools on Linux.
-    pool = (ProcessPoolExecutor(max_workers=workers, mp_context=multiprocessing.get_context('spawn'))
+    pool = (ProcessPoolExecutor(max_workers=workers, mp_context=multiprocessing.get_context('spawn'),
+                                initializer=initialize_reference_worker)
             if workers > 1 else None)
+    started=time.perf_counter()
     print(json.dumps({'phase': 'reference_start', 'dataset': dataset, 'requested': len(records),
                       'workers': workers, 'start_method': 'spawn' if pool else 'serial'}), flush=True)
     try:
-        results = pool.map(reference_record_metrics, payloads, chunksize=4) if pool else map(reference_record_metrics, payloads)
+        results = pool.map(reference_record_metrics, payloads, chunksize=1) if pool else map(reference_record_metrics, payloads)
         for count, (row, pair) in enumerate(results, 1):
             rows.append(row)
             if pair is not None:
@@ -114,6 +129,8 @@ def reference_fingerprints(paths, dataset, output, enabled, workers=1):
     finally:
         if pool:
             pool.shutdown()
+    print(json.dumps({'phase':'reference_complete','dataset':dataset,'records':len(rows),
+                      'workers':workers,'seconds':time.perf_counter()-started}),flush=True)
     saved = {'identity': identity, 'rows': rows, 'fingerprints': features, 'requested': len(records)}
     temporary = cache.with_suffix('.json.tmp')
     temporary.write_text(json.dumps(saved, allow_nan=False), encoding='utf-8')

@@ -324,7 +324,8 @@ def test_main15_plan_is_read_only_and_conditions_train_only(tmp_path,monkeypatch
     assert all(j['properties']['source_domain']==1 for j in jobs[1:])
 
 
-def test_campaign_integration_resume_and_checkpoint_identity(tmp_path):
+@pytest.mark.parametrize('phased',[False,True])
+def test_campaign_integration_resume_and_checkpoint_identity(tmp_path,phased):
     import torch
     from unifiedgroupgen.cli import build_models
     config={'experiment_id':'mp20_u','dataset':'mp_20','kind':'space','groups':[['space',2]],
@@ -345,12 +346,24 @@ def test_campaign_integration_resume_and_checkpoint_identity(tmp_path):
     plan=subprocess.run(command+['--plan'],capture_output=True,text=True)
     assert plan.returncode==0,plan.stderr
     assert not (output/'pipeline.json').exists()
-    run=subprocess.run(command+['--run','--resume'],capture_output=True,text=True)
+    if phased:
+        premature=subprocess.run(command+['--stage','metrics','--run','--resume'],capture_output=True,text=True)
+        assert premature.returncode!=0 and 'Generate all requested structures first' in premature.stderr
+        assert not list(output.rglob('samples.jsonl'))
+        first=subprocess.run(command+['--stage','generate','--run','--resume'],capture_output=True,text=True)
+        assert first.returncode==0,first.stderr
+        assert json.loads((output/'pipeline.json').read_text())['state']=='generation_complete'
+        assert not list(output.rglob('metrics/summary.json')) and not (output/'mp20_u/components/records.csv').exists()
+        original={str(p.relative_to(output)):sha256(p) for p in output.rglob('samples.jsonl')}
+        verified=subprocess.run(command+['--verify-generated'],capture_output=True,text=True)
+        assert verified.returncode==0 and '"regeneration_started": false' in verified.stdout
+    run=subprocess.run(command+['--run','--resume',*(['--stage','metrics'] if phased else [])],capture_output=True,text=True)
     assert run.returncode==0,run.stderr+'\n'+run.stdout
     pipeline=json.loads((output/'pipeline.json').read_text(encoding='utf-8'))
     assert pipeline['state']=='complete' and len(pipeline['jobs'])==4
     assert all(j['state']=='complete' for j in pipeline['jobs'])
     assert (output/'summary.csv').exists() and (output/'model_comparison.png').exists()
+    if phased: assert original=={str(p.relative_to(output)):sha256(p) for p in output.rglob('samples.jsonl')}
     digest=sha256(output/'mp20_u/mp_20_csp/samples.jsonl')
     resumed=subprocess.run(command+['--run','--resume'],capture_output=True,text=True)
     assert resumed.returncode==0,resumed.stderr
@@ -358,3 +371,54 @@ def test_campaign_integration_resume_and_checkpoint_identity(tmp_path):
     saved['epoch']=1;torch.save(saved,checkpoint)
     rejected=subprocess.run(command+['--run','--resume'],capture_output=True,text=True)
     assert rejected.returncode!=0 and 'identical inputs' in rejected.stderr
+
+
+def test_joint_pair_suites_preserve_source_and_full_csp_without_conditional_csp(tmp_path):
+    from argparse import Namespace
+    spec=importlib.util.spec_from_file_location('pair_wrapper',ROOT/'scripts/evaluate_joint_pair.py')
+    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+    args=Namespace(output=None,suite='discovery',seed=142,checkpoint_root=Path('checkpoints'),stage='generate',
+        count=1024,conditional_count=256,steps=64,guidance=2.,device='cuda',threads=4,cgdit_root=None,
+        predictor_root=None,predictor_seed=123,run=False,plan=True,resume=False,status=False,verify_generated=False,allow_proxy_transfer=False)
+    first=module.command(args)
+    assert first[first.index('--models')+1:first.index('--models')+3]==['joint_u','joint_all']
+    assert first[first.index('--tasks')+1:first.index('--tasks')+4]==['components','dng','group']
+    assert first[first.index('--target-properties')+1:first.index('--target-properties')+3]==['formation_energy','band_gap']
+    args.suite='reconstruction';second=module.command(args)
+    assert second[second.index('--tasks')+1:second.index('--tasks')+3]==['csp','fixed_descriptor']
+    assert second[second.index('--csp-cases')+1]=='0' and second[second.index('--csp-k')+1]=='20'
+
+
+def test_batched_group_sweep_has_five_candidates_per_group_and_no_csp_inputs(tmp_path):
+    spec=importlib.util.spec_from_file_location('group_scheduler',ROOT/'scripts/evaluate_main15_unified.py')
+    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+    path=ledger(tmp_path/'records.jsonl',[{'id':'m','dataset':'mp_20','properties':{}},{'id':'c','dataset':'c2db_51','properties':{}}])
+    config={'test_files':[str(path)],'train_files':[str(path)],'dataset_domains':{'mp_20':0,'c2db_51':1},
+        'properties':{'source_domain':{'context':True}}}
+    jobs=module.build_jobs(config,1024,0,20,256,142,5,tasks=['group'])
+    assert len(jobs)==2
+    assert [j['count'] for j in jobs]==[1150,400]
+    assert [len(j['groups']) for j in jobs]==[230,80]
+    assert all(j['per_group']==5 and 'case_ids' not in j for j in jobs)
+    assert [j['properties']['source_domain'] for j in jobs]==[0,1]
+
+
+def test_group_sweep_native_adapter_uses_each_requested_group_without_test_compositions(tmp_path,monkeypatch):
+    import torch
+    from unifiedgroupgen import cli
+    spec=importlib.util.spec_from_file_location('group_native',ROOT/'scripts/unified_eval_inference.py')
+    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+    config={'kind':'space','groups':[['space',1],['space',2]],'properties':{},'allowed_elements':[6],
+        'max_atoms':2,'max_orbits':1,'composition_probability':0.,
+        'model':{'hidden':16,'proposal_layers':1,'flow_layers':1,'heads':2,'frequencies':2}}
+    proposal,flow=cli.build_models(config,'cpu');proposal.eval();flow.eval()
+    def prior(model,compiled,*args,**kwargs):
+        state=compiled.prior('cpu',torch.float32,kwargs.get('generator'))*.1
+        result=compiled.expand(state);result['state']=state;return result
+    monkeypatch.setattr('unifiedgroupgen.flow.sample_flow',prior)
+    job={'task':'dng','kind':'space','dataset':'mp_20','properties':{},'count':4,'groups':[1,2],'per_group':2}
+    module.generate(proposal,flow,config,job,tmp_path,'cpu',142,2,0.)
+    rows=read_records(tmp_path/'samples.jsonl')
+    assert [r['requested_group'] for r in rows]==[1,1,2,2]
+    assert all(r['chemical_request']['composition'] is None for r in rows)
+    assert all(r['descriptor']['number']==r['requested_group'] for r in rows if r['status']=='generated')

@@ -76,6 +76,8 @@ def components(proposal,flow,saved,output,device,batch_size,seed):
             value['nll']=value['nll_sum']/value['count'] if value['count'] else None
         return {'requested':len(group),'evaluated':len(good),'unsupported':len(group)-len(good),'means':values,'tokens':tokens}
     result={'overall':aggregate(rows),'sources':{d:aggregate([r for r in rows if r['dataset']==d]) for d in sorted({r['dataset'] for r in rows})},
+            'conditioning':{'mode':'available_true_test_properties','properties':[p for p,s in config.get('properties',{}).items() if not s.get('context')],
+                            'source_context':config.get('dataset_domains',{}),'composition_embedding':False,'observations':False},
             'coordinate_length_scale':scale,'seed':seed,'scope':'Full test; teacher-forced tokens and ground-truth-description flow error. Not reconstruction or property accuracy.'}
     write_json(output/'summary.json',result)
     import matplotlib
@@ -96,13 +98,15 @@ def generate(proposal,flow,config,job,output,device,seed,steps,guidance):
     from unifiedgroupgen.cli import composition_of
     from unifiedgroupgen.flow import sample_flow
     from unifiedgroupgen.evaluation import to_structure
-    refs={str(r['id']):r for p in config['test_files'] for r in read_records(ROOT/p) if r['dataset']==job['dataset']}
+    refs=({str(r['id']):r for p in config['test_files'] for r in read_records(ROOT/p) if r['dataset']==job['dataset']}
+          if job['task']=='csp' else {})
     if job['task']=='csp':
         attempts=[(key,candidate) for key in job['case_ids'] for candidate in range(job['k'])]
     else:
         attempts=[(None,i) for i in range(job['count'])]
     ledger=output/'samples.jsonl'
     previous=read_records(ledger) if ledger.exists() else []
+    sampling_seconds=sum(r.get('wall_seconds',0.) for r in previous)
     if [r['index'] for r in previous]!=list(range(len(previous))) or len(previous)>len(attempts):
         raise ValueError('Attempt ledger is incomplete/corrupt; it was preserved')
     for r in previous:
@@ -115,15 +119,16 @@ def generate(proposal,flow,config,job,output,device,seed,steps,guidance):
             # Per-attempt seeds make interrupted/resumed generation identical.
             attempt_seed=seed+index;random.seed(attempt_seed);np.random.seed(attempt_seed);torch.manual_seed(attempt_seed)
             generator=torch.Generator(device=device).manual_seed(attempt_seed)
+            requested_group=(job['groups'][index//job['per_group']] if job.get('groups') else job.get('group'))
             row={'index':index,'case_id':case,'candidate':candidate,'properties_requested':job['properties'],
-                 'requested_group':job.get('group'),'seed':attempt_seed}
+                 'requested_group':requested_group,'seed':attempt_seed}
             phase='descriptor_sampling'
             try:
                 reference=refs[case] if case is not None else None
                 counts=record_counts(reference,ROOT) if reference else None
                 row['chemical_request']={'composition':counts}
                 fixed=Descriptor.from_dict(reference['descriptor']) if reference and job.get('fixed_descriptor') else None
-                prefix=[proposal.vocab.index['BOS'],proposal.vocab.index[f"G:{job['kind']}:{job['group']}"]] if job.get('group') else None
+                prefix=[proposal.vocab.index['BOS'],proposal.vocab.index[f"G:{job['kind']}:{requested_group}"]] if requested_group else None
                 trained_composition=config.get('composition_probability',.5)>0
                 descriptor=fixed or proposal.sample(job['properties'],job['kind'],counts,guidance,1.,generator,
                     chemical=ChemicalRules(),prefix=prefix,condition_composition=trained_composition)
@@ -154,13 +159,14 @@ def generate(proposal,flow,config,job,output,device,seed,steps,guidance):
                 if isinstance(error,torch.cuda.OutOfMemoryError): raise
                 row.update(status='failed',failure_stage=phase,error_type=type(error).__name__,reason=str(error))
             row['wall_seconds']=time.perf_counter()-started
+            sampling_seconds+=row['wall_seconds']
             with ledger.open('a',encoding='utf-8') as stream:
                 stream.write(json.dumps(row,allow_nan=False)+'\n');stream.flush()
             write_json(output/'sampling.status.json',{'state':'running','attempted':index+1,'requested':len(attempts),
-                'last_attempt_seconds':row['wall_seconds']})
+                'last_attempt_seconds':row['wall_seconds'],'sampling_seconds':sampling_seconds})
             if (index+1)%10==0 or index+1==len(attempts):
-                print(json.dumps({'phase':'sample','attempted':index+1,'requested':len(attempts)}),flush=True)
-    write_json(output/'sampling.status.json',{'state':'complete','attempted':len(attempts),'requested':len(attempts)})
+                print(json.dumps({'phase':'sample','attempted':index+1,'requested':len(attempts),'sampling_seconds':sampling_seconds}),flush=True)
+    write_json(output/'sampling.status.json',{'state':'complete','attempted':len(attempts),'requested':len(attempts),'sampling_seconds':sampling_seconds})
 
 
 def main():
@@ -183,6 +189,8 @@ def main():
     proposal,flow=build_models(config,args.device)
     proposal.load_state_dict(saved['proposal']);flow.load_state_dict(saved['flow']);proposal.eval();flow.eval()
     job=json.loads(args.job.read_text(encoding='utf-8'))
+    if job.get('checkpoint_sha256') and job['checkpoint_sha256']!=sha256(args.checkpoint):
+        raise ValueError('Checkpoint changed after the evaluation plan was created')
     identity={'checkpoint_sha256':sha256(args.checkpoint),'job':job,'seed':args.seed,'steps':args.steps,
               'guidance':args.guidance,'test':{p:sha256(ROOT/p) for p in config['test_files']},
               'adapter_sha256':sha256(__file__)}
