@@ -26,7 +26,8 @@ def build_jobs(config, count, cases, k, conditional_count, seed, group_count=0):
     for dataset,domain in domains.items():
         kind='layer' if dataset=='c2db_51' else 'space'
         context={'source_domain':domain} if domain is not None else {}
-        selected=sorted((r for r in tests if r['dataset']==dataset),key=lambda r:hashlib.sha256(f"{seed}:{r['id']}".encode()).hexdigest())[:cases]
+        selected=sorted((r for r in tests if r['dataset']==dataset),key=lambda r:hashlib.sha256(f"{seed}:{r['id']}".encode()).hexdigest())
+        if cases: selected=selected[:cases]
         base={'dataset':dataset,'kind':kind,'properties':context,'count':count,'case_ids':[str(r['id']) for r in selected],'k':k}
         def add(suffix,task,targets=None,**extra):
             jobs.append({**base,'name':dataset+'_'+suffix,'task':task,'properties':{**context,**(targets or {})},**extra})
@@ -60,9 +61,9 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--models',nargs='+',choices=TRAINING_ORDER,default=list(TRAINING_ORDER))
     parser.add_argument('--checkpoint-root',type=Path,default=ROOT/'artifacts/runs/main15_seed42')
-    parser.add_argument('--output',type=Path,default=ROOT/'artifacts/evaluations/main15_unified_seed142')
+    parser.add_argument('--output',type=Path,default=ROOT/'artifacts/evaluations/main15_unified_v2_seed142')
     parser.add_argument('--count',type=int,default=1024)
-    parser.add_argument('--csp-cases',type=int,default=256)
+    parser.add_argument('--csp-cases',type=int,default=0,help='0: complete test set (default); positive: explicitly limited diagnostic subset')
     parser.add_argument('--csp-k',type=int,default=20)
     parser.add_argument('--conditional-count',type=int,default=1024)
     parser.add_argument('--per-group',type=int,default=0)
@@ -91,8 +92,8 @@ def main():
         status=args.output/state.get('current','')/'sampling.status.json'
         if status.exists(): result['sampling']=json.loads(status.read_text(encoding='utf-8'))
         print(json.dumps(result,ensure_ascii=False,indent=2));return
-    if min(args.count,args.csp_cases,args.csp_k,args.conditional_count,args.steps,args.threads,args.test_batch_size)<1 or args.per_group<0:
-        parser.error('Budgets must be positive; per-group may be zero')
+    if min(args.count,args.csp_k,args.conditional_count,args.steps,args.threads,args.test_batch_size)<1 or min(args.per_group,args.csp_cases)<0:
+        parser.error('Budgets must be positive; per-group and csp-cases may be zero')
     if bool(args.cgdit_root)!=bool(args.predictor_root): parser.error('Provide both predictor paths')
     plan=[]
     for name in args.models:

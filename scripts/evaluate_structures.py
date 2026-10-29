@@ -28,7 +28,7 @@ def main():
     parser.add_argument('--embeddings', type=Path)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--cache', type=Path)
-    parser.add_argument('--expected-attempts', type=int)
+    parser.add_argument('--expected-count', '--expected-attempts', dest='expected_attempts', type=int)
     parser.add_argument('--no-fingerprints', action='store_true')
     parser.add_argument('--no-reidentify', action='store_true')
     parser.add_argument('--resume', action='store_true')
@@ -66,6 +66,9 @@ def main():
                     raise ValueError('Duplicate prediction index')
                 predictions[index]={}
                 for name,value in row.items():
+                    if name=='prediction_error':
+                        predictions[index][name]=value
+                        continue
                     try: predictions[index][name]=float(value) if value else None
                     except ValueError: pass
         return predictions
@@ -86,7 +89,7 @@ def main():
     figures(rows,report,refs,args.output)
     outputs=[p for p in args.output.iterdir() if p.suffix in ('.csv','.json','.png') and p.name!='manifest.json']
     write_json(manifest,{'identity':identity,'outputs':{p.name:sha256(p) for p in outputs},'state':'complete'})
-    print(json.dumps({'state':'complete','attempted':len(rows),'output':str(args.output)},ensure_ascii=False))
+    print(json.dumps({'state':'complete','requested':len(rows),'generated':report['generation']['generated'],'output':str(args.output)},ensure_ascii=False))
 
 
 if __name__=='__main__':

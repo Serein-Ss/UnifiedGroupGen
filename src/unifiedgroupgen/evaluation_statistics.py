@@ -14,14 +14,16 @@ def logical_and(*values):
     return None if any(v is None for v in values) else True
 
 
-def rate(values):
+def rate(values, requested=True):
     values = list(values)
-    known = [x for x in values if x is not None]
-    passed = sum(bool(x) for x in known)
-    return {'attempted': len(values), 'evaluated': len(known), 'passed': passed,
-            'unknown': len(values)-len(known),
-            'rate_over_all_attempts': passed/len(values) if values and known else None,
-            'rate_on_evaluated': passed/len(known) if known else None}
+    if not requested:
+        return {'status':'not_evaluated','total':len(values),'passed':0,'failed':0,
+                'calculation_failed':0,'rate':None}
+    passed = sum(bool(x) for x in values if x is not None)
+    return {'status':'complete' if values else 'no_samples','total':len(values),
+            'passed':passed,'failed':len(values)-passed,
+            'calculation_failed':sum(x is None for x in values),
+            'rate':passed/len(values) if values else None}
 
 
 def numeric(values):

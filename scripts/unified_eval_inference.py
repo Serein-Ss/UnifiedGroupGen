@@ -117,6 +117,7 @@ def generate(proposal,flow,config,job,output,device,seed,steps,guidance):
             generator=torch.Generator(device=device).manual_seed(attempt_seed)
             row={'index':index,'case_id':case,'candidate':candidate,'properties_requested':job['properties'],
                  'requested_group':job.get('group'),'seed':attempt_seed}
+            phase='descriptor_sampling'
             try:
                 reference=refs[case] if case is not None else None
                 counts=record_counts(reference,ROOT) if reference else None
@@ -128,16 +129,30 @@ def generate(proposal,flow,config,job,output,device,seed,steps,guidance):
                     chemical=ChemicalRules(),prefix=prefix,condition_composition=trained_composition)
                 compiled=compile_descriptor(descriptor)
                 if counts is not None and composition_of(compiled)!=counts: raise ValueError('Hard composition violation')
+                phase='flow_integration'
                 generated=sample_flow(flow,compiled,job['properties'],steps,guidance,None,
                     counts if trained_composition else None,generator,
                     condition_observation=config.get('observation_probability',0)>0)
+                phase='numeric_validation'
+                if not torch.isfinite(generated['state']).all():
+                    raise FloatingPointError('Nonfinite continuous state rejected before CIF export')
                 path=output/f'sample_{index:05d}.cif'
-                to_structure(compiled,generated).to(filename=str(path))
+                structure=to_structure(compiled,generated)
+                phase='cif_export'
+                structure.to(filename=str(path))
+                # Native output is only successful after CIF round-trip verification.
+                from unifiedgroupgen.evaluation_io import load_structure, counts_of
+                phase='cif_readback'
+                restored=load_structure({'cif_path':str(path.resolve())},output)
+                if counts_of(restored)!=counts_of(structure):
+                    raise RuntimeError('CIF export/readback changed integer composition')
+                if not np.isfinite(restored.lattice.matrix).all() or not np.isfinite(restored.frac_coords).all():
+                    raise FloatingPointError('Nonfinite CIF readback')
                 row.update(status='generated',descriptor=descriptor.to_dict(),state=generated['state'].cpu().tolist(),
                            cif_path=path.name,cif_sha256=sha256(path))
             except (ValueError,RuntimeError,FloatingPointError,KeyError) as error:
                 if isinstance(error,torch.cuda.OutOfMemoryError): raise
-                row.update(status='failed',reason=str(error))
+                row.update(status='failed',failure_stage=phase,error_type=type(error).__name__,reason=str(error))
             row['wall_seconds']=time.perf_counter()-started
             with ledger.open('a',encoding='utf-8') as stream:
                 stream.write(json.dumps(row,allow_nan=False)+'\n');stream.flush()

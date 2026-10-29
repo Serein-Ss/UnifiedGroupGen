@@ -66,8 +66,11 @@ def main():
     import shutil
     shutil.copyfile(ref_path,args.output/'reference_predictions.csv')
     with (args.output/'predictions.csv').open('w',newline='',encoding='utf-8-sig') as stream:
-        writer=csv.DictWriter(stream,fieldnames=['index','formation_energy','band_gap']);writer.writeheader()
-        writer.writerows({k:r.get(k) for k in writer.fieldnames} for r in rows)
+        writer=csv.DictWriter(stream,fieldnames=['index','formation_energy','band_gap','prediction_error']);writer.writeheader()
+        for r in rows:
+            r['prediction_error']=r.get('graph_error') or r.get('parse_error') or (
+                'No finite independent prediction' if any(r.get(p) is None for p in ('formation_energy','band_gap')) else '')
+            writer.writerow({k:r.get(k) for k in writer.fieldnames})
     write_json(args.output/'evaluator.json',{'evaluator':'frozen_CGDiT_FE_BG','samples_sha256':sha256(args.samples),
         'predictions_sha256':sha256(args.output/'predictions.csv'),
         'predictors':predictors,'backend_sha256':sha256(Path(backend.__file__)),

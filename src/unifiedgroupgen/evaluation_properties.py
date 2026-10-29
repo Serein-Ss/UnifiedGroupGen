@@ -34,6 +34,10 @@ def assess(value, spec):
 
 
 def evaluate_properties(rows, predictions, metadata, tolerances, reference_predictions=None):
+    available={name for values in predictions.values() for name in values}
+    def can_score(group):
+        targets={name for row in group for name in row.get('property_targets',{})}
+        return bool(targets) and targets<=available
     names = set()
     for row in rows:
         names.update(row.get('property_targets', {}))
@@ -45,6 +49,7 @@ def evaluate_properties(rows, predictions, metadata, tolerances, reference_predi
              or any(isinstance(p.get(n), (int, float)) for p in predictions.values())}
     for row in rows:
         values = predictions.get(str(row['index']), {})
+        if values.get('prediction_error'): row['independent_prediction_error']=values['prediction_error']
         hits = []
         for name in names:
             value = values.get(name)
@@ -54,20 +59,23 @@ def evaluate_properties(rows, predictions, metadata, tolerances, reference_predi
                 spec = property_spec(row['property_targets'][name], tolerances.get(name))
                 error, hit = assess(value, spec)
                 row['property_error_'+name], row['property_hit_'+name] = error, hit
+                row['property_evaluation_status_'+name]=('not_evaluated' if name not in available else 'failed' if value is None else 'complete')
+                if name in available and value is None and not row.get('independent_prediction_error'):
+                    row['independent_prediction_error']='No finite independent prediction for '+name
                 row['valid_property_hit_'+name] = logical_and(row.get('basic_valid'),hit) if hit is not None else None
                 hits.append(hit)
         row['joint_property_hit'] = (all(hits) if hits and all(v is not None for v in hits) else None)
         row['valid_joint_property_hit'] = (logical_and(row.get('basic_valid'),row['joint_property_hit'])
                                            if row['joint_property_hit'] is not None else None)
     summary = {'status': 'provided_independent_proxy' if predictions else 'not_evaluated',
-               'evaluator': metadata, 'quantities': {}, 'joint_hit': rate(r['joint_property_hit'] for r in rows),
-               'valid_joint_hit': rate(r['valid_joint_property_hit'] for r in rows)}
+               'evaluator': metadata, 'quantities': {}, 'joint_hit': rate((r['joint_property_hit'] for r in rows),can_score(rows)),
+               'valid_joint_hit': rate((r['valid_joint_property_hit'] for r in rows),can_score(rows))}
     for name in sorted(names):
         targeted = [r for r in rows if name in r.get('property_targets', {})]
         summary['quantities'][name] = {'predictions': numeric(r.get('predicted_'+name) for r in rows),
             'targeted_attempts': len(targeted), 'target_error': numeric(r.get('property_error_'+name) for r in targeted),
-            'hit': rate(r.get('property_hit_'+name) for r in targeted),
-            'valid_hit': rate(r.get('valid_property_hit_'+name) for r in targeted)}
+            'hit': rate((r.get('property_hit_'+name) for r in targeted),name in available and bool(targeted)),
+            'valid_hit': rate((r.get('valid_property_hit_'+name) for r in targeted),name in available and bool(targeted))}
         from scipy.stats import wasserstein_distance
         generated=[r['predicted_'+name] for r in rows if r.get('basic_valid') and r.get('predicted_'+name) is not None]
         reference=[v[name] for v in (reference_predictions or {}).values() if v.get(name) is not None and math.isfinite(v[name])]
@@ -79,8 +87,8 @@ def evaluate_properties(rows, predictions, metadata, tolerances, reference_predi
     for row in rows:
         groups[json.dumps(row.get('property_targets', {}), sort_keys=True)].append(row)
     summary['target_groups'] = [{'targets': json.loads(key), 'attempted': len(group),
-        'joint_hit': rate(r['joint_property_hit'] for r in group),
-        'valid_joint_hit': rate(r['valid_joint_property_hit'] for r in group),
+        'joint_hit': rate((r['joint_property_hit'] for r in group),can_score(group)),
+        'valid_joint_hit': rate((r['valid_joint_property_hit'] for r in group),can_score(group)),
         'predictions': {n: numeric(r.get('predicted_'+n) for r in group) for n in sorted(names)}}
         for key, group in groups.items()]
     return summary

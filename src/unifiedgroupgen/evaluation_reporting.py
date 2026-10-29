@@ -1,4 +1,4 @@
-"""PNG-only quantitative figures; unknown quantities are never drawn as zero."""
+"""PNG-only figures with metric-specific denominators and explicit calculation failures."""
 from pathlib import Path
 import numpy as np
 
@@ -10,39 +10,42 @@ def figures(rows, report, references, output):
     output = Path(output)
     plt.rcParams.update({'font.size': 9, 'axes.spines.top': False, 'axes.spines.right': False})
     fig, axes = plt.subplots(1, 3, figsize=(14, 4.3), constrained_layout=True)
-    fields = ['generation_success', 'parse_success', 'periodic_distance_valid', 'chemical_valid',
-              'basic_valid', 'fingerprint_success', 'exact_target_group', 'target_operation_containment']
-    values = [report['common'][k]['rate_over_all_attempts'] for k in fields]
+    fields = ['generation_success', 'periodic_distance_valid', 'chemical_valid',
+              'basic_valid', 'exact_target_group', 'target_operation_containment']
+    labels=['Generation success','Distance validity','Composition validity','Joint validity','Exact-group accuracy','Group-operation compliance']
+    values = [report['common'][k]['rate'] for k in fields]
     for i, (key, value) in enumerate(zip(fields, values)):
         if value is not None:
             axes[0].barh(i, value, color='#407c9d')
             metric = report['common'][key]
-            axes[0].text(min(value+.02, .7), i, f"{metric['passed']}/{metric['attempted']}", va='center', fontsize=8)
+            axes[0].text(min(value+.02, .7), i, f"{metric['passed']}/{metric['total']}", va='center', fontsize=8)
         else:
             axes[0].text(.03, i, 'Not assessed', va='center', color='gray')
-    axes[0].set(yticks=range(len(fields)), yticklabels=[x.replace('_', ' ') for x in fields],
-                xlim=(0, 1.15), xlabel='Fraction of ALL attempts', title='Common validity / constraints')
+    axes[0].set(yticks=range(len(fields)), yticklabels=labels,
+                xlim=(0, 1.15), xlabel='Ratio (denominator printed for each metric)', title='Generation and structure validity')
     axes[0].invert_yaxis()
     if report['task']=='csp':
         for profile, values in report['csp']['profiles'].items():
             budgets = sorted(int(k) for k in values if k.isdigit())
-            axes[1].plot(budgets, [values[str(k)]['match_rate'] for k in budgets], 'o-', label=profile)
+            axes[1].plot(budgets, [values[str(k)]['match_rate'] for k in budgets], 'o-',
+                         label=report['matching_profile_labels'][profile].replace(': ',':\n'))
         axes[1].set(xlabel='Candidates per reference case', ylabel='Match@K (all cases)', ylim=(0, 1.05))
-        axes[1].legend(fontsize=8)
+        axes[1].set_xticks(budgets)
+        axes[1].legend(fontsize=7)
     else:
         fields = ['unique_valid', 'novel_valid', 'vun_yield']
         for i, key in enumerate(fields):
-            value = report['dng'][key]['rate_over_all_attempts']
+            value = report['dng'][key]['rate']
             if value is not None:
                 axes[1].bar(i, value, color='#dc9d4c')
             else:
                 axes[1].text(i, .1, 'N/A', ha='center')
         axes[1].set(xticks=range(3), xticklabels=['Unique valid', 'Novel valid', 'VUN'], ylim=(0, 1.05),
-                    ylabel='Fraction of ALL attempts')
+                    ylabel='Fraction of requested structures')
     axes[1].set_title('CSP reconstruction' if report['task']=='csp' else 'De novo population')
     quantities = report['properties']['quantities']
     for i, (name, value) in enumerate(quantities.items()):
-        hit = value['valid_hit']['rate_over_all_attempts']
+        hit = value['valid_hit']['rate']
         if hit is not None:
             axes[2].bar(i, hit, color='#679975')
         else:
@@ -53,7 +56,7 @@ def figures(rows, report, references, output):
     else:
         axes[2].text(.5, .5, 'No property targets / predictions', ha='center', transform=axes[2].transAxes)
     axes[2].set(title='Independent proxy: valid target hits', ylabel='Fraction of targeted attempts')
-    fig.suptitle(f"{report['dataset'] or report['kind']} | {report['task'].upper()} | N={report['attempted']} | {report['protocol_id']}")
+    fig.suptitle(f"{report['dataset'] or report['kind']} | {report['task'].upper()} | Requested N={report['requested']} | {report['protocol_id']}")
     fig.savefig(output/'metrics.png', dpi=200, facecolor='white'); plt.close(fig)
     keys = [('atoms','Atoms/cell'), ('num_elements','Distinct elements'),
             ('area_per_atom_angstrom2','Area/atom (A2)') if report['kind']=='layer' else ('volume_per_atom_angstrom3','Volume/atom (A3)'),
@@ -74,10 +77,10 @@ def figures(rows, report, references, output):
         fig, ax = plt.subplots(figsize=(12,3.5), constrained_layout=True)
         groups = report['groups']
         for field, label, marker in [('exact','Exact reidentified group','o'),('containment','Target operations contained','x'),('basic_valid','Basic valid','.')]:
-            selected = [(g['group'],g[field]['rate_over_all_attempts']) for g in groups if g[field]['rate_over_all_attempts'] is not None]
+            selected = [(g['group'],g[field]['rate']) for g in groups if g[field]['rate'] is not None]
             if selected:
                 x, y = zip(*selected); ax.scatter(x,y,label=label,marker=marker,s=18)
-        ax.set(xlabel='Space / layer group number', ylabel='Fraction of group attempts', ylim=(-.03,1.08))
+        ax.set(xlabel='Space / layer group number', ylabel='Fraction of requested group structures', ylim=(-.03,1.08))
         if ax.collections:
             ax.legend(fontsize=8)
         fig.savefig(output/'groups.png', dpi=200, facecolor='white'); plt.close(fig)
@@ -106,16 +109,16 @@ def campaign_summary(output, state):
         if not path.exists(): continue
         report=__import__('json').loads(path.read_text(encoding='utf-8'))
         row={'model':model,'job':job,'task':report['task'],'kind':report['kind'],'dataset':report['dataset'],
-             'attempted':report['attempted'],'seconds':entry['seconds'],'protocol':report['protocol_id']}
+             'requested':report['requested'],'seconds':entry['seconds'],'protocol':report['protocol_id']}
         for key in ('generation_success','basic_valid','legacy_joint_valid','exact_target_group','target_operation_containment','composition_satisfied'):
-            row[key]=report['common'][key]['rate_over_all_attempts']
+            row[key]=report['common'][key]['rate']
         if report['task']=='csp':
             for profile,values in report['csp']['profiles'].items():
                 for k,v in values.items():
                     if k.isdigit(): row[profile+'_match_at_'+k]=v['match_rate']
         else:
-            row['vun_yield']=report['dng']['vun_yield']['rate_over_all_attempts']
-        row['valid_joint_property_hit']=report['properties']['valid_joint_hit']['rate_over_all_attempts']
+            row['vun_yield']=report['dng']['vun_yield']['rate']
+        row['valid_joint_property_hit']=report['properties']['valid_joint_hit']['rate']
         rows.append(row)
     fields=sorted({k for r in rows for k in r})
     with (output/'summary.csv').open('w',newline='',encoding='utf-8-sig') as stream:
@@ -129,6 +132,6 @@ def campaign_summary(output, state):
             if r.get(key) is not None: ax.bar(i,r[key],color='#407c9d')
             else: ax.text(i,.05,'N/A',ha='center',rotation=90)
         ax.set(xticks=range(len(selected)),xticklabels=[r['model']+'/'+r['dataset'] for r in selected],
-               ylabel='Fraction of ALL attempts',title=key.replace('_',' '),ylim=(0,1.05))
+               ylabel='Ratio (see metric denominator)',title=key.replace('_',' '),ylim=(0,1.05))
         ax.tick_params(axis='x',labelrotation=90,labelsize=7)
     fig.savefig(output/'model_comparison.png',dpi=200);plt.close(fig)

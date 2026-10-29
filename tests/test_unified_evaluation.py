@@ -28,15 +28,17 @@ def mos2(height=20):
     return Structure(Lattice.hexagonal(3.16,height),['Mo','S','S'],[[0,0,.5],[1/3,2/3,.5+1.56/height],[1/3,2/3,.5-1.56/height]])
 
 
-def test_rates_preserve_unknown_and_failed_denominators():
-    assert rate([True,None,False])=={'attempted':3,'evaluated':2,'passed':1,'unknown':1,'rate_over_all_attempts':1/3,'rate_on_evaluated':.5}
-    assert rate([None])['rate_over_all_attempts'] is None
+def test_rates_count_calculation_failures_without_a_second_denominator():
+    assert rate([True,None,False])=={'status':'complete','total':3,'passed':1,'failed':2,'calculation_failed':1,'rate':1/3}
+    assert rate([None])['rate']==0
+    assert rate([None],requested=False)['status']=='not_evaluated'
+    assert rate([None],requested=False)['rate'] is None
 
 
 def test_failed_group_attempts_remain_in_macro_denominator(tmp_path):
     samples=ledger(tmp_path/'failed.jsonl',[{'index':0,'status':'failed','requested_group':230,'reason':'retained'}])
-    _,report,_=evaluate(samples,'dng','space',tmp_path/'out',use_fingerprints=False,reidentify=False)
-    assert report['groups'][0]['group']==230 and report['groups'][0]['attempted']==1
+    _,report,_=evaluate(samples,'dng','space',tmp_path/'out',use_fingerprints=False)
+    assert report['groups'][0]['group']==230 and report['groups'][0]['requested']==1
     assert report['groups'][0]['exact']['passed']==0
     assert report['group_macro_exact_rate']==0.
 
@@ -69,6 +71,62 @@ def test_matching_cell_error_does_not_use_reference_assigned_lattice():
     assert result['length_relative_error']>0
 
 
+@pytest.mark.parametrize('field',['lattice','coordinates'])
+def test_native_nonfinite_output_is_rejected_before_export(field):
+    import torch
+    from unifiedgroupgen.symmetry import Descriptor,OrbitSpec,compile_descriptor
+    from unifiedgroupgen.evaluation import to_structure
+    chart=compile_descriptor(Descriptor('space',1,(OrbitSpec('a',6),)))
+    output=chart.expand(torch.zeros(chart.dof))
+    output[field].reshape(-1)[0]=float('nan')
+    with pytest.raises(FloatingPointError,match='before structure export'): to_structure(chart,output)
+
+
+def test_parse_failure_has_reason_and_is_not_successful_generation(tmp_path):
+    bad=tmp_path/'broken.cif';bad.write_text('not a CIF',encoding='utf-8')
+    sample=ledger(tmp_path/'samples.jsonl',[{'index':0,'status':'generated','cif_path':bad.name}])
+    rows,report,_=evaluate(sample,'dng','space',tmp_path/'out',use_fingerprints=False,reidentify=False)
+    assert report['generation']=={'requested':1,'generated':0,'failed':1,'success_rate':0.}
+    assert rows[0]['failure_stage']=='structure_readback' and rows[0]['evaluation_error']
+    assert 'parse_success' not in report['common']
+
+
+def test_readonly_cif_audit_retains_error_and_input_bytes(tmp_path):
+    spec=importlib.util.spec_from_file_location('cif_audit',ROOT/'scripts/audit_cif_outputs.py')
+    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+    good=tmp_path/'good.cif';nacl().to(filename=str(good))
+    bad=tmp_path/'bad.cif';bad.write_text('not a CIF',encoding='utf-8')
+    before={p.name:sha256(p) for p in (good,bad)}
+    report=module.audit(tmp_path,tmp_path/'audit')
+    assert report['files']==2 and report['readback_succeeded']==1 and len(report['failed'])==1
+    assert report['failed'][0]['reason'] and report['failed'][0]['file']=='bad.cif'
+    assert before=={p.name:sha256(p) for p in (good,bad)}
+    assert (tmp_path/'audit/failures.csv').exists()
+
+
+def test_csp_all_test_cases_and_prefix_1_5_20(tmp_path):
+    from unifiedgroupgen.unified_evaluation import csp_summary
+    spec=importlib.util.spec_from_file_location('all_cases_scheduler',ROOT/'scripts/evaluate_main15_unified.py')
+    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+    path=ledger(tmp_path/'test.jsonl',[{'id':str(i),'dataset':'mp_20','properties':{}} for i in range(3)])
+    config={'dataset':'mp_20','test_files':[str(path)],'train_files':[str(path)],'properties':{}}
+    jobs=module.build_jobs(config,1,0,20,1,142)
+    assert all(len(j['case_ids'])==3 for j in jobs if j['task']=='csp')
+    rows=[]
+    for case in range(3):
+        for j in range(20):
+            matched=j==(0,4,19)[case]
+            rows.append({'index':len(rows),'case_id':str(case),
+                'match_legacy_ugg_v1':matched,'match_diffcsp_v1':matched,'basic_valid':True})
+    report=csp_summary(rows,{'attempts_per_case':20})
+    for values in report['profiles'].values():
+        assert values['1']['match_rate']==pytest.approx(1/3)
+        assert values['5']['match_rate']==pytest.approx(2/3)
+        assert values['20']['match_rate']==1.
+    assert 'Strict:' in report['matching_profile_labels']['legacy_ugg_v1']
+    assert 'DiffCSP:' in report['matching_profile_labels']['diffcsp_v1']
+
+
 def test_joint_coverage_requires_same_neighbor():
     generated=[[[0.],[0.]]]
     refs=[[[0.],[100.]],[[100.],[0.]]]
@@ -83,8 +141,10 @@ def test_property_targets_independent_and_unknown():
     result=evaluate_properties(rows,{'0':{'band_gap':1.1},'1':{'band_gap':1.}}, {'evaluator':'independent'},{'band_gap':.2})
     assert result['joint_hit']['passed']==2
     assert result['valid_joint_hit']['passed']==1
-    assert result['valid_joint_hit']['unknown']==1
-    assert result['valid_joint_hit']['rate_over_all_attempts']==pytest.approx(1/3)
+    assert result['valid_joint_hit']['calculation_failed']==1
+    assert result['valid_joint_hit']['rate']==pytest.approx(1/3)
+    assert rows[2]['property_evaluation_status_band_gap']=='failed'
+    assert rows[2]['independent_prediction_error']
     assert assess(.5,property_spec({'op':'le','value':1}))[1]
     assert assess(3,property_spec({'op':'between','bounds':[0,2]}))==(1,False)
     with pytest.raises(ValueError): property_spec(1)
@@ -101,7 +161,7 @@ def test_csp_cases_hard_counts_and_failed_candidates(tmp_path,monkeypatch):
             else: samples.append({'index':index,'case_id':case,'status':'failed','reason':'retained'})
     path=ledger(tmp_path/'samples.jsonl',samples)
     rows,report,_=evaluate(path,'csp','space',tmp_path/'out',[reference],request={'attempts_per_case':5},use_fingerprints=False,reidentify=False)
-    assert report['attempted']==10 and report['common']['generation_success']['passed']==1
+    assert report['requested']==10 and report['common']['generation_success']['passed']==1
     assert report['csp']['profiles']['legacy_ugg_v1']['1']['match_rate']==0
     assert report['csp']['profiles']['legacy_ugg_v1']['5']['match_rate']==.5
     assert rows[-1]['composition_satisfied']
@@ -116,10 +176,10 @@ def test_dng_fingerprint_failure_does_not_change_basic_validity(tmp_path,monkeyp
     s=nacl();samples=ledger(tmp_path/'samples.jsonl',[{'index':0,'structure':s.as_dict()},{'index':1,'structure':s.as_dict()},{'index':2,'status':'failed'}])
     rows,report,_=evaluate(samples,'dng','space',tmp_path/'out',use_fingerprints=True,reidentify=False)
     assert report['common']['basic_valid']['passed']==2
-    assert report['common']['fingerprint_success']['passed']==0
+    assert report['diagnostics']['fingerprint_success']['passed']==0
     assert report['common']['legacy_joint_valid']['passed']==0
     assert report['dng']['unique_valid']['passed']==1
-    assert report['dng']['vun_yield']['rate_over_all_attempts'] is None
+    assert report['dng']['vun_yield']['status']=='not_evaluated'
 
 
 def test_identity_guards_cif_predictions_cases_and_partial_json(tmp_path):
@@ -157,6 +217,9 @@ def test_components_match_existing_teacher_forced_objective():
 
 def test_native_adapter_preserves_resume_attempts(tmp_path,monkeypatch):
     import torch
+    # Import CLI before patching flow.sample_flow; otherwise its module-level
+    # import would retain the mock after monkeypatch restores the flow module.
+    from unifiedgroupgen import cli
     spec=importlib.util.spec_from_file_location('unified_native',ROOT/'scripts/unified_eval_inference.py')
     module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
     from unifiedgroupgen.proposal import DescriptorTransformer
@@ -188,7 +251,28 @@ def test_csp_property_and_reference_proxy_distance(tmp_path):
     summary=evaluate_properties(rows,{'0':{'band_gap':1.},'1':{'band_gap':1.}}, {},{'band_gap':.2,'energy_above_hull':.05}, {'r':{'band_gap':2.}})
     assert summary['quantities']['band_gap']['wasserstein_same_proxy']['value']==pytest.approx(1.)
     assert rows[1]['joint_property_hit'] is None
-    assert summary['quantities']['energy_above_hull']['hit']['rate_over_all_attempts'] is None
+    assert summary['quantities']['energy_above_hull']['hit']['status']=='not_evaluated'
+
+
+def test_collapsed_orbit_export_is_not_reported_as_generation_success(tmp_path,monkeypatch):
+    import torch
+    from unifiedgroupgen import cli
+    spec=importlib.util.spec_from_file_location('collapsed_native',ROOT/'scripts/unified_eval_inference.py')
+    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+    config={'kind':'space','groups':[['space',2]],'properties':{},'allowed_elements':[6],
+        'max_atoms':4,'max_orbits':2,'composition_probability':0.,
+        'model':{'hidden':16,'proposal_layers':1,'flow_layers':1,'heads':2,'frequencies':2}}
+    proposal,flow=cli.build_models(config,'cpu');proposal.eval();flow.eval()
+    record={'id':'collapsed','dataset':'mp_20','descriptor':{'kind':'space','number':2,'orbits':[{'letter':'i','atomic_number':6}]}}
+    reference=ledger(tmp_path/'test.jsonl',[record]);config['test_files']=[str(reference)]
+    def collapsed(model,compiled,*args,**kwargs):
+        state=torch.zeros(compiled.dof);result=compiled.expand(state);result['state']=state;return result
+    monkeypatch.setattr('unifiedgroupgen.flow.sample_flow',collapsed)
+    job={'task':'csp','dataset':'mp_20','kind':'space','properties':{},'case_ids':['collapsed'],'k':1,'fixed_descriptor':True}
+    module.generate(proposal,flow,config,job,tmp_path,'cpu',142,2,0.)
+    result=read_records(tmp_path/'samples.jsonl')[0]
+    assert result['status']=='failed' and result['failure_stage']=='cif_readback'
+    assert result['error_type'] and result['reason']
 
 
 def test_cli_png_manifest_resume(tmp_path):

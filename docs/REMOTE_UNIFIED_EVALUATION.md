@@ -32,8 +32,8 @@ editable安装带 `--no-deps` 不会自动补依赖；如import显示缺包，�
 ```bash
 python scripts/evaluate_main15_unified.py \
   --checkpoint-root artifacts/runs/main15_seed42 \
-  --output artifacts/evaluations/main15_unified_seed142 \
-  --count 1024 --csp-cases 256 --csp-k 20 --conditional-count 256 \
+  --output artifacts/evaluations/main15_unified_v2_seed142 \
+  --count 1024 --csp-cases 0 --csp-k 20 --conditional-count 256 \
   --steps 64 --guidance 2 --seed 142 --threads 4 --plan
 ```
 
@@ -41,16 +41,17 @@ python scripts/evaluate_main15_unified.py \
 每套模型包含完整测试集的描述Transformer/OrbitFlow模块测试，及每个已训练来源的：
 
 1. 无目标性质DNG，1024次；
-2. 仅组成CSP，256案例×20候选；
-3. 固定描述诊断，相同256案例×20候选；
+2. 仅组成CSP，完整测试集每个案例20候选，分别统计前1/5/20候选；
+3. 固定描述诊断，相同完整测试集每案例20候选；
 4. 每个已训练性质按TRAIN的10/50/90分位数分别执行DNG与CSP；
 5. 多性质模型再选取TRAIN真实共现标签元组（按第一性质排序的10/50/90位置）执行联合条件DNG与CSP。
 
-条件CSP仍按256×20计算，`--conditional-count`仅控制条件DNG。条件任务数量多，
+条件CSP同样按完整测试集×20计算，`--conditional-count`仅控制条件DNG。条件任务数量多，
 完整15套可能需要大量生成预算；计划中的总次数才是最终分母。
-按当前修复后数据与本页参数，本地仅计划核对得到235个子任务、655360次生成（未运行）；
-服务器必须用实际checkpoint再次生成计划确认。将CSP改为64案例×5候选时，同样全扫描约79360次。
-若先做小预算评估，可以另建目录并将案例数改为64、K改为5、条件DNG改为256。
+此前256案例的v1计划为235个子任务、655360次生成；它不是当前完整测试集计划。
+服务器须用实际checkpoint重新生成v2计划确认预算。MP20完整测试9046案例，C2DB完整测试3381案例；
+单个模型单项CSP分别需180920、67620次生成；联合模型两个域合计248540次。
+如为调试明确限量，可以另建目录并指定正数case预算，不能把该子集结果标为完整测试结果。
 **预算、seed、步数、性质条件或检查点变更时使用新输出目录。**
 联合5模型各分MP20/C2DB两个上下文来源，因此一共20个模型-数据域组合。
 不会把测试集组成传给DNG，也不会把测试坐标或晶格传给组成CSP。
@@ -68,11 +69,11 @@ python scripts/evaluate_main15_unified.py \
 mkdir -p artifacts/evaluations
 CUDA_VISIBLE_DEVICES=0 nohup python -u scripts/evaluate_main15_unified.py \
   --checkpoint-root artifacts/runs/main15_seed42 \
-  --output artifacts/evaluations/main15_unified_seed142 \
-  --count 1024 --csp-cases 256 --csp-k 20 --conditional-count 256 \
+  --output artifacts/evaluations/main15_unified_v2_seed142 \
+  --count 1024 --csp-cases 0 --csp-k 20 --conditional-count 256 \
   --steps 64 --guidance 2 --seed 142 --threads 4 \
   --device cuda --run --resume \
-  > artifacts/evaluations/main15_unified_seed142.driver.log 2>&1 &
+  > artifacts/evaluations/main15_unified_v2_seed142.driver.log 2>&1 &
 echo "PID=$!"
 ```
 
@@ -86,14 +87,14 @@ echo "PID=$!"
 
 默认只在MP20域预测。若需要C2DB探索性分布，另显式加 `--allow-proxy-transfer`；其结果不是已验证的二维性质精度。
 代理构图/预测在CPU上执行，不额外占GPU。参考预测跨模型按哈希缓存。
-Eh没有独立预测器时保留缺测，FE/BG不会替代它；三性质联合命中因此可能未知。
+Eh没有独立预测器时标记未运行该项评价，FE/BG不会替代它；三性质联合命中也标记未评价，而不是伪造已完成结果。
 
 ## 进度与结果
 
 ```bash
 python scripts/evaluate_main15_unified.py \
-  --output artifacts/evaluations/main15_unified_seed142 --status
-tail -n 30 -F artifacts/evaluations/main15_unified_seed142.driver.log
+  --output artifacts/evaluations/main15_unified_v2_seed142 --status
+tail -n 30 -F artifacts/evaluations/main15_unified_v2_seed142.driver.log
 watch -n 5 nvidia-smi
 ```
 
@@ -112,7 +113,7 @@ watch -n 5 nvidia-smi
 ```bash
 tar -czf artifacts/evaluations/main15_unified_seed142_audit.tar.gz \
   --exclude=reference_cache --exclude=proxy_reference_cache \
-  -C artifacts/evaluations main15_unified_seed142
+  -C artifacts/evaluations main15_unified_v2_seed142
 sha256sum artifacts/evaluations/main15_unified_seed142_audit.tar.gz \
   > artifacts/evaluations/main15_unified_seed142_audit.tar.gz.sha256
 ```

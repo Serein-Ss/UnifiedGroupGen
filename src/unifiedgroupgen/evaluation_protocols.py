@@ -10,6 +10,10 @@ PROFILES = {
     'legacy_ugg_v1': {'ltol': .2, 'stol': .3, 'angle_tol': 5, 'scale': False},
     'diffcsp_v1': {'ltol': .3, 'stol': .5, 'angle_tol': 10, 'scale': True},
 }
+PROFILE_LABELS = {
+    'legacy_ugg_v1':'Strict: ltol=0.2, stol=0.3, angle=5 deg, scale=False',
+    'diffcsp_v1':'DiffCSP: ltol=0.3, stol=0.5, angle=10 deg, scale=True (3D)',
+}
 
 
 def match_pair(prediction, reference, kind, profile='legacy_ugg_v1'):

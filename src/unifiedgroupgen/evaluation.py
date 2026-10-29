@@ -35,6 +35,11 @@ def to_structure(compiled, generated, vacuum=20.0):
     # pymatgen's partial-PBC Cython distance kernel requires double buffers.
     lattice = generated["lattice"].detach().cpu().double().numpy().copy()
     coordinates = generated["coordinates"].detach().cpu().double().numpy().copy()
+    if not np.isfinite(lattice).all() or not np.isfinite(coordinates).all():
+        raise FloatingPointError('Nonfinite lattice/coordinates rejected before structure export')
+    determinant=np.linalg.det(lattice)
+    if not np.isfinite(determinant) or abs(determinant) < 1e-10:
+        raise FloatingPointError('Degenerate lattice rejected before structure export')
     if compiled.descriptor.kind != "space":
         thickness = np.ptp(coordinates[:, 2])
         cell_height = max(vacuum, thickness+10)

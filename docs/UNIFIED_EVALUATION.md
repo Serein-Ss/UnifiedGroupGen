@@ -1,7 +1,8 @@
 # 统一原始结构评估：CSP / 从头生成 / 性质条件
 
 本实现增加独立评估入口，不修改训练、模型、数据、旧评估脚本或已归档结果。
-主协议为 `unified_raw_v1`。输入可以来自任何模型；原生15套模型另有采样适配器。
+当前协议为 `unified_raw_v2`。输入可以来自任何模型；原生15套模型另有采样适配器。
+v1结果不覆盖，v2使用新目录，避免不同分母或失败处理混用。
 只计算原始结构和独立代理性质，不进行弛豫、DFT、凸包稳定性或SUN评价。
 
 ## 1. 两类任务及信息层级
@@ -21,11 +22,11 @@
 
 ## 2. 通用结构指标
 
-* 完整尝试数、生成成功、解析成功、有限值、非退化晶格。
+* 目标输出结构数、成功输出结构数、生成成功率；解析与数值检查另列工程诊断。
 * 旧几何规则：原子对距离至少0.5 Å且晶胞体积至少0.1 Å³，保留 `legacy_structural_valid`。
 * 新周期距离规则：计入原子自身周期镜像，最近周期距离至少0.5 Å。
-* 元素半径相对距离：至少0.6倍共价半径之和；缺半径则未知。
-* SMACT：电荷中性与Pauling筛选，保留单元素/全金属例外；缺氧化态或搜索超预算为未知。
+* 0.6倍共价半径之和仅保留在附加诊断中：当前没有核验到这个系数对应的论文出处，属于项目自定启发式，不作为主要有效性规则。
+* SMACT：电荷中性与Pauling筛选，保留单元素/全金属例外；已启动检查但缺氧化态或搜索超预算时标记计算失败，计入该指标失败。
 * `basic_valid`：新周期几何与SMACT联合，**不要求指纹成功**。
 * `legacy_joint_valid`：旧几何+SMACT+指纹（开启时），与basic分开报告。
 * 元素种类、原子数、体积/原子、密度；二维用面积/原子、面密度、层厚，不用带真空的体密度。
@@ -35,8 +36,20 @@
 * 原生记录额外检查描述组成、状态展开中的轨道退化/重合。该诊断标记来源为独立展开的状态；
   导出CIF另行做组成与群操作检查，不能把状态检查冒充全部CIF认证。
 
-解析成功而后续某个诊断失败时，该项保留错误/未知；不能据此自动宣布所有后续检查完成。
-失败尝试留在 `samples.csv` 和总分母中，不重采样补成“成功的1024个”。
+生成成功率=成功输出结构数/目标输出结构数；结构有效率=有效结构数/成功生成结构数。
+不再输出“已评价通过率”或 `rate_on_evaluated`，不使用“未知”掩盖计算失败。
+已经启动但没有得到结果的检查计为失败，CSV保存错误类型、阶段和原因。
+没有提供预测器或显式关闭的检查为 `not_evaluated`（未运行），不能伪装成已计算失败或成功。
+解析、有限值、指纹可计算性放入工程诊断，不作为论文主要生成性能指标。
+原生生成在导出前拒绝非有限状态/晶格/坐标，写CIF后立即回读并核对组成；失败不标为生成成功。
+不使用NaN替换或事后裁剪伪造有效结果；有限精度下仍可能出现数值失败，应保留种子、错误原因定位。
+所有失败保留在生成记录中，不重采样凑出“成功的1024个”。
+
+已核验的来源：
+[DiffCSP官方结构有效性实现](https://github.com/jiaor17/DiffCSP/blob/main/scripts/eval_utils.py#L201-L209)
+使用0.5 Å距离和0.1 Å³体积；
+[CDVAE官方实现](https://github.com/txie-93/cdvae/blob/main/scripts/eval_utils.py)保留同类定义。
+本项目增加自身周期镜像检查，须与原始原子对矩阵规则区分。
 
 ## 3. CSP协议
 
@@ -44,6 +57,13 @@
 |---|---:|---:|---:|---|
 |`legacy_ugg_v1`|0.2|0.3|5°|不缩放|
 |`diffcsp_v1`|0.3|0.5|10°|3D允许缩放|
+
+图例和新增 `csp_metrics.csv` 同时写出“Strict”/“DiffCSP”及全部参数，避免只给不透明的协议编号。
+DiffCSP参数来源：[官方RecEval/RecEvalBatch](https://github.com/jiaor17/DiffCSP/blob/main/scripts/compute_metrics.py#L109-L180)。
+这里对齐匹配参数，不将整个新有效性协议冒充官方原样评估。
+默认 `--csp-cases 0 --csp-k 20` 覆盖完整测试集；正数case预算仅用于明确标记的调试子集。
+每个测试案例保留20个有固定顺序的候选，以前1、前5、前20个分别算Match@1/5/20，失败占据原候选位置。
+不能先按匹配分数从20个中挑最好1个再称Match@1。
 
 3D使用StructureMatcher。二维匹配沿用项目的层材料适配：统一辅助真空用于寻找映射，最终以
 物理位移和 `sqrt(A/N)` 判断；不对法向逐原子取模，不用真空长度放宽误差。
@@ -57,7 +77,7 @@
 
 ## 4. DNG分布协议
 
-* 唯一性只在basic有效结构中匹配；报告相对所有尝试的有效唯一产率。
+* 唯一性只在basic有效结构中匹配；报告相对目标输出结构数的有效唯一产率。
 * 新颖性必须指定训练参考。只对同约化组成的训练结构做结构匹配，使用严格旧匹配参数。
 * VUN是有效、唯一、新颖的交集产率；不是SUN，不声称稳定。
 * COV同时输出历史独立最近邻公式，以及要求结构和组成匹配**同一个参考邻居**的新公式。
@@ -85,14 +105,14 @@ MP-20训练的预测器用于C2DB时，必须显式 `--allow-proxy-transfer`，�
 
 ## 6. 模型无关输入示例
 
-`samples.jsonl` 一行一次尝试，可使用CIF、pymatgen结构字典、原子数组或原生descriptor/state：
+`samples.jsonl` 每个请求序号记录一行成功或失败，可使用CIF、pymatgen结构字典、原子数组或原生descriptor/state：
 
 ```json
 {"index":0,"status":"generated","cif_path":"sample_00000.cif","case_id":"test-001","properties_requested":{"band_gap":1.0}}
 {"index":1,"status":"failed","case_id":"test-001","reason":"generation failure"}
 ```
 
-CSP参考JSONL必须有唯一 `id` 和可解码结构，每个尝试（包括失败）必须有对应 `case_id`。
+CSP参考JSONL必须有唯一 `id` 和可解码结构，每个候选（包括失败）必须有对应 `case_id`。
 通用CSP评估不要求参考结构本来来自UnifiedGroupGen。
 若没有dataset字段，传入dataset标签不会丢弃这些通用参考；有dataset字段则按标签筛选。
 `request.json`：
@@ -101,7 +121,7 @@ CSP参考JSONL必须有唯一 `id` 和可解码结构，每个尝试（包括失
 {"case_ids":["test-001"],"attempts_per_case":2,"properties":{"band_gap":{"op":"eq","value":1.0,"tolerance":0.2}}}
 ```
 
-代理 `predictions.csv` 以 `index,formation_energy,band_gap` 为列，空值表示未评价。
+代理 `predictions.csv` 以 `index,formation_energy,band_gap` 为列，启动预测但数值为空时标为计算失败；没有提供该性质的预测器则标为未开展该项评价。
 `evaluator.json` 至少包括 `evaluator` 与 `samples_sha256`。
 如使用 `--reference-assessments`，参考CSV列为 `id,formation_energy,band_gap`，元数据还要有
 `reference_sha256`（参考文件绝对路径到SHA的映射）和 `reference_predictions_sha256`。

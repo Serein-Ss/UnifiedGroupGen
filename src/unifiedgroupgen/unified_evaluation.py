@@ -14,12 +14,12 @@ from scipy.optimize import linear_sum_assignment
 
 from .evaluation_io import ReferenceBank, counts_of, formula_key, load_structure, read_records, sha256, write_json
 from .evaluation_properties import evaluate_properties
-from .evaluation_protocols import PROFILES, match_pair
+from .evaluation_protocols import PROFILES, PROFILE_LABELS, match_pair
 from .evaluation_statistics import numeric, population_metrics, rate, frechet_distance, logical_and
 from .standard_metrics import composition_validity, fingerprints, geometry_metrics, layer_structure, structure_match
 
 
-PROTOCOL = 'unified_raw_v1'
+PROTOCOL = 'unified_raw_v2'
 BOOL_FIELDS = ('generation_success', 'parse_success', 'finite', 'lattice_valid', 'legacy_structural_valid',
     'periodic_distance_valid', 'radius_distance_valid', 'chemical_valid', 'basic_valid', 'fingerprint_success',
     'legacy_joint_valid', 'composition_satisfied', 'formula_satisfied', 'atom_count_satisfied',
@@ -189,7 +189,9 @@ def csp_summary(rows, request):
     if request.get('attempts_per_case') and any(len(v)!=request['attempts_per_case'] for v in cases.values()):
         raise ValueError('Incomplete CSP candidate budget; failed attempts must remain in the ledger')
     budgets = [k for k in sorted(set([1, 5, 20, minimum])) if k<=minimum and k>0]
-    output = {'cases': len(cases), 'minimum_attempts_per_case': minimum, 'profiles': {}, 'case_rows': []}
+    output = {'cases': len(cases), 'minimum_attempts_per_case': minimum, 'profiles': {}, 'case_rows': [],
+              'sampling_protocol':'For each test case, evaluate the FIRST 1, 5, 20 candidates from one 20-candidate sequence; failures retain their slots',
+              'matching_profile_labels':PROFILE_LABELS}
     for profile in PROFILES:
         result = {}
         for k in budgets:
@@ -207,9 +209,11 @@ def csp_summary(rows, request):
             ('rmse_normalized', 'rmsd_angstrom', 'length_relative_error', 'angle_mae_degrees', 'measure_relative_error')}
         output['profiles'][profile] = result
     for key, group in cases.items():
-        output['case_rows'].append({'case_id': key, 'attempted': len(group),
+        ordered=sorted(group,key=lambda r:r['index'])
+        output['case_rows'].append({'case_id': key, 'candidate_count': len(group),
             'basic_valid': sum(bool(r.get('basic_valid')) for r in group),
             'unique_valid_candidates': sum(bool(r.get('unique')) for r in group),
+            **{p+'_match_at_'+str(k):any(r.get('match_'+p) is True for r in ordered[:k]) for p in PROFILES for k in budgets},
             **{p+'_matches': sum(bool(r.get('match_'+p)) for r in group) for p in PROFILES}})
     output['coordinate_dof_strata'] = {}
     for name, predicate in [('zero', lambda q:q==0), ('1-3', lambda q:0<q<=3), ('4-9',lambda q:3<q<=9), ('10+',lambda q:q>9)]:
@@ -272,7 +276,8 @@ def evaluate(samples, task, kind, output, reference_files=(), novelty_files=(), 
             row['parse_success'] = True
             row['finite'] = bool(np.isfinite(structure.lattice.matrix).all() and np.isfinite(structure.frac_coords).all())
             row['lattice_valid'] = bool(row['finite'] and abs(np.linalg.det(structure.lattice.matrix))>1e-10)
-            if not row['lattice_valid']: row['basic_valid']=False
+            if not row['lattice_valid']:
+                row.update(generation_success=False,basic_valid=False,failure_stage='numeric_validation')
             row.update(geometry(structure, kind))
             row['chemical_valid'], row['chemical_error'] = composition_validity(structure)
             row['basic_valid'] = logical_and(row['periodic_distance_valid'], row['chemical_valid'])
@@ -360,14 +365,39 @@ def evaluate(samples, task, kind, output, reference_files=(), novelty_files=(), 
             row['evaluation_error'] = str(error)
             if row['parse_success'] is None:
                 row['parse_success'] = False
-                row.update(basic_valid=False,legacy_joint_valid=False,unique=False)
+                row.update(generation_success=False,basic_valid=False,legacy_joint_valid=False,unique=False,
+                           failure_stage='structure_readback',error_type=type(error).__name__)
         rows.append(row)
         if len(rows)%25==0:
             print(json.dumps({'phase': 'unified_metrics', 'completed':len(rows), 'requested':len(records)}), flush=True)
     properties = evaluate_properties(rows, predictions, metadata, tolerances, reference_assessments)
-    report = {'protocol_id': PROTOCOL, 'task': task, 'kind': kind, 'dataset': dataset, 'attempted':len(rows),
-        'common': {name:rate(r.get(name) for r in rows) for name in BOOL_FIELDS}, 'properties':properties,
-        'matching_profiles': PROFILES, 'protocol': {'basic_valid':'periodic-distance>=0.5 A AND SMACT; fingerprint independent',
+    generated_rows=[r for r in rows if r['generation_success']]
+    requested_fields=set(('generation_success','legacy_structural_valid','periodic_distance_valid','chemical_valid','basic_valid','legacy_joint_valid'))
+    if use_fingerprints: requested_fields.add('fingerprint_success')
+    if reidentify and any(r.get('target_group') is not None for r in rows): requested_fields.add('exact_target_group')
+    if task=='csp': requested_fields.update(('composition_satisfied','formula_satisfied','atom_count_satisfied'))
+    for name in BOOL_FIELDS:
+        if any(r.get(name) is not None for r in generated_rows): requested_fields.add(name)
+    if not use_fingerprints: requested_fields.discard('fingerprint_success')
+    if not reidentify: requested_fields.discard('exact_target_group')
+    technical=('parse_success','finite','lattice_valid','fingerprint_success','radius_distance_valid')
+    common={name:rate((r.get(name) for r in (rows if name=='generation_success' else generated_rows)),name in requested_fields)
+            for name in BOOL_FIELDS if name not in technical}
+    diagnostics={name:rate((r.get(name) for r in generated_rows),name in requested_fields) for name in technical}
+    diagnostics['radius_rule']={'status':'heuristic_only','coefficient':.6,
+        'source':'Project-specific threshold without a verified paper source; excluded from main validity'}
+    for row in rows:
+        for name in requested_fields-set(technical)-{'generation_success'}:
+            row[name+'_status']='passed' if row.get(name) else ('calculation_failed' if row.get(name) is None and row['generation_success'] else 'failed')
+        if row['generation_success'] and row.get('fingerprint_success') is False:
+            row['fingerprint_status']='calculation_failed'
+    report = {'protocol_id': PROTOCOL, 'task': task, 'kind': kind, 'dataset': dataset, 'requested':len(rows),
+        'generation':{'requested':len(rows),'generated':len(generated_rows),'failed':len(rows)-len(generated_rows),
+                      'success_rate':len(generated_rows)/len(rows)},
+        'common':common,'diagnostics':diagnostics,'properties':properties,
+        'matching_profiles': PROFILES,'matching_profile_labels':{p:label.replace('scale=True (3D)','scale=False (2D adaptation)') if kind=='layer' else label
+            for p,label in PROFILE_LABELS.items()}, 'protocol': {'basic_valid':'periodic-distance>=0.5 A AND SMACT; fingerprint independent',
+            'denominators':'Generation success: requested count. Structure validity: generated structures. DNG yields and property hits: requested count. CSP match: test cases.',
             'legacy_joint_valid':'unchanged legacy pair-distance / volume AND SMACT AND fingerprint when enabled',
             'layer_matching':'physical 2D displacement / sqrt(area/atoms), unscaled; diffcsp_v1 label is a 2D adaptation',
             'reference_group_labels':'audited descriptor labels when supplied', 'fingerprints_enabled':use_fingerprints,
@@ -380,11 +410,12 @@ def evaluate(samples, task, kind, output, reference_files=(), novelty_files=(), 
          'layer_thickness_angstrom','periodic_connectivity_rank','rank2_atom_fraction','operation_residual_angstrom','metric_relative_residual')}
     if task=='csp':
         report['csp'] = csp_summary(rows, request)
+        report['csp']['matching_profile_labels']=report['matching_profile_labels']
     else:
         report['dng'] = {'unique_valid':rate(r.get('unique') for r in rows),
-            'novel_valid':rate(r.get('novel_against_reference') for r in rows),
-            'vun_yield':rate((bool(r.get('basic_valid') and r.get('unique') and r.get('novel_against_reference'))
-                             if r.get('novel_against_reference') is not None else None) for r in rows)}
+            'novel_valid':rate((r.get('novel_against_reference') for r in rows),bool(novelty_files)),
+            'vun_yield':rate([bool(r.get('basic_valid') and r.get('unique') and r.get('novel_against_reference'))
+                             if r.get('novel_against_reference') is not None else None for r in rows],requested=bool(novelty_files))}
         if refs.rows:
             report['dng'].update(population_metrics(rows, reference['rows'], features, reference['fingerprints'], len(rows), (.4,10.)))
         for row in rows:
@@ -399,21 +430,22 @@ def evaluate(samples, task, kind, output, reference_files=(), novelty_files=(), 
                 row['template_unique'] = template not in observed; observed.add(template)
                 row['template_novel_against_test'] = template not in reference_templates if reference_templates else None
                 row['template_novel_against_train'] = template not in train_templates if train_templates else None
-        report['dng']['template_unique'] = rate(r.get('template_unique') for r in rows)
-        report['dng']['template_novel_against_test'] = rate(r.get('template_novel_against_test') for r in rows)
-        report['dng']['template_novel_against_train'] = rate(r.get('template_novel_against_train') for r in rows)
+        report['dng']['template_unique'] = rate((r.get('template_unique') for r in rows),any(r.get('template') for r in rows))
+        report['dng']['template_novel_against_test'] = rate((r.get('template_novel_against_test') for r in rows),bool(reference_templates))
+        report['dng']['template_novel_against_train'] = rate((r.get('template_novel_against_train') for r in rows),bool(train_templates))
     groups = defaultdict(list)
     for row in rows:
         if row.get('target_group') is not None:
             groups[row['target_group']].append(row)
-    report['groups'] = [{'group':g,'attempted':len(v),'exact':rate(r.get('exact_target_group') for r in v),
-        'containment':rate(r.get('target_operation_containment') for r in v),'basic_valid':rate(r.get('basic_valid') for r in v),
-        'multi_tolerance':{str(t):rate(r.get('exact_group_'+str(t)) for r in v) for t in (1e-4,1e-3,1e-2)}} for g,v in sorted(groups.items())]
-    group_values = [g['exact']['rate_over_all_attempts'] for g in report['groups'] if g['exact']['evaluated']]
+    report['groups'] = [{'group':g,'requested':len(v),'exact':rate((r.get('exact_target_group') for r in v),reidentify),
+        'containment':rate((r.get('target_operation_containment') for r in v),'target_operation_containment' in requested_fields),
+        'basic_valid':rate(r.get('basic_valid') for r in v),
+        'multi_tolerance':{str(t):rate((r.get('exact_group_'+str(t)) for r in v),reidentify) for t in (1e-4,1e-3,1e-2)}} for g,v in sorted(groups.items())]
+    group_values = [g['exact']['rate'] for g in report['groups'] if g['exact']['rate'] is not None]
     report['group_macro_exact_rate'] = float(np.mean(group_values)) if group_values else None
     report['group_macro_denominator'] = {'requested_groups':len(report['groups']),
         'groups_with_evaluated_exact_rate':len(group_values),
-        'scope':'Macro over assessed groups; per-group attempts/unknowns retained, including fully failed groups'}
+        'scope':'Macro over requested groups with recorded outcomes; failures count as failures'}
     report['embedding_distance'] = {'status':'not_evaluated','reason':'Provide content-bound independent Wrenformer embeddings to compute FWD'}
     if embeddings:
         source = json.loads(Path(embeddings).read_text(encoding='utf-8'))
@@ -426,7 +458,7 @@ def evaluate(samples, task, kind, output, reference_files=(), novelty_files=(), 
     elapsed = time.perf_counter()-started
     generation_times = [r['generation_seconds'] for r in rows if r.get('generation_seconds') is not None]
     report['efficiency'] = {'metric_seconds_excluding_reference_cache':elapsed,'generation_seconds':numeric(generation_times),
-        'generation_time_coverage':len(generation_times),'attempts_per_generation_second':len(rows)/sum(generation_times)
+        'generation_time_coverage':len(generation_times),'generated_structures_per_second':len(generated_rows)/sum(generation_times)
             if len(generation_times)==len(rows) and sum(generation_times)>0 else None}
     output.mkdir(parents=True, exist_ok=True)
     fields = sorted({key for r in rows for key in r})
@@ -437,5 +469,16 @@ def evaluate(samples, task, kind, output, reference_files=(), novelty_files=(), 
     if task=='csp':
         with (output/'cases.csv').open('w',newline='',encoding='utf-8-sig') as stream:
             writer=csv.DictWriter(stream,fieldnames=list(report['csp']['case_rows'][0]) if report['csp']['case_rows'] else ['case_id']);writer.writeheader();writer.writerows(report['csp']['case_rows'])
+        with (output/'csp_metrics.csv').open('w',newline='',encoding='utf-8-sig') as stream:
+            writer=csv.DictWriter(stream,fieldnames=['profile','profile_label','kind','ltol','stol','angle_degrees','scale',
+                'candidates_per_case','test_cases','matched_cases','match_rate','valid_match_rate'])
+            writer.writeheader()
+            for profile,values in report['csp']['profiles'].items():
+                for k,value in values.items():
+                    if k.isdigit(): writer.writerow({'profile':profile,'profile_label':report['matching_profile_labels'][profile],
+                        'kind':kind,'ltol':PROFILES[profile]['ltol'],'stol':PROFILES[profile]['stol'],
+                        'angle_degrees':PROFILES[profile]['angle_tol'],'scale':PROFILES[profile]['scale'] if kind=='space' else False,
+                        'candidates_per_case':int(k),'test_cases':report['csp']['cases'],
+                        **{n:value[n] for n in ('matched_cases','match_rate','valid_match_rate')}})
     write_json(output/'summary.json',report)
     return rows,report,reference['rows']
