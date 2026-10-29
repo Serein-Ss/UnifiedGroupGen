@@ -1,4 +1,5 @@
 import importlib.util
+import hashlib
 import json
 from pathlib import Path
 import subprocess
@@ -195,6 +196,43 @@ def test_identity_guards_cif_predictions_cases_and_partial_json(tmp_path):
     with pytest.raises(ValueError,match='not modified'): read_records(samples)
 
 
+@pytest.mark.parametrize('kind',['space','layer'])
+def test_inline_cif_matches_file_geometry_and_export(tmp_path,kind):
+    structure=nacl() if kind=='space' else mos2()
+    cif=structure.to(fmt='cif')
+    digest=hashlib.sha256(cif.encode('utf-8')).hexdigest()
+    path=tmp_path/'original.cif';path.write_bytes(cif.encode('utf-8'))
+    inline={'index':0,'status':'generated','cif':cif,'cif_sha256':digest}
+    external={'index':0,'status':'generated','cif_path':path.name,'cif_sha256':digest}
+    restored=[load_structure(r,tmp_path) for r in (inline,external)]
+    np.testing.assert_allclose(restored[0].lattice.matrix,restored[1].lattice.matrix,atol=0,rtol=0)
+    np.testing.assert_allclose(restored[0].frac_coords,restored[1].frac_coords,atol=0,rtol=0)
+    assert geometry(restored[0],kind)==geometry(restored[1],kind)
+    assert match_pair(restored[0],restored[1],kind,'legacy_ugg_v1')['match']
+    spec=importlib.util.spec_from_file_location('property_bridge',ROOT/'scripts/legacy_eval/properties.py')
+    bridge=importlib.util.module_from_spec(spec);spec.loader.exec_module(bridge)
+    arrays=[bridge.crystal_array(s) for s in restored]
+    for key in arrays[0]: np.testing.assert_array_equal(arrays[0][key],arrays[1][key])
+    path.unlink()
+    samples=ledger(tmp_path/'samples.jsonl',[inline])
+    command=[sys.executable,str(ROOT/'scripts/export_sample_cif.py'),'--samples',str(samples),
+             '--index','0','--output',str(tmp_path/'selected.cif')]
+    result=subprocess.run(command,capture_output=True,text=True)
+    assert result.returncode==0,result.stderr
+    assert sha256(tmp_path/'selected.cif')==digest
+    assert read_records(samples)==[inline]
+    repeated=subprocess.run(command,capture_output=True,text=True)
+    assert repeated.returncode!=0 and sha256(tmp_path/'selected.cif')==digest
+
+
+def test_inline_cif_corruption_never_falls_back_to_descriptor_or_file(tmp_path):
+    cif=nacl().to(fmt='cif');path=tmp_path/'fallback.cif';path.write_text(cif,encoding='utf-8')
+    record={'cif':cif,'cif_sha256':'wrong','cif_path':path.name,'structure':nacl().as_dict()}
+    with pytest.raises(ValueError,match='Inline CIF hash mismatch'): load_structure(record,tmp_path)
+    record['cif']='';record.pop('cif_sha256')
+    with pytest.raises(ValueError,match='nonempty string'): load_structure(record,tmp_path)
+
+
 def test_operation_check_identity_and_inversion():
     s=nacl()
     residual,metric=operation_check(s,'space',2,[{'R':(-np.eye(3)).tolist(),'t':[0,0,0]}])
@@ -215,7 +253,8 @@ def test_components_match_existing_teacher_forced_objective():
     assert value['parts']['W']['tokens']==2 and value['parts']['Z']['tokens']==2
 
 
-def test_native_adapter_preserves_resume_attempts(tmp_path,monkeypatch):
+@pytest.mark.parametrize('legacy_files',[False,True])
+def test_native_adapter_preserves_resume_attempts(tmp_path,monkeypatch,legacy_files):
     import torch
     # Import CLI before patching flow.sample_flow; otherwise its module-level
     # import would retain the mock after monkeypatch restores the flow module.
@@ -236,11 +275,18 @@ def test_native_adapter_preserves_resume_attempts(tmp_path,monkeypatch):
     monkeypatch.setattr('unifiedgroupgen.flow.sample_flow',prior)
     job={'task':'csp','dataset':'mp_20','kind':'space','properties':{},'case_ids':['ref'],'k':2}
     module.generate(model,flow,config,job,tmp_path,'cpu',142,2,0.)
-    digest=sha256(tmp_path/'samples.jsonl')
-    assert len(read_records(tmp_path/'samples.jsonl'))==2
+    rows=read_records(tmp_path/'samples.jsonl')
+    assert len(rows)==2 and not list(tmp_path.glob('*.cif'))
     assert seen==[None,None]
-    for r in read_records(tmp_path/'samples.jsonl'):
+    for r in rows:
         assert r['status']=='generated' and r['chemical_request']['composition']=={'6':2}
+        assert r['cif_sha256']==hashlib.sha256(r['cif'].encode('utf-8')).hexdigest()
+        assert len(load_structure(r,tmp_path))==2
+        if legacy_files:
+            path=tmp_path/f"sample_{r['index']:05d}.cif"
+            path.write_bytes(r.pop('cif').encode('utf-8'));r['cif_path']=path.name
+    if legacy_files: ledger(tmp_path/'samples.jsonl',rows)
+    digest=sha256(tmp_path/'samples.jsonl')
     module.generate(model,flow,config,job,tmp_path,'cpu',142,2,0.)
     assert sha256(tmp_path/'samples.jsonl')==digest and len(seen)==2
 
@@ -276,11 +322,16 @@ def test_collapsed_orbit_export_is_not_reported_as_generation_success(tmp_path,m
 
 
 def test_cli_png_manifest_resume(tmp_path):
-    s=nacl();samples=ledger(tmp_path/'samples.jsonl',[{'index':0,'status':'generated','structure':s.as_dict()}])
+    s=nacl();cif=s.to(fmt='cif')
+    samples=ledger(tmp_path/'samples.jsonl',[{'index':0,'status':'generated','cif':cif,'cif_sha256':hashlib.sha256(cif.encode()).hexdigest()}])
+    # A leftover legacy file is not an input when an embedded CIF is declared.
+    (tmp_path/'sample_00000.cif').write_text('unrelated legacy file',encoding='utf-8')
     command=[sys.executable,str(ROOT/'scripts/evaluate_structures.py'),'--samples',str(samples),'--task','dng','--kind','space',
              '--output',str(tmp_path/'out'),'--no-fingerprints','--no-reidentify']
     first=subprocess.run(command,capture_output=True,text=True)
     assert first.returncode==0,first.stderr
+    identity=json.loads((tmp_path/'out/manifest.json').read_text())['identity']
+    assert not any(p.endswith('.cif') for p in identity['inputs'])
     outputs=list((tmp_path/'out').glob('*.png'))
     assert len(outputs)==2 and not list((tmp_path/'out').glob('*.svg'))
     second=subprocess.run(command+['--resume'],capture_output=True,text=True)
@@ -352,11 +403,14 @@ def test_campaign_integration_resume_and_checkpoint_identity(tmp_path,phased):
         assert not list(output.rglob('samples.jsonl'))
         first=subprocess.run(command+['--stage','generate','--run','--resume'],capture_output=True,text=True)
         assert first.returncode==0,first.stderr
+        assert not list(output.rglob('*.cif'))
         assert json.loads((output/'pipeline.json').read_text())['state']=='generation_complete'
         assert not list(output.rglob('metrics/summary.json')) and not (output/'mp20_u/components/records.csv').exists()
         original={str(p.relative_to(output)):sha256(p) for p in output.rglob('samples.jsonl')}
         verified=subprocess.run(command+['--verify-generated'],capture_output=True,text=True)
         assert verified.returncode==0 and '"regeneration_started": false' in verified.stdout
+        assert json.loads(verified.stdout)['cif_files_checked']==0
+        assert json.loads(verified.stdout)['cif_strings_checked']>0
     run=subprocess.run(command+['--run','--resume',*(['--stage','metrics'] if phased else [])],capture_output=True,text=True)
     assert run.returncode==0,run.stderr+'\n'+run.stdout
     pipeline=json.loads((output/'pipeline.json').read_text(encoding='utf-8'))

@@ -58,9 +58,24 @@ def record_counts(record, base):
     return counts_of(load_structure(record, base))
 
 
+def inline_cif_bytes(record):
+    """Validate and return the exact UTF-8 bytes of an embedded CIF."""
+    text = record['cif']
+    if not isinstance(text, str) or not text.strip():
+        raise ValueError('Inline CIF must be a nonempty string')
+    content = text.encode('utf-8')
+    expected = record.get('cif_sha256')
+    if expected and hashlib.sha256(content).hexdigest() != expected:
+        raise ValueError('Inline CIF hash mismatch')
+    return content
+
+
 def load_structure(record, base):
-    """Prefer exported CIFs for generated ledgers; accept pymatgen/array/UGG records."""
+    """Read embedded/exported CIFs, or pymatgen/array/UGG records."""
     base = Path(base)
+    if 'cif' in record:
+        from pymatgen.io.cif import CifParser
+        return CifParser.from_str(inline_cif_bytes(record).decode('utf-8'), frac_tolerance=0).parse_structures(primitive=False)[0]
     name = record.get('cif_path')
     if name is None and 'index' in record and 'status' in record and not record.get('structure'):
         candidate = base/f"sample_{int(record['index']):05d}.cif"

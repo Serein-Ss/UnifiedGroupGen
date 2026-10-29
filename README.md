@@ -170,6 +170,7 @@ MP20/MPTS52 使用 PyXtal 的常规晶胞表示，因此展开后原子数可能
 `scripts/evaluate_main15_unified.py` 默认只写计划，显式 `--run` 才执行。
 当前[v2术语和失败处理](docs/EVALUATION_PROTOCOL_V2.md)区分生成成功率与结构有效率，CSP默认完整测试集每例20候选并报告Match@1/5/20。
 优先评价联合基础与三性质模型时，使用[两个联合模型的分阶段方案](docs/JOINT_PAIR_EVALUATION.md)：
+新原生评估把CIF字符串和内容哈希集中保存到每任务的 `samples.jsonl`，不再逐结构创建CIF；需要时用 `scripts/export_sample_cif.py` 按编号导出。旧独立CIF输入继续兼容。
 `scripts/evaluate_joint_pair.py` 默认只生成计划，支持先生成、哈希核验、再计算指标，评价阶段不重新生成材料。
 旧指标入口与协议保留，性质代理、精确群符合性、结构有效性和物理稳定性分别标记。
 

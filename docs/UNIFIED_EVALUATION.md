@@ -41,7 +41,7 @@ v1结果不覆盖，v2使用新目录，避免不同分母或失败处理混用�
 已经启动但没有得到结果的检查计为失败，CSV保存错误类型、阶段和原因。
 没有提供预测器或显式关闭的检查为 `not_evaluated`（未运行），不能伪装成已计算失败或成功。
 解析、有限值、指纹可计算性放入工程诊断，不作为论文主要生成性能指标。
-原生生成在导出前拒绝非有限状态/晶格/坐标，写CIF后立即回读并核对组成；失败不标为生成成功。
+原生生成在导出前拒绝非有限状态/晶格/坐标，将CIF编码成字符串后立即在内存回读并核对组成；失败不标为生成成功。
 不使用NaN替换或事后裁剪伪造有效结果；有限精度下仍可能出现数值失败，应保留种子、错误原因定位。
 所有失败保留在生成记录中，不重采样凑出“成功的1024个”。
 
@@ -105,7 +105,9 @@ MP-20训练的预测器用于C2DB时，必须显式 `--allow-proxy-transfer`，�
 
 ## 6. 模型无关输入示例
 
-`samples.jsonl` 每个请求序号记录一行成功或失败，可使用CIF、pymatgen结构字典、原子数组或原生descriptor/state：
+`samples.jsonl` 每个请求序号记录一行成功或失败，可使用内嵌CIF字符串、旧CIF文件、pymatgen结构字典、原子数组或原生descriptor/state。
+新原生采样默认使用 `cif` 字符串和 `cif_sha256`（UTF-8文本内容哈希），不创建独立CIF文件；
+JSON自动转义CIF换行，保持逐行追加及断点续跑。旧文件输入仍支持：
 
 ```json
 {"index":0,"status":"generated","cif_path":"sample_00000.cif","case_id":"test-001","properties_requested":{"band_gap":1.0}}
@@ -138,7 +140,9 @@ python scripts/evaluate_structures.py --samples <samples.jsonl> --task dng --kin
 输出 `samples.csv`、CSP的 `cases.csv`、`summary.json`、`manifest.json`，以及PNG：
 `metrics.png`、`distributions.png`、有群标签时 `groups.png`、有代理预测时 `properties.png`。
 `--resume`只有在输入、代码、协议和输出哈希一致时复用完整评价；损坏结果不覆盖。
-原生采样按每尝试独立seed续跑，已生成CIF需逐个通过哈希。
+原生采样按每尝试独立seed续跑，已生成内嵌CIF或旧文件需逐个通过哈希。
+用 `scripts/export_sample_cif.py --samples <samples.jsonl> --index <编号> --output <选定文件.cif>`
+可按需导出原始CIF文本，默认拒绝覆盖。存储方式改变不改变指标协议；旧结果不原地转换。
 完整JSON行后的不完整尾行不会自动删除；发现则停止并保留证据。
 独立指标任务中断可重算该任务；历史reference缓存按数据、kind、代码和依赖版本隔离。
 

@@ -4,6 +4,26 @@
 复用修复后的MP20和C2DB数据，不重训、不改模型、不运行其他13套模型。
 每个模型分别产生space/MP20和layer/C2DB结果；目前仍需source_domain=0/1上下文，不能称为来源无条件生成。
 
+## 结构保存方式
+
+新原生评估默认把CIF文本内嵌到每任务唯一的结构数据文件 `samples.jsonl`，不再逐结构创建 `.cif`。
+每行保留index、成功/失败、cif字符串及UTF-8内容的cif_sha256、群描述、条件和耗时；
+CIF内的换行由JSON转义，因此每个样本仍占一个物理行。失败样本和无法回读的CIF文本也保留原因。
+任务仍有少量状态/日志文件，指标阶段另有CSV、JSON、PNG，所谓单文件指结构数据集中保存。
+评价与性质预测共用内存CIF读取器；旧cif_path格式继续支持，旧文件不删除、不自动转换。
+模型、采样、精度和指标公式不因存储改变。减少文件操作不等于避免CIF解析、指纹或匹配计算。
+
+正在运行或已经生成的旧评估应保持原版本与目录。本次内嵌格式使用下方新的inline输出目录，
+不强行改写旧pipeline身份，也不重采样冒充复用。
+
+需要单独分析时只导出指定编号，默认拒绝覆盖已有文件：
+
+```bash
+python scripts/export_sample_cif.py \
+  --samples artifacts/evaluations/joint_pair_discovery_inline_seed142/joint_u/mp_20_dng/samples.jsonl \
+  --index 17 --output artifacts/selected_structures/joint_u_mp20_00017.cif
+```
+
 ## 任务表
 
 ### 第一批 discovery：先取得完整的生成质量和性质控制结果
@@ -74,10 +94,10 @@ nvidia-smi
 
 ```bash
 mkdir -p artifacts/evaluations
-cat > artifacts/evaluations/joint_pair_discovery.args.sh <<'SH'
+cat > artifacts/evaluations/joint_pair_discovery_inline.args.sh <<'SH'
 UGG_PAIR_ARGS=(
   --suite discovery
-  --output artifacts/evaluations/joint_pair_discovery_seed142
+  --output artifacts/evaluations/joint_pair_discovery_inline_seed142
   --checkpoint-root artifacts/runs/main15_seed42
   --count 1024 --conditional-count 256
   --steps 64 --seed 142 --guidance 2 --threads 4 --device cuda
@@ -87,7 +107,7 @@ UGG_PAIR_ARGS=(
   --allow-proxy-transfer
 )
 SH
-source artifacts/evaluations/joint_pair_discovery.args.sh
+source artifacts/evaluations/joint_pair_discovery_inline.args.sh
 
 # 只读取预测器权重/元数据并核对目标、图设置和已保存测试数组
 python scripts/legacy_eval/properties.py --project-root "$PWD" \
@@ -106,29 +126,30 @@ python scripts/evaluate_joint_pair.py "${UGG_PAIR_ARGS[@]}" --plan
 ## 第一批：阶段一只生成
 
 ```bash
-source artifacts/evaluations/joint_pair_discovery.args.sh
+source artifacts/evaluations/joint_pair_discovery_inline.args.sh
 nohup python -u scripts/evaluate_joint_pair.py "${UGG_PAIR_ARGS[@]}" \
   --stage generate --run --resume \
-  > artifacts/evaluations/joint_pair_discovery.generate.log 2>&1 &
+  > artifacts/evaluations/joint_pair_discovery_inline.generate.log 2>&1 &
 echo "生成PID=$!"
 ```
 
-仅产生samples.jsonl、CIF和生成状态，跳过模块测试、性质预测、指纹和质量指标。
+仅产生内嵌CIF的samples.jsonl和生成状态，跳过模块测试、性质预测、指纹和质量指标。
 每条失败保留原因；正常退出时pipeline.state=generation_complete。
 
 ## 第一批：生成结束后核对，再计算指标
 
 ```bash
-source artifacts/evaluations/joint_pair_discovery.args.sh
+source artifacts/evaluations/joint_pair_discovery_inline.args.sh
 python scripts/evaluate_joint_pair.py "${UGG_PAIR_ARGS[@]}" --verify-generated
 
 nohup python -u scripts/evaluate_joint_pair.py "${UGG_PAIR_ARGS[@]}" \
   --stage metrics --run --resume \
-  > artifacts/evaluations/joint_pair_discovery.metrics.log 2>&1 &
+  > artifacts/evaluations/joint_pair_discovery_inline.metrics.log 2>&1 &
 echo "评价PID=$!"
 ```
 
-核验会检查生成记录和CIF哈希。评价阶段先确认全部生成任务完整，再进行模块测试、CPU代理预测和指标计算；不重新生成材料。
+核验会检查生成记录和每条内嵌CIF哈希（cif_strings_checked）；旧格式另显示cif_files_checked。
+评价阶段先确认全部生成任务完整，再进行模块测试、CPU代理预测和指标计算；不重新生成材料。
 中断恢复仍用相同阶段命令。完整结果出现根目录summary.csv、summary.json、model_comparison.png，pipeline.state=complete。
 逐样本CSV、汇总JSON、PNG和每任务日志均保留；已完成阶段通过哈希后复用。
 根目录summary.csv同时汇总生成数/失败数、有效性、唯一/新颖/VUN、两种COV及AMSD/AMCD、
@@ -137,10 +158,10 @@ FE/BG预测均值、目标误差、命中率/有效命中率和同代理参考�
 ## 进度
 
 ```bash
-python scripts/evaluate_joint_pair.py --suite discovery --status
-tail -n 20 -F artifacts/evaluations/joint_pair_discovery.generate.log
+python scripts/evaluate_joint_pair.py --suite discovery --output artifacts/evaluations/joint_pair_discovery_inline_seed142 --status
+tail -n 20 -F artifacts/evaluations/joint_pair_discovery_inline.generate.log
 # 进入指标阶段后改看：
-# tail -n 20 -F artifacts/evaluations/joint_pair_discovery.metrics.log
+# tail -n 20 -F artifacts/evaluations/joint_pair_discovery_inline.metrics.log
 nvidia-smi
 ```
 
@@ -150,12 +171,12 @@ nvidia-smi
 全部评价完成后可打包下载：
 
 ```bash
-python -c "import json; p='artifacts/evaluations/joint_pair_discovery_seed142/pipeline.json'; assert json.load(open(p))['state']=='complete'"
-tar -czf artifacts/evaluations/joint_pair_discovery_seed142_audit.tar.gz \
+python -c "import json; p='artifacts/evaluations/joint_pair_discovery_inline_seed142/pipeline.json'; assert json.load(open(p))['state']=='complete'"
+tar -czf artifacts/evaluations/joint_pair_discovery_inline_seed142_audit.tar.gz \
   --exclude=reference_cache --exclude=proxy_reference_cache \
-  -C artifacts/evaluations joint_pair_discovery_seed142
-sha256sum artifacts/evaluations/joint_pair_discovery_seed142_audit.tar.gz \
-  > artifacts/evaluations/joint_pair_discovery_seed142_audit.tar.gz.sha256
+  -C artifacts/evaluations joint_pair_discovery_inline_seed142
+sha256sum artifacts/evaluations/joint_pair_discovery_inline_seed142_audit.tar.gz \
+  > artifacts/evaluations/joint_pair_discovery_inline_seed142_audit.tar.gz.sha256
 ```
 
 ## 第二批：先保留完整CSP计划

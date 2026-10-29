@@ -15,7 +15,7 @@ import yaml
 ROOT=Path(__file__).resolve().parents[1]
 sys.path[:0]=[str(ROOT/'src'),str(ROOT/'scripts')]
 from unifiedgroupgen.main_experiments import TRAINING_ORDER
-from unifiedgroupgen.evaluation_io import read_records, sha256, write_json
+from unifiedgroupgen.evaluation_io import inline_cif_bytes, read_records, sha256, write_json
 
 
 TASKS=('components','dng','csp','fixed_descriptor','group')
@@ -160,7 +160,7 @@ def main():
     if args.verify_generated:
         saved=json.loads((args.output/'pipeline.json').read_text(encoding='utf-8'))
         if saved['identity']!=identity: raise ValueError('Generation verification requires identical model/data/options/code')
-        generated=failed=cifs=0
+        generated=failed=cifs=inline_cifs=0
         for job in plan:
             if job['task']=='components': continue
             key=job['model']+'/'+job['name'];target=args.output/key
@@ -172,8 +172,11 @@ def main():
             generated+=sum(r['status']=='generated' for r in records)
             failed+=sum(r['status']!='generated' for r in records)
             cifs+=sum(p.endswith('.cif') for p in receipt['outputs'])
+            for record in records:
+                if 'cif' in record:
+                    inline_cif_bytes(record);inline_cifs+=1
         print(json.dumps({'state':'verified','requested':generated+failed,'generated':generated,'failed':failed,
-            'cif_files_checked':cifs,'regeneration_started':False},indent=2));return
+            'cif_files_checked':cifs,'cif_strings_checked':inline_cifs,'regeneration_started':False},indent=2));return
     if not args.run or args.plan:
         args.output.mkdir(parents=True,exist_ok=True)
         write_json(args.output/'plan.json',{'identity':identity,'generation_attempts':total,'formal_tasks_started':False})

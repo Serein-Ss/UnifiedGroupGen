@@ -39,6 +39,8 @@ def main():
               *[p for p in (args.request,args.assessments,args.assessment_metadata,args.reference_assessments,args.embeddings) if p]]
     records = read_records(args.samples)
     for r in records:
+        if 'cif' in r:
+            continue
         if r.get('cif_path'):
             p=Path(r['cif_path']); inputs.append(p if p.is_absolute() else args.samples.parent/p)
         elif r.get('status')=='generated' and (args.samples.parent/f"sample_{r['index']:05d}.cif").exists():

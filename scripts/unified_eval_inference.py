@@ -1,6 +1,7 @@
 """Native model adapter: held-out components, hard-composition CSP and de novo attempts."""
 import argparse
 import csv
+import hashlib
 import json
 from pathlib import Path
 import random
@@ -11,7 +12,7 @@ import numpy as np
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path[:0]=[str(ROOT/'src'),str(ROOT/'scripts')]
-from unifiedgroupgen.evaluation_io import read_records, record_counts, sha256, write_json
+from unifiedgroupgen.evaluation_io import inline_cif_bytes, read_records, record_counts, sha256, write_json
 
 
 def checked_config(saved):
@@ -110,8 +111,11 @@ def generate(proposal,flow,config,job,output,device,seed,steps,guidance):
     if [r['index'] for r in previous]!=list(range(len(previous))) or len(previous)>len(attempts):
         raise ValueError('Attempt ledger is incomplete/corrupt; it was preserved')
     for r in previous:
-        if r['status']=='generated' and sha256(output/r['cif_path'])!=r['cif_sha256']:
-            raise ValueError('Existing CIF no longer matches its receipt')
+        if r['status']=='generated':
+            if 'cif' in r:
+                inline_cif_bytes(r)
+            elif sha256(output/r['cif_path'])!=r['cif_sha256']:
+                raise ValueError('Existing CIF no longer matches its receipt')
     with torch.inference_mode():
         for index,(case,candidate) in enumerate(attempts):
             if index<len(previous): continue
@@ -141,20 +145,19 @@ def generate(proposal,flow,config,job,output,device,seed,steps,guidance):
                 phase='numeric_validation'
                 if not torch.isfinite(generated['state']).all():
                     raise FloatingPointError('Nonfinite continuous state rejected before CIF export')
-                path=output/f'sample_{index:05d}.cif'
                 structure=to_structure(compiled,generated)
                 phase='cif_export'
-                structure.to(filename=str(path))
-                # Native output is only successful after CIF round-trip verification.
+                cif=structure.to(fmt='cif')
+                row.update(cif=cif,cif_sha256=hashlib.sha256(cif.encode('utf-8')).hexdigest())
+                # Native output is only successful after in-memory CIF round-trip verification.
                 from unifiedgroupgen.evaluation_io import load_structure, counts_of
                 phase='cif_readback'
-                restored=load_structure({'cif_path':str(path.resolve())},output)
+                restored=load_structure(row,output)
                 if counts_of(restored)!=counts_of(structure):
                     raise RuntimeError('CIF export/readback changed integer composition')
                 if not np.isfinite(restored.lattice.matrix).all() or not np.isfinite(restored.frac_coords).all():
                     raise FloatingPointError('Nonfinite CIF readback')
-                row.update(status='generated',descriptor=descriptor.to_dict(),state=generated['state'].cpu().tolist(),
-                           cif_path=path.name,cif_sha256=sha256(path))
+                row.update(status='generated',descriptor=descriptor.to_dict(),state=generated['state'].cpu().tolist())
             except (ValueError,RuntimeError,FloatingPointError,KeyError) as error:
                 if isinstance(error,torch.cuda.OutOfMemoryError): raise
                 row.update(status='failed',failure_stage=phase,error_type=type(error).__name__,reason=str(error))
@@ -193,6 +196,7 @@ def main():
         raise ValueError('Checkpoint changed after the evaluation plan was created')
     identity={'checkpoint_sha256':sha256(args.checkpoint),'job':job,'seed':args.seed,'steps':args.steps,
               'guidance':args.guidance,'test':{p:sha256(ROOT/p) for p in config['test_files']},
+              'structure_storage':'inline_cif_utf8_v1',
               'adapter_sha256':sha256(__file__)}
     args.output.mkdir(parents=True,exist_ok=True)
     receipt=args.output/'identity.json'
