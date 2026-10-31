@@ -1,0 +1,137 @@
+# From the repository root:
+# conda env create -f unifiedgroupgen/environment.yml
+# conda activate unifiedgroupgen_cuda
+# python -m pip install --no-deps --no-build-isolation -e ./unifiedgroupgen
+# Linux CUDA reference: Python 3.10.18 / PyTorch 2.7.1 CUDA 11.8 / NumPy 1.26.4.
+# Official backbone cores are bundled; do not install full mattergen/fairchem-core training distributions.
+# Optional Windows smoke-test instructions: docs/ENVIRONMENT.md.
+# Optional public property models: pip install -e "./unifiedgroupgen[pretrained]"
+# Use official wheels, not the mixed metadata/binaries in the old cgdit environment.
+name: unifiedgroupgen_cuda
+channels:
+  - defaults
+dependencies:
+  - python=3.10.18
+  - pip=25.2
+  - setuptools=78.1.1
+  - wheel=0.45.1
+  - pip:
+      - --index-url https://pypi.org/simple
+      - --extra-index-url https://download.pytorch.org/whl/cu118
+      - --find-links https://data.pyg.org/whl/torch-2.7.0+cu118.html
+      - torch==2.7.1+cu118
+      - numpy==1.26.4
+      - scipy==1.15.2
+      - pandas==2.3.3
+      - pyxtal==1.1.3
+      - pymatgen==2025.10.7
+      - spglib==2.6.0
+      - PyYAML==6.0.3
+      - tqdm==4.67.1
+      - pytorch-lightning==2.5.5
+      - torchmetrics==1.8.2
+      - lightning-utilities==0.15.2
+      - wandb==0.22.3
+      - hydra-core==1.3.2
+      - omegaconf==2.3.0
+      - python-dotenv==1.2.1
+      - matplotlib==3.10.7
+      - Pillow==11.3.0
+      - smact==3.2.0
+      - matminer==0.9.3
+      - ase==3.26.0
+      - scikit-learn==1.7.2
+      - threadpoolctl==3.6.0
+      - sympy==1.14.0
+      - networkx==3.4.2
+      - requests==2.32.5
+      - filelock==3.19.1
+      - fsspec==2025.9.0
+      - typing_extensions==4.15.0
+      - packaging==25.0
+      - pydantic==2.12.3
+      - psutil==7.1.2
+      - torch-geometric==2.7.0
+      - torch-scatter==2.1.2+pt27cu118
+      - torch-sparse==0.6.18+pt27cu118
+      - torch-cluster==1.6.3+pt27cu118
+      - torch-spline-conv==1.2.2+pt27cu118
+      - pytest==8.4.2
+      - p-tqdm==1.4.2
+      - einops==0.8.1
+      - e3nn==0.5.1
+      - opt-einsum-fx==0.1.4
+      - opt-einsum==3.4.0
+      # Published MEGNet proxy and CPU DGL; no GraphBolt binary dependency.
+      - matgl==0.9.2
+      - dgl==1.1.2
+      # Pinned transitive dependencies.
+      - aiohappyeyeballs==2.6.1
+      - aiohttp==3.13.2
+      - aiosignal==1.4.0
+      - annotated-types==0.7.0
+      - antlr4-python3-runtime==4.9.3
+      - async-timeout==5.0.1
+      - attrs==25.4.0
+      - bibtexparser==1.4.3
+      - certifi==2025.10.5
+      - charset-normalizer==3.4.4
+      - click==8.3.0
+      - colorama==0.4.6
+      - contourpy==1.3.2
+      - cycler==0.12.1
+      - dill==0.4.0
+      - dnspython==2.8.0
+      - exceptiongroup==1.3.0
+      - fonttools==4.60.1
+      - frozenlist==1.8.0
+      - gitdb==4.0.12
+      - gitpython==3.1.45
+      - idna==3.11
+      - importlib-metadata==8.7.0
+      - iniconfig==2.3.0
+      - jinja2==3.1.6
+      - joblib==1.5.2
+      - kiwisolver==1.4.9
+      - lxml==6.0.2
+      - markupsafe==2.1.5
+      - monty==2025.3.3
+      - mpmath==1.3.0
+      - multidict==6.7.0
+      - multiprocess==0.70.18
+      - narwhals==2.10.0
+      - orjson==3.11.4
+      - palettable==3.3.3
+      - pandarallel==1.6.5
+      - pathos==0.3.4
+      - platformdirs==4.5.0
+      - plotly==6.3.1
+      - pluggy==1.6.0
+      - pox==0.3.6
+      - ppft==1.7.7
+      - propcache==0.4.1
+      - protobuf==6.33.0
+      - pydantic-core==2.41.4
+      - pygments==2.19.2
+      - pymongo==4.15.3
+      - pyocse==0.1.2
+      - pyparsing==3.2.5
+      - python-dateutil==2.9.0.post0
+      - pytz==2025.2
+      - ruamel-yaml==0.18.16
+      - ruamel-yaml-clib==0.2.14
+      - sentry-sdk==2.42.1
+      - six==1.17.0
+      - smmap==5.0.2
+      - tabulate==0.9.0
+      - toml==0.10.2
+      - tomli==2.3.0
+      - typing-inspection==0.4.2
+      - tzdata==2025.2
+      - uncertainties==3.2.3
+      - urllib3==2.5.0
+      - vasprun-xml==1.0.4
+      - xmltodict==1.0.2
+      - xxhash==3.6.0
+      - yarl==1.22.0
+      - zipp==3.23.0

@@ -1,0 +1,12 @@
+{
+  "dataset": "mpts_52",
+  "input": 8096,
+  "accepted": 8095,
+  "rejected": 1,
+  "coordinate_mode": "fractional",
+  "source_sha256": "4d6e76c4726fb12fb2a7e5bb23594f9b82dbd9bf67b7bfd4866e9c74a8f49038",
+  "full_source": true,
+  "output": "E:\\WORKSPACE\\CodePlace\\test_CGDiT\\UnifiedGroupGen\\artifacts\\full_verified_v1\\mpts_52\\test.jsonl",
+  "integrity_protocol": "source-cif-integrity-v1",
+  "integrity_journal_sha256": "173b92b9d2a741904d2cc3dc2e22c22ec41103830fc730278006bab638310c64"
+}

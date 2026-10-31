@@ -1,0 +1,4 @@
+name: wrapped_normal
+periodic_mean: 0.0
+periodic_std: 0.5
+lattice_scale: 1.0

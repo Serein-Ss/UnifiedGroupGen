@@ -1,0 +1,8 @@
+# batch_size/edge_budget are audited definition defaults. Hardware execution uses runtime.
+batch_size: 64
+edge_budget: 200000
+epochs: 1000
+precision: bf16
+gradient_clip: 10
+early_stopping_patience: 50
+validation_interval: 5

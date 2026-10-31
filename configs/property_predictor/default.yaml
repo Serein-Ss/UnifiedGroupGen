@@ -1,0 +1,15 @@
+enabled: false
+samples: null
+dataset: mp_20
+kind: space
+backend: matgl
+predictor_config: configs/predictors/matgl_mp.yaml
+model_cache: data/scr/pretrained/matgl
+cgdit_root: null
+predictor_root: null
+predictor_seed: 123
+allow_proxy_transfer: false
+batch_size: 8
+reference_files: []
+reference_cache: intermediate/cache/property_predictions
+output: intermediate/checks/property_predictions

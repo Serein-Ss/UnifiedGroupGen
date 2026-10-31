@@ -1,0 +1,19 @@
+# Calculate metrics on an existing samples.jsonl; never generate structures here.
+samples: null
+task: dng
+kind: space
+dataset: null
+reference_files: []
+novelty_files: []
+request: null
+output: null
+cache: intermediate/cache/metrics_reference
+expected_attempts: null
+no_fingerprints: false
+no_reidentify: false
+embeddings: null
+assessments: null
+assessment_metadata: null
+reference_assessments: null
+conditional:
+  enabled: false

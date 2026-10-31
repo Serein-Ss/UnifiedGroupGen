@@ -1,0 +1,3 @@
+# Native AdamW and ReduceLROnPlateau; patience is measured in epochs.
+learning_rate: 0.0003
+lr_patience: 10

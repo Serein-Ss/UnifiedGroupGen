@@ -1,0 +1,3 @@
+proposal_hidden: 256
+proposal_layers: 4
+heads: 8

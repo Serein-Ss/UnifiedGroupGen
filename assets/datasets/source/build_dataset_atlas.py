@@ -3,6 +3,7 @@
 Uses the prepared source records and their verified statistics, without model
 sampling, training, or alteration of source structures. See ../ATLAS_README.md.
 """
+from unifiedgroupgen.common.configuration import project_root, resolve_path
 import argparse
 from collections import Counter
 import hashlib
@@ -26,11 +27,11 @@ import pandas as pd
 from pymatgen.core import Composition, Element
 
 ROOT = Path(__file__).resolve().parents[3]
-OUT = ROOT/'assets/datasets'
-sys.path.insert(0, str(ROOT/'src'))
-from unifiedgroupgen.representation_audit import compiled_chart, expand_numpy
-from unifiedgroupgen.structure_rendering import element_color, render_structure
-from unifiedgroupgen.symmetry import Descriptor, group_table
+OUT = resolve_path(ROOT/'assets/datasets')
+sys.path.insert(0, str(ROOT))
+from unifiedgroupgen.tests.representation import compiled_chart, expand_numpy
+from unifiedgroupgen.common.rendering import element_color, render_structure
+from unifiedgroupgen.group_constraints.compiler import Descriptor, group_table
 
 DATASETS = [('MP20', 'mp_20', '#3468A5'), ('MPTS52', 'mpts_52', '#C96C46'),
             ('C2DB', 'c2db_51', '#167D8D')]
@@ -72,7 +73,7 @@ def load_sources(seed, frame):
         paths = [x for x in provenance['source_files'] if f'/{key}/' in x['path']]
         assert len(paths) == 3
         for item in paths:
-            path = ROOT/item['path']
+            path = resolve_path(ROOT/item['path'])
             raw = path.read_bytes()
             digest = hashlib.sha256(raw).hexdigest()
             if digest != item['sha256']:
@@ -266,7 +267,7 @@ def structure_view(record, size=(750, 650), view='isometric', arrows=False):
 
 
 def symmetry_examples():
-    records = json.loads((ROOT/'assets/paper/source/material_examples.json').read_text(encoding='utf-8'))['examples']
+    records = json.loads((resolve_path(ROOT/'assets/paper/source/material_examples.json')).read_text(encoding='utf-8'))['examples']
     fig = plt.figure(figsize=(13.5, 7.4), layout='constrained')
     grid = fig.add_gridspec(2, 3, width_ratios=[1.1, 1.1, .95])
     for row, record in enumerate(records):
@@ -341,7 +342,7 @@ def main():
         'structure_style': 'Existing Crystal Toolkit inspired renderer: matte spheres, contact cylinders, translucent coordination hulls',
         'layer_display': '2x2 in plane; basal outline 1 Angstrom below lowest atom via display-only translation; no normal repetition',
         'units': 'TiO2: fractional coordinates; MoS2: fractional in-plane coordinates and Cartesian height in Angstrom',
-        'renderer_sha256': hashlib.sha256((ROOT/'src/unifiedgroupgen/structure_rendering.py').read_bytes().replace(b'\r\n', b'\n')).hexdigest()}
+        'renderer_sha256': hashlib.sha256((resolve_path(ROOT/'unifiedgroupgen/common/rendering.py')).read_bytes().replace(b'\r\n', b'\n')).hexdigest()}
     (OUT/'tables/atlas_manifest.json').write_text(json.dumps(manifest, indent=2), encoding='utf-8')
     print(f'[COMPLETE] {len(files)} PNG files; statistics and sample provenance saved.', flush=True)
 

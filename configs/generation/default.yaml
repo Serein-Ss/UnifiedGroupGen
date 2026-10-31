@@ -1,0 +1,28 @@
+checkpoint: null
+output: null
+task_name: null
+kind: space
+properties: {}
+composition: null
+formula: null
+formula_units: [1, 2, 3, 4]
+chemical_system: null
+allowed_elements: null
+required_elements: null
+group: null
+descriptor: null
+scaffold: null
+atom_map: null
+scaffold_tolerance: 0.0001
+observations: null
+prior: false
+guidance: 0.0
+temperature: 1.0
+steps: 64
+count: 256
+# Catalog evaluation can supply a complete per-case/group sampling job.
+job: null
+batch_size: 8
+solver: heun
+completion_method: auto
+precision: auto

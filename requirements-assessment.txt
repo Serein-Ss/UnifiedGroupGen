@@ -1,2 +1,0 @@
-# Optional independent calculator bridge. Install your chosen calculator separately.
-ase>=3.23

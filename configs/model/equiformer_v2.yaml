@@ -1,0 +1,11 @@
+defaults:
+- default
+- _self_
+candidate_backbone:
+  _target_: unifiedgroupgen.pl_modules.backbones.equiformer_v2.EquiformerV2Backbone
+  layers: 12
+  channels: 128
+  lmax: 6
+  mmax: 2
+  cutoff: 6.0
+  max_neighbors: 50

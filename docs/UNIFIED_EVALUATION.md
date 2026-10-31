@@ -1,6 +1,6 @@
 # 统一原始结构评估：CSP / 从头生成 / 性质条件
 
-本实现增加独立评估入口，不修改训练、模型、数据、旧评估脚本或已归档结果。
+当前通过evaluate.py及Hydra调用；evaluation目录只保留指标计算。最新可执行命令见[EVALUATION_TASKS.md](EVALUATION_TASKS.md)。旧命令仅在tests/legacy归档，不作为当前入口。
 当前协议为 `unified_raw_v2`。输入可以来自任何模型；原生15套模型另有采样适配器。
 v1结果不覆盖，v2使用新目录，避免不同分母或失败处理混用。
 只计算原始结构和独立代理性质，不进行弛豫、DFT、凸包稳定性或SUN评价。
@@ -61,7 +61,7 @@ v1结果不覆盖，v2使用新目录，避免不同分母或失败处理混用�
 图例和新增 `csp_metrics.csv` 同时写出“Strict”/“DiffCSP”及全部参数，避免只给不透明的协议编号。
 DiffCSP参数来源：[官方RecEval/RecEvalBatch](https://github.com/jiaor17/DiffCSP/blob/main/scripts/compute_metrics.py#L109-L180)。
 这里对齐匹配参数，不将整个新有效性协议冒充官方原样评估。
-默认 `--csp-cases 0 --csp-k 20` 覆盖完整测试集；正数case预算仅用于明确标记的调试子集。
+默认 `evaluation_suite.csp_cases=0 evaluation_suite.csp_k=20` 覆盖完整测试集；正数case预算仅用于明确标记的调试子集。
 每个测试案例保留20个有固定顺序的候选，以前1、前5、前20个分别算Match@1/5/20，失败占据原候选位置。
 不能先按匹配分数从20个中挑最好1个再称Match@1。
 
@@ -83,7 +83,7 @@ DiffCSP参数来源：[官方RecEval/RecEvalBatch](https://github.com/jiaor17/Di
 * COV同时输出历史独立最近邻公式，以及要求结构和组成匹配**同一个参考邻居**的新公式。
   保留原指纹实现和阈值（结构0.4、组成10）；二维指纹是项目既有的辅助Voronoi适配。
   统一层COV使用basic有效且指纹成功的生成集合，**与旧脚本的筛选集合可能不同**。
-  如需旧论文表格的完全原样口径，继续使用 `scripts/evaluate_generation.py`，不能静默混表。
+  如需旧论文表格的完全原样口径，继续使用 `unifiedgroupgen/tests/legacy/scripts/evaluate_generation.py`，不能静默混表。
 * AMSD/AMCD、结构和组成指纹多样性、结构分布Wasserstein、元素/群/自由度分布JSD。
 * CMD标为 `cmd_50_union_range_normalized`：联合范围归一化的50阶中心矩距离，是明确命名的本实现版本，
   不默认等同于其他论文的CMD数值。
@@ -95,12 +95,12 @@ DiffCSP参数来源：[官方RecEval/RecEvalBatch](https://github.com/jiaor17/Di
 性质CSV必须来自独立评估器，并绑定生成ledger的SHA256。FE/BG适配器可读取现有CGDiT冻结预测器，
 在CPU构图、预测并缓存同一预测器在完整测试参考上的结果。
 缺少凸包能预测器时，`energy_above_hull`目标保留、评价为空，**不由形成能推算**。
-MP-20训练的预测器用于C2DB时，必须显式 `--allow-proxy-transfer`，标为探索性跨域预测，不能作为二维性质控制已证实。
+MP-20训练的预测器用于C2DB时，必须显式设置 `property_predictor.allow_proxy_transfer=true`，标为探索性跨域预测，不能作为二维性质控制已证实。
 
 等值条件默认容差为FE 0.1 eV/atom、BG 0.2 eV、Eh 0.05 eV/atom，可在request中预先指定。
 同时支持 `eq/le/ge/between` 的独立评价。输出单性质误差/命中、联合命中、basic有效联合命中，
 以及同一代理下生成/测试参考的Wasserstein距离。输出每个目标组的预测分布；目标输入值不是预测值。
-未给性质评估器时仍可完成结构评估，性质状态保持not_evaluated。
+性质评价通过`evaluation.conditional.enabled=true`启用；默认关闭。未给性质评估器时仍可完成结构评估，不声称性质控制已验证。
 预测器保存的测试MAE只是其历史训练域验证信息，不代表在新材料或二维材料上已校准。
 
 ## 6. 模型无关输入示例
@@ -125,25 +125,29 @@ CSP参考JSONL必须有唯一 `id` 和可解码结构，每个候选（包括失
 
 代理 `predictions.csv` 以 `index,formation_energy,band_gap` 为列，启动预测但数值为空时标为计算失败；没有提供该性质的预测器则标为未开展该项评价。
 `evaluator.json` 至少包括 `evaluator` 与 `samples_sha256`。
-如使用 `--reference-assessments`，参考CSV列为 `id,formation_energy,band_gap`，元数据还要有
+如使用 `evaluation.reference_assessments`，参考CSV列为 `id,formation_energy,band_gap`，元数据还要有
 `reference_sha256`（参考文件绝对路径到SHA的映射）和 `reference_predictions_sha256`。
 独立嵌入JSON字段为 `evaluator,samples_sha256,reference_sha256,generated,reference`，
 generated按尝试index索引、reference按id索引，每项为相同维数向量；至少各2个有限向量。
 
 ```bash
-python scripts/evaluate_structures.py --samples <samples.jsonl> --task csp --kind space \
-  --reference-files <test.jsonl> --request <request.json> --output <new-output>
-python scripts/evaluate_structures.py --samples <samples.jsonl> --task dng --kind layer \
-  --reference-files <test.jsonl> --novelty-files <train.jsonl> --output <new-output>
+python -m unifiedgroupgen.evaluate device=cpu \
+  evaluation.samples=/absolute/path/samples.jsonl evaluation.task=csp evaluation.kind=space \
+  'evaluation.reference_files=[/absolute/path/test.jsonl]' \
+  evaluation.request=/absolute/path/request.json evaluation.output=outputs/evaluations/new_csp
+python -m unifiedgroupgen.evaluate device=cpu \
+  evaluation.samples=/absolute/path/samples.jsonl evaluation.task=dng evaluation.kind=layer \
+  'evaluation.reference_files=[/absolute/path/test.jsonl]' \
+  'evaluation.novelty_files=[/absolute/path/train.jsonl]' evaluation.output=outputs/evaluations/new_dng
 ```
 
 输出 `samples.csv`、CSP的 `cases.csv`、`summary.json`、`manifest.json`，以及PNG：
 `metrics.png`、`distributions.png`、有群标签时 `groups.png`、有代理预测时 `properties.png`。
-`--resume`只有在输入、代码、协议和输出哈希一致时复用完整评价；损坏结果不覆盖。
+单次evaluate.py计算没有resume参数；已完成目录不覆盖。批量调度可核验哈希后跳过已完成任务，未完成的指标任务重新计算。
 原生采样按每尝试独立seed续跑，已生成内嵌CIF或旧文件需逐个通过哈希。
-用 `scripts/export_sample_cif.py --samples <samples.jsonl> --index <编号> --output <选定文件.cif>`
+用 `python -m unifiedgroupgen.generate task=export_cif export.samples=/absolute/path/samples.jsonl export.index=3 export.output=outputs/selected.cif`
 可按需导出原始CIF文本，默认拒绝覆盖。存储方式改变不改变指标协议；旧结果不原地转换。
 完整JSON行后的不完整尾行不会自动删除；发现则停止并保留证据。
 独立指标任务中断可重算该任务；历史reference缓存按数据、kind、代码和依赖版本隔离。
 
-服务器15套批处理与资源边界见 [REMOTE_UNIFIED_EVALUATION.md](REMOTE_UNIFIED_EVALUATION.md)。
+当前批处理及配置见[EVALUATION_TASKS.md](EVALUATION_TASKS.md)；旧服务器命令只归档在tests/legacy/docs，不作为当前入口。

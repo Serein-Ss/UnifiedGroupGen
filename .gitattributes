@@ -1,8 +1,8 @@
 * text=auto
 configs/*.yaml -text
-datasets/*.part* -text
-assets/paper/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
-assets/videos/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 *.sh text eol=lf
-
-datasets/**/*.part* -text
+unifiedgroupgen/pl_modules/backbones/official/**/*.py text eol=lf
+unifiedgroupgen/pl_modules/backbones/official/**/*.json text eol=lf
+unifiedgroupgen/pl_modules/backbones/official/**/*.pt -text
+# Preserve audited input bytes, including on Windows checkouts.
+data/** -text

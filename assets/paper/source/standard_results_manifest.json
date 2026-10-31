@@ -1,9 +1,0 @@
-{
-  "experiments": [
-    {
-      "label": "UnifiedGroupGen (shared)",
-      "model_seed": 42,
-      "metrics": "assets/paper/tables/joint_standard_summary.json"
-    }
-  ]
-}

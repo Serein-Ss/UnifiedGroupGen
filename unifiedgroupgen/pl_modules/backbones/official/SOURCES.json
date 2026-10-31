@@ -1,0 +1,21 @@
+{
+  "diffcsp": {
+    "repository": "https://github.com/jiaor17/DiffCSP",
+    "commit": "7121d159826efa2ba9500bf299250d96da37f146",
+    "files": {
+      "cspnet.py": "ffd693a552122dd52f27cd8f75ee0f8698bd0e3c392f26946816ee38ac8bab52",
+      "data_utils.py": "feeee42ba3ffdf87842851bc02b2f2e75e2b6faaf53b49803a237b46d0e62b0c"
+    },
+    "adaptation": "Only CSPNet import points to the colocated unchanged data utilities."
+  },
+  "mattergen": {
+    "repository": "https://github.com/microsoft/mattergen",
+    "commit": "92423660a8bd70e83679086e88f88596d484dc16",
+    "integration": "Bundled official GemNetT calculation core, imports relocated; training CLI and its dependency pins not installed."
+  },
+  "equiformer_v2": {
+    "repository": "https://github.com/FAIR-Chem/fairchem",
+    "distribution": "fairchem-core==1.10.0",
+    "integration": "Bundled official FAIRChem 1.10.0 EquiformerV2 core, imports relocated; FP32-sensitive normalization is handled by adapter hooks."
+  }
+}

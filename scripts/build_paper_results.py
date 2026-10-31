@@ -1,5 +1,6 @@
 """Collect real metric outputs into paper tables and PNG panels; missing evidence stays missing."""
 
+from unifiedgroupgen.common.configuration import project_root, resolve_path
 import argparse
 import json
 from pathlib import Path
@@ -8,10 +9,10 @@ import sys
 import numpy as np
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT/'src'))
-from unifiedgroupgen.cli import artifact_path, root_path
-from unifiedgroupgen.training import file_hash
+ROOT = project_root()
+sys.path.insert(0, str(ROOT))
+from unifiedgroupgen.common.configuration import artifact_path, root_path
+from unifiedgroupgen.common.source import file_hash
 
 RATE_KEYS = ('legacy_structural_valid', 'composition_valid', 'joint_valid', 'exact_target_group')
 RATE_LABELS = ('Geometry', 'SMACT', 'Joint validity', 'Exact group')

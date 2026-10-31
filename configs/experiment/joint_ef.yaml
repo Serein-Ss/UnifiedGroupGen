@@ -1,0 +1,6 @@
+# @package _global_
+defaults:
+- override /data: joint
+- override /conditioning: formation_energy
+- override /runtime: rtx4090_crystal
+experiment_name: joint_ef

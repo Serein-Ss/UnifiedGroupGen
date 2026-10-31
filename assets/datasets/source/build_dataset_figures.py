@@ -4,6 +4,7 @@ Run with the project's environment. Input defaults to ../../tmp/UnifiedGroupGen.
 relative to the project. Exact plots are regenerated from the source records.
 CCFA grouped-bar/heatmap grammar is adapted to Matplotlib for PNG exports.
 """
+from unifiedgroupgen.common.configuration import project_root, resolve_path
 from pathlib import Path
 import argparse
 import collections
@@ -28,7 +29,7 @@ from matplotlib.ticker import PercentFormatter
 PROJECT = Path(__file__).resolve().parents[3]
 OUT = PROJECT / 'assets/datasets'
 sys.path.insert(0, str(PROJECT / 'src'))
-from unifiedgroupgen.symmetry import wp_arrays, metric_chart
+from unifiedgroupgen.group_constraints.compiler import wp_arrays, metric_chart
 from pymatgen.core import Element
 
 NAMES = ['MP20', 'MPTS52', 'C2DB']

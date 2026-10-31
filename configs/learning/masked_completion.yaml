@@ -1,0 +1,8 @@
+defaults:
+- unified
+- _self_
+observation_probability: 0.5
+observation_policy:
+  mode: mixed
+  minimum_fraction: 0.1
+  maximum_fraction: 0.6

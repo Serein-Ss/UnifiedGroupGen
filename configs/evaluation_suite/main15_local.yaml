@@ -1,0 +1,38 @@
+defaults:
+  - default
+  - _self_
+action: plan
+models:
+  - mp20_u
+  - c2db51_u
+  - joint_u
+  - mp20_all
+  - c2db51_all
+  - joint_all
+  - mp20_ef
+  - mp20_eg
+  - mp20_eh
+  - c2db51_ef
+  - c2db51_eg
+  - c2db51_eh
+  - joint_ef
+  - joint_eg
+  - joint_eh
+tasks: [components, dng, csp, fixed_descriptor, group]
+count: 256
+csp_cases: 256
+csp_k: 20
+fixed_descriptor_k: 1
+split_domain_budget: true
+conditional_tasks: [dng]
+conditional_count: 128
+per_group: 5
+steps: 64
+guidance: 2.0
+test_batch_size: 4
+stage: all
+skip_completed: true
+conditional_enabled: true
+predictor_backend: matgl
+allow_proxy_transfer: true
+no_fingerprints: false

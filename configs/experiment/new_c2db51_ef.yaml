@@ -1,0 +1,9 @@
+# @package _global_
+defaults:
+- override /data: c2db51_unified
+- override /conditioning: formation_energy
+- override /learning: unified
+- override /runtime: rtx4090_layer
+experiment_name: c2db51_ef_v2
+experiment:
+  experiment_family: source_free_v2

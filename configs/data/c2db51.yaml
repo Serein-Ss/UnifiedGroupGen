@@ -1,0 +1,31 @@
+dataset: c2db_51
+kind: layer
+data_root: artifacts/source_recovery/c2db_official
+coordinate_mode: fractional
+group_column: lgnum
+symmetry_tolerance: 0.1
+property_columns:
+  formation_energy: hform
+  band_gap: gap
+  energy_above_hull: ehull
+prepared_root: artifacts/full_verified_v1/c2db_51
+element_policy: training
+require_data_audit: true
+require_full_preparation: true
+data_audit: artifacts/main15/audits/${experiment_name}.json
+minimum_conversion_coverage: 1.0
+source_verified: true
+layer_group_policy: identify
+recovery_report: artifacts/source_recovery/c2db_official/recovery.json
+require_source_integrity: true
+data_revision: source_integrity_v1
+source_configs:
+  c2db_51: configs/c2db_verified_v1.yaml
+train_files:
+- artifacts/full_verified_v1/c2db_51/train.jsonl
+val_files:
+- artifacts/full_verified_v1/c2db_51/val.jsonl
+test_files:
+- artifacts/full_verified_v1/c2db_51/test.jsonl
+context_properties: {}
+property_overrides: {}

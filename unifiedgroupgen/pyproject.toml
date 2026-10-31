@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools==78.1.1", "wheel==0.45.1"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "unifiedgroupgen"
+version = "0.1.0"
+description = "Group-orbit constrained material generation"
+requires-python = ">=3.10,<3.11"
+# Package compatibility requirements. Exact GPU versions live in environment.yml.
+dependencies = [
+  "torch>=2.7,<2.8", "numpy>=1.26.4,<2", "scipy>=1.15,<2", "pandas>=2.3,<3",
+  "pyxtal==1.1.3", "pymatgen>=2025.10", "spglib>=2.6,<3", "PyYAML>=6,<7",
+  "tqdm>=4.67,<5", "pytorch-lightning>=2.5,<2.6", "wandb>=0.22,<0.23",
+  "hydra-core>=1.3,<1.4", "omegaconf>=2.3,<2.4", "python-dotenv>=1.2,<2",
+  "matplotlib>=3.10,<4", "Pillow>=11,<12", "smact>=3.2,<4",
+  "matminer>=0.9.3,<0.10", "ase>=3.26,<4", "threadpoolctl>=3.6,<4",
+  "torch-geometric==2.7.0", "einops==0.8.1", "e3nn==0.5.1", "opt-einsum-fx==0.1.4", "opt-einsum==3.4.0",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.4,<9"]
+# Legacy MEGNet published weights; optional CPU DGL avoids GraphBolt/Torch ABI coupling.
+pretrained = ["matgl==0.9.2", "dgl==1.1.2", "requests>=2.32,<3", "filelock>=3.19,<4"]
+
+[project.scripts]
+ugg = "unifiedgroupgen.run:main"
+
+[tool.setuptools]
+package-dir = {unifiedgroupgen = "."}
+
+[tool.setuptools.package-data]
+unifiedgroupgen = ["README.md", "environment.yml", "evaluation/resources/*.json", "common/predictors/*.json", "tests/unit/web/*.cjs", "tests/legacy/generation_before_entry/math_sources.json", "pl_modules/backbones/official/**/*.json", "pl_modules/backbones/official/**/*.pt", "pl_modules/backbones/official/*.json", "pl_modules/backbones/official/*.LICENSE"]

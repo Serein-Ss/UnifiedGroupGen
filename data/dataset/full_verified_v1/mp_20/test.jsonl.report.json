@@ -1,0 +1,12 @@
+{
+  "dataset": "mp_20",
+  "input": 9046,
+  "accepted": 9046,
+  "rejected": 0,
+  "coordinate_mode": "fractional",
+  "source_sha256": "dd605c7543cf95a13e150aed630d0915e74edc8dea17e85301ee6fbfeb7f500a",
+  "full_source": true,
+  "output": "E:\\WORKSPACE\\CodePlace\\test_CGDiT\\UnifiedGroupGen\\artifacts\\full_verified_v1\\mp_20\\test.jsonl",
+  "integrity_protocol": "source-cif-integrity-v1",
+  "integrity_journal_sha256": "173b92b9d2a741904d2cc3dc2e22c22ec41103830fc730278006bab638310c64"
+}

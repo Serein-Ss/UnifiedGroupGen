@@ -1,0 +1,12 @@
+{
+  "dataset": "mp_20",
+  "input": 27136,
+  "accepted": 27136,
+  "rejected": 0,
+  "coordinate_mode": "fractional",
+  "source_sha256": "133bab58dba02d316f9f91174839f17802dce648be4e8659d1a42b32b97fa01d",
+  "full_source": true,
+  "output": "E:\\WORKSPACE\\CodePlace\\test_CGDiT\\UnifiedGroupGen\\artifacts\\full_verified_v1\\mp_20\\train.jsonl",
+  "integrity_protocol": "source-cif-integrity-v1",
+  "integrity_journal_sha256": "173b92b9d2a741904d2cc3dc2e22c22ec41103830fc730278006bab638310c64"
+}

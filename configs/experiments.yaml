@@ -1,0 +1,31 @@
+experiments:
+  mp20_u:
+    experiment: mp20_u
+  c2db51_u:
+    experiment: c2db51_u
+  joint_u:
+    experiment: joint_u
+  mp20_all:
+    experiment: mp20_all
+  c2db51_all:
+    experiment: c2db51_all
+  joint_all:
+    experiment: joint_all
+  mp20_ef:
+    experiment: mp20_ef
+  mp20_eg:
+    experiment: mp20_eg
+  mp20_eh:
+    experiment: mp20_eh
+  c2db51_ef:
+    experiment: c2db51_ef
+  c2db51_eg:
+    experiment: c2db51_eg
+  c2db51_eh:
+    experiment: c2db51_eh
+  joint_ef:
+    experiment: joint_ef
+  joint_eg:
+    experiment: joint_eg
+  joint_eh:
+    experiment: joint_eh

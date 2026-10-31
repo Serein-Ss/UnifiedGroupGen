@@ -1,0 +1,15 @@
+defaults:
+  - evaluation: default
+  - property_predictor: default
+  - _self_
+  - override hydra/job_logging: disabled
+task: evaluate
+device: cpu
+seed: 142
+threads: 2
+hydra:
+  job:
+    chdir: false
+  run:
+    dir: .
+  output_subdir: null

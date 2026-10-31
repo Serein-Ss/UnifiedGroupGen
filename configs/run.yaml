@@ -1,0 +1,35 @@
+defaults:
+- data: mp20
+- model: default
+- conditioning: none
+- optim: default
+- loss: default
+- train: default
+- logging: wandb
+- learning: legacy
+- prior: legacy
+- runtime: rtx4090_crystal
+- _self_
+- experiment: new_joint_u
+- override hydra/job_logging: disabled
+task: train
+experiment_name: training
+device: auto
+seed: 42
+threads: 4
+epochs: null
+resume: null
+initialize_from: null
+output: null
+hydra:
+  job:
+    chdir: false
+  run:
+    dir: .
+  output_subdir: null
+  sweep:
+    dir: intermediate/hydra_sweeps/${now:%y-%m-%d-%H-%M-%S}
+    subdir: ${hydra.job.num}
+experiment:
+  experiment_id: ${experiment_name}
+  experiment_family: main15_source_integrity_v1

@@ -1,0 +1,31 @@
+experiments:
+  mp20_u_v2:
+    experiment: new_mp20_u
+  c2db51_u_v2:
+    experiment: new_c2db51_u
+  joint_u_v2:
+    experiment: new_joint_u
+  mp20_all_v2:
+    experiment: new_mp20_all
+  c2db51_all_v2:
+    experiment: new_c2db51_all
+  joint_all_v2:
+    experiment: new_joint_all
+  mp20_ef_v2:
+    experiment: new_mp20_ef
+  mp20_eg_v2:
+    experiment: new_mp20_eg
+  mp20_eh_v2:
+    experiment: new_mp20_eh
+  c2db51_ef_v2:
+    experiment: new_c2db51_ef
+  c2db51_eg_v2:
+    experiment: new_c2db51_eg
+  c2db51_eh_v2:
+    experiment: new_c2db51_eh
+  joint_ef_v2:
+    experiment: new_joint_ef
+  joint_eg_v2:
+    experiment: new_joint_eg
+  joint_eh_v2:
+    experiment: new_joint_eh

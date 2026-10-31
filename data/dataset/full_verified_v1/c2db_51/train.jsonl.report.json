@@ -1,0 +1,12 @@
+{
+  "dataset": "c2db_51",
+  "input": 10143,
+  "accepted": 10143,
+  "rejected": 0,
+  "coordinate_mode": "fractional",
+  "source_sha256": "88c0687a03fd72a412d196038634d3746db6ff8ee3bc88b1db8c88ad2e3fd164",
+  "full_source": true,
+  "output": "E:\\WORKSPACE\\CodePlace\\test_CGDiT\\UnifiedGroupGen\\artifacts\\full_verified_v1\\c2db_51\\train.jsonl",
+  "integrity_protocol": "source-cif-integrity-v1",
+  "integrity_journal_sha256": "173b92b9d2a741904d2cc3dc2e22c22ec41103830fc730278006bab638310c64"
+}

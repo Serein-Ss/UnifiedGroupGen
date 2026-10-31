@@ -1,0 +1,7 @@
+{
+  "uid": "2S2Cu3-2",
+  "lgnum": 72,
+  "cif": "# generated using pymatgen\ndata_Cu3S2\n_symmetry_space_group_name_H-M   'P 1'\n_cell_length_a   6.62156214\n_cell_length_b   3.81997796\n_cell_length_c   19.33308230\n_cell_angle_alpha   90.00000000\n_cell_angle_beta   90.00000000\n_cell_angle_gamma   89.91766706\n_symmetry_Int_Tables_number   1\n_chemical_formula_structural   Cu3S2\n_chemical_formula_sum   'Cu6 S4'\n_cell_volume   489.01475961\n_cell_formula_units_Z   2\nloop_\n _symmetry_equiv_pos_site_id\n _symmetry_equiv_pos_as_xyz\n  1  'x, y, z'\nloop_\n _atom_site_type_symbol\n _atom_site_label\n _atom_site_symmetry_multiplicity\n _atom_site_fract_x\n _atom_site_fract_y\n _atom_site_fract_z\n _atom_site_occupancy\n  Cu  Cu0  1  0.46453117  0.76796255  0.59834089  1\n  Cu  Cu1  1  0.63539792  0.28061957  0.40162548  1\n  Cu  Cu2  1  0.13539360  0.78060565  0.40164115  1\n  Cu  Cu3  1  0.96453517  0.26797786  0.59832552  1\n  Cu  Cu4  1  0.30002642  0.27435210  0.50001492  1\n  Cu  Cu5  1  0.80003050  0.77435974  0.50000466  1\n  S  S6  1  0.29777795  0.26839792  0.61253792  1\n  S  S7  1  0.80226245  0.78033384  0.38748585  1\n  S  S8  1  0.79778590  0.76840748  0.61252513  1\n  S  S9  1  0.30225891  0.28032355  0.38749889  1\n",
+  "official_structure_sha256": "26b5348c1230dce8e12938972ae76c7338d4aad828d2d0bcd3d8d0ea5dcaeeac",
+  "source_url": "https://huggingface.co/spaces/atomind/mlip-arena/blob/1508879571257075528db9522e845605256f6b74/benchmarks/c2db/c2db.db"
+}

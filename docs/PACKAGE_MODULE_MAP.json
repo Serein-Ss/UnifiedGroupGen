@@ -1,0 +1,87 @@
+{
+  "scope": "Current maintained library layout; historical alias maps live under tests/legacy",
+  "entrypoint": "unifiedgroupgen.run:main",
+  "console": "ugg",
+  "tasks": [
+    "train",
+    "plan"
+  ],
+  "directories": {
+    "common": [
+      "common/__init__.py",
+      "common/configuration.py",
+      "common/predictors/__init__.py",
+      "common/predictors/cgdit.py",
+      "common/predictors/matgl.py",
+      "common/predictors/service.py",
+      "common/predictors/structures.py",
+      "common/rendering.py",
+      "common/reports.py",
+      "common/source.py",
+      "common/structures.py"
+    ],
+    "conditional": [
+      "conditional/__init__.py",
+      "conditional/chemistry.py",
+      "conditional/properties.py",
+      "conditional/structure.py"
+    ],
+    "evaluation": [
+      "evaluation/__init__.py",
+      "evaluation/common.py",
+      "evaluation/conditional.py",
+      "evaluation/csp.py",
+      "evaluation/dng.py",
+      "evaluation/utils.py"
+    ],
+    "generation": [
+      "generation/__init__.py",
+      "generation/descriptor.py",
+      "generation/flow.py",
+      "generation/rules.py",
+      "generation/structure.py"
+    ],
+    "group_constraints": [
+      "group_constraints/__init__.py",
+      "group_constraints/compiler.py",
+      "group_constraints/encoding.py",
+      "group_constraints/projections.py",
+      "group_constraints/spin.py",
+      "group_constraints/validation.py"
+    ],
+    "pl_data": [
+      "pl_data/__init__.py",
+      "pl_data/datamodule.py",
+      "pl_data/dataset.py",
+      "pl_data/encoding.py",
+      "pl_data/prepare.py"
+    ],
+    "pl_modules": [
+      "pl_modules/__init__.py",
+      "pl_modules/backbones/__init__.py",
+      "pl_modules/backbones/message_passing.py",
+      "pl_modules/backbones/transformer.py",
+      "pl_modules/descriptor.py",
+      "pl_modules/factory.py",
+      "pl_modules/objectives/__init__.py",
+      "pl_modules/objectives/descriptor.py",
+      "pl_modules/objectives/flow_matching.py",
+      "pl_modules/objectives/joint.py",
+      "pl_modules/orbitflow.py"
+    ]
+  },
+  "metric_modules": [
+    "evaluation/common.py",
+    "evaluation/csp.py",
+    "evaluation/dng.py",
+    "evaluation/conditional.py",
+    "evaluation/utils.py"
+  ],
+  "entrypoints": {
+    "training": "unifiedgroupgen.run:main",
+    "generation": "unifiedgroupgen.generate:main",
+    "metrics": "unifiedgroupgen.evaluate:main",
+    "component_checks": "unifiedgroupgen.tests.components:main",
+    "campaign": "scripts.evaluate_models:main"
+  }
+}

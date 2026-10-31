@@ -1,0 +1,7 @@
+defaults:
+- default
+- _self_
+batch_size: 256
+edge_budget: 400000
+checkpoint: false
+edge_chunk_size: 32768

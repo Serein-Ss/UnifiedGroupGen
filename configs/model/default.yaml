@@ -1,0 +1,6 @@
+defaults:
+- descriptor@_here_: default
+- orbitflow@_here_: default
+- _self_
+max_atoms: 192
+max_orbits: 52

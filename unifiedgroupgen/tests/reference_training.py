@@ -1,0 +1,278 @@
+"""Batched joint training, deterministic validation, and resumable checkpoints."""
+
+from unifiedgroupgen.tests.legacy.paths import project_root, resolve_path
+import hashlib
+import json
+import random
+import sys
+import time
+from pathlib import Path
+import numpy as np
+import torch
+from tqdm import tqdm
+from unifiedgroupgen.group_constraints.projections import AffineObservation
+from unifiedgroupgen.pl_modules.objectives.flow_matching import flow_loss_batch
+from unifiedgroupgen.tests.gradients import gradient_diagnostics
+from unifiedgroupgen.group_constraints.compiler import Descriptor, compile_descriptor
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def run_training(args, config, records, validation, proposal, flow, train_paths, val_paths, output):
+    if output.exists() and not args.resume:
+        raise ValueError(f"Checkpoint exists: {output}; use --resume or a new --output")
+    parameters = list(proposal.parameters())+list(flow.parameters())
+    optimizer = torch.optim.AdamW(parameters, lr=config.get('learning_rate', 1e-3))
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=config.get('lr_patience', 10), factor=0.5)
+    precision = config.get('precision', 'fp32')
+    if precision not in ('fp32', 'bf16', 'fp16'):
+        raise ValueError('precision must be fp32, bf16, or fp16')
+    if precision != 'fp32' and not args.device.startswith('cuda'):
+        raise ValueError('Mixed precision requires CUDA; use fp32 for CPU diagnostics')
+    if precision == 'bf16' and not torch.cuda.is_bf16_supported():
+        raise ValueError('This GPU does not support bf16; use fp32 or fp16')
+    if hasattr(torch.amp, 'GradScaler'):
+        scaler = torch.amp.GradScaler('cuda', enabled=precision == 'fp16')
+    else:
+        scaler = torch.cuda.amp.GradScaler(enabled=precision == 'fp16')
+    dtype = torch.bfloat16 if precision == 'bf16' else torch.float16
+    hashes = {'train_split_sha256': [file_hash(p) for p in train_paths],
+              'val_split_sha256': [file_hash(p) for p in val_paths]}
+    start_epoch, best, stale, last_validation = 0, float('inf'), 0, -1
+    runtime = {'checkpoint_layers': flow.checkpoint_layers, 'edge_chunk_size': flow.edge_chunk_size,
+               'validation_interval': config.get('validation_interval', 5),
+               'edge_budget': config.get('edge_budget', 200000),
+               'batch_size': config.get('batch_size', 8),
+               'coordinate_length_scale': config.get('coordinate_length_scale', 1.0)}
+    if args.resume:
+        saved = torch.load(args.resume, map_location=args.device, weights_only=False)
+        if saved.get('trainer_backend') == 'lightning' or 'ugg_state' in saved:
+            raise ValueError('Lightning checkpoint: use --trainer lightning and its native .ckpt to resume')
+        if saved['config'] != config or any(saved[key] != value for key, value in hashes.items()):
+            raise ValueError('Resume configuration/scalers or split hashes differ from the checkpoint')
+        proposal.load_state_dict(saved['proposal'])
+        flow.load_state_dict(saved['flow'])
+        optimizer.load_state_dict(saved['optimizer'])
+        if 'scheduler' in saved:
+            scheduler.load_state_dict(saved['scheduler'])
+            scaler.load_state_dict(saved['scaler'])
+        start_epoch = saved['epoch']+1
+        best, stale = saved.get('best_val_loss', best), saved.get('stale_epochs', 0)
+        last_validation = saved.get('last_validation_epoch', saved['epoch'])
+        random.setstate(saved['python_rng'])
+        np.random.set_state(saved['numpy_rng'])
+        torch.set_rng_state(saved['torch_rng'].cpu())
+        if args.device.startswith('cuda') and saved.get('cuda_rng') is not None:
+            torch.cuda.set_rng_state_all([state.cpu() for state in saved['cuda_rng']])
+        runtime.update(saved.get('runtime_options', {}))
+    if getattr(args, 'checkpoint', None) is not None:
+        runtime['checkpoint_layers'] = args.checkpoint
+    if getattr(args, 'edge_chunk_size', None) is not None:
+        runtime['edge_chunk_size'] = args.edge_chunk_size
+    if getattr(args, 'validation_interval', None) is not None:
+        runtime['validation_interval'] = args.validation_interval
+    if getattr(args, 'edge_budget', None) is not None:
+        runtime['edge_budget'] = args.edge_budget
+    if args.batch_size is not None:
+        runtime['batch_size'] = args.batch_size
+    if getattr(args, 'coordinate_length_scale', None) is not None:
+        runtime['coordinate_length_scale'] = args.coordinate_length_scale
+    if not isinstance(runtime['batch_size'], int) or isinstance(runtime['batch_size'], bool) or runtime['batch_size'] < 1:
+        raise ValueError('batch_size must be a positive integer')
+    if not isinstance(runtime['edge_budget'], int) or isinstance(runtime['edge_budget'], bool) or runtime['edge_budget'] < 1:
+        raise ValueError('edge_budget must be a positive integer')
+    if runtime['edge_chunk_size'] < 1:
+        raise ValueError('edge_chunk_size must be positive')
+    interval = runtime['validation_interval']
+    if not isinstance(interval, int) or isinstance(interval, bool) or interval < 1:
+        raise ValueError('validation_interval must be a positive integer')
+    flow.checkpoint_layers, flow.edge_chunk_size = runtime['checkpoint_layers'], runtime['edge_chunk_size']
+    batch_size = runtime['batch_size']
+    edge_budget = runtime['edge_budget']
+    epochs = args.epochs if args.epochs is not None else config.get('epochs', 100)
+    if epochs < 1:
+        raise ValueError('Total training epochs must be positive')
+    patience = config.get('early_stopping_patience', 30)
+    weights = config.get('loss_weights', {'descriptor': 1.0, 'flow': 1.0})
+    if not 0 <= config.get('composition_probability', 0.5) <= 1 or not 0 <= config.get('observation_probability', 0.25) <= 1:
+        raise ValueError('Condition probabilities must lie in [0,1]')
+    length_scale = runtime['coordinate_length_scale']
+    if not np.isfinite(length_scale) or length_scale <= 0:
+        raise ValueError('coordinate_length_scale must be finite and positive (angstrom)')
+    diagnostic_interval = config.get('gradient_diagnostics_interval', 0)
+    if not isinstance(diagnostic_interval, int) or isinstance(diagnostic_interval, bool) or diagnostic_interval < 0:
+        raise ValueError('gradient_diagnostics_interval must be a nonnegative integer')
+    preparation_started = time.perf_counter()
+    records = prepare_training_records(records, next(flow.parameters()).dtype)
+    validation = prepare_training_records(validation, next(flow.parameters()).dtype)
+    val_batches = batch_indices(validation, batch_size, edge_budget, shuffle=False)
+    print(json.dumps({'event': 'training_start', 'proposal_parameters': sum(p.numel() for p in proposal.parameters()),
+                      'flow_parameters': sum(p.numel() for p in flow.parameters()), 'precision': precision,
+                      'batch_size': batch_size, 'edge_budget': edge_budget,
+                      'train_records': len(records), 'val_records': len(validation),
+                      'start_epoch': start_epoch, 'maximum_epochs': epochs, 'runtime_options': runtime,
+                      'preparation_seconds': time.perf_counter()-preparation_started}), flush=True)
+    completed = start_epoch
+    reason = 'maximum_epochs'
+    for epoch in range(start_epoch, epochs):
+        started = time.perf_counter()
+        if args.device.startswith('cuda'):
+            torch.cuda.reset_peak_memory_stats()
+        proposal.train(); flow.train()
+        keys = ('descriptor', 'flow', 'lattice', 'coordinates')
+        totals = torch.zeros(6, device=args.device, dtype=torch.float64)
+        batches = batch_indices(records, batch_size, edge_budget)
+        save_status(output, {'state': 'running', 'phase': 'train', 'epoch': epoch,
+                             'step': 0, 'steps': len(batches), 'completed_epochs': completed})
+        progress_bar = tqdm(batches, desc=f'Epoch {epoch+1}/{epochs}', file=sys.stdout,
+                            disable=not sys.stdout.isatty(), dynamic_ncols=True, ascii=True,
+                            mininterval=1, leave=False)
+        seen = 0
+        for step, indices in enumerate(progress_bar, 1):
+            chunk = [records[i] for i in indices]
+            optimizer.zero_grad(set_to_none=True)
+            with torch.autocast(device_type=torch.device(args.device).type, dtype=dtype, enabled=precision != 'fp32'):
+                losses = joint_loss(proposal, flow, chunk, config.get('composition_probability', 0.5),
+                                    config.get('observation_probability', 0.25), length_scale)
+                loss = weights['descriptor']*losses['descriptor'].mean()+weights['flow']*losses['flow'].mean()
+            if not torch.isfinite(loss):
+                raise FloatingPointError(f"Nonfinite batch loss: {[r['id'] for r in chunk]}")
+            diagnostic = None
+            if diagnostic_interval and (step == 1 or step % diagnostic_interval == 0 or step == len(batches)):
+                diagnostic = gradient_diagnostics(proposal, flow, losses, weights, length_scale)
+            scaler.scale(loss).backward()
+            scaler.unscale_(optimizer)
+            norm = torch.nn.utils.clip_grad_norm_(parameters, config.get('gradient_clip', 10), error_if_nonfinite=True)
+            if diagnostic is not None:
+                diagnostic.update(epoch=epoch, step=step, records=[{'dataset': r.get('dataset'), 'id': r['id']} for r in chunk],
+                                  total_preclip_norm=float(norm), clip_threshold=config.get('gradient_clip', 10),
+                                  clipped=bool(norm > config.get('gradient_clip', 10)))
+                with output.with_suffix('.gradients.jsonl').open('a', encoding='utf-8') as stream:
+                    stream.write(json.dumps(diagnostic, allow_nan=False)+'\n')
+            scaler.step(optimizer); scaler.update()
+            totals[:4] += torch.stack([losses[key].detach().sum() for key in keys]).double()
+            totals[4] += norm.detach().double()
+            totals[5] += (norm.detach() > config.get('gradient_clip', 10)).double()
+            seen += len(chunk)
+            if step % 25 == 0 or step == len(batches):
+                host = torch.cat((totals, loss.detach().double().reshape(1))).cpu().tolist()
+                running_loss = (weights['descriptor']*host[0]+weights['flow']*host[1])/seen
+                progress_bar.set_postfix(loss=f'{running_loss:.4f}',
+                                         lr=f'{optimizer.param_groups[0]["lr"]:.2g}', refresh=False)
+                progress = {'event': 'progress', 'state': 'running', 'phase': 'train',
+                            'epoch': epoch, 'step': step, 'steps': len(batches),
+                            'loss': host[-1], 'seconds': time.perf_counter()-started,
+                            'completed_epochs': completed}
+                save_status(output, progress)
+        progress_bar.close()
+        host = totals.cpu().tolist()
+        training = {key: value/len(records) for key, value in zip(keys, host)}
+        gradient_norm_mean = host[4]/len(batches)
+        training_seconds = time.perf_counter()-started
+        devices = [torch.device(args.device).index or 0] if args.device.startswith('cuda') else []
+        validated, val_loss, improved = None, None, False
+        validation_started = None
+        if (epoch+1) % interval == 0 or epoch == epochs-1:
+            validation_started = time.perf_counter()
+            proposal.eval(); flow.eval()
+            totals = torch.zeros(4, device=args.device, dtype=torch.float64)
+            save_status(output, {'state': 'running', 'phase': 'validation', 'epoch': epoch,
+                                 'step': 0, 'steps': len(val_batches), 'completed_epochs': completed})
+            python_rng = random.getstate()
+            with torch.random.fork_rng(devices=devices):
+                random.seed(918); torch.manual_seed(918)
+                with torch.no_grad():
+                    for step, indices in enumerate(tqdm(val_batches, desc=f'Validation {epoch+1}/{epochs}',
+                                                       file=sys.stdout, disable=not sys.stdout.isatty(),
+                                                       dynamic_ncols=True, ascii=True, mininterval=1, leave=False), 1):
+                        losses = joint_loss(proposal, flow, [validation[i] for i in indices], 0, 0, length_scale)
+                        totals += torch.stack([losses[key].sum() for key in keys]).double()
+                        if step % 25 == 0 or step == len(val_batches):
+                            save_status(output, {'state': 'running', 'phase': 'validation', 'epoch': epoch,
+                                                 'step': step, 'steps': len(val_batches), 'completed_epochs': completed})
+            random.setstate(python_rng)
+            validated = {key: value/len(validation) for key, value in zip(keys, totals.cpu().tolist())}
+            val_loss = weights['descriptor']*validated['descriptor']+weights['flow']*validated['flow']
+            if not np.isfinite(val_loss):
+                raise FloatingPointError('Nonfinite validation loss')
+            gap = epoch-last_validation
+            improved = val_loss < best
+            best, stale = (val_loss, 0) if improved else (best, stale+gap)
+            # Preserve patience in training epochs, rather than multiplying it by the interval.
+            if not scheduler.is_better(val_loss, scheduler.best):
+                scheduler.num_bad_epochs += gap-1
+            scheduler.step(val_loss)
+            last_validation = epoch
+        if args.device.startswith('cuda'):
+            torch.cuda.synchronize()
+        validation_seconds = time.perf_counter()-validation_started if validation_started is not None else 0.0
+        history = {'epoch': epoch, 'train': training, 'val': validated, 'val_loss': val_loss,
+                   'validated': validated is not None, 'best_val_loss': best if np.isfinite(best) else None,
+                   'seconds': time.perf_counter()-started,
+                   'training_seconds': training_seconds, 'validation_seconds': validation_seconds,
+                   'learning_rate': optimizer.param_groups[0]['lr'], 'gradient_norm_mean': gradient_norm_mean,
+                   'gradient_clipped_fraction': host[5]/len(batches),
+                   'coordinate_length_scale_angstrom': length_scale,
+                   'train_batches': len(batches), 'mean_actual_batch': seen/len(batches),
+                   'train_records_per_second': seen/training_seconds,
+                   'train_records': len(records), 'val_records': len(validation),
+                   'runtime_options': runtime,
+                   'peak_cuda_bytes': torch.cuda.max_memory_allocated() if devices else 0,
+                   'peak_cuda_reserved_bytes': torch.cuda.max_memory_reserved() if devices else 0}
+        for phase in (training, validated):
+            if phase is not None:
+                phase['coordinates_dimensionless'] = phase['coordinates']/length_scale**2
+                phase['flow_raw'] = phase['lattice']+phase['coordinates']
+        train_loss = weights['descriptor']*training['descriptor']+weights['flow']*training['flow']
+        history['train_loss'] = train_loss
+        val_text = f'{val_loss:.4f}' if val_loss is not None else 'skipped'
+        checkpoint = {'config': config, 'epoch': epoch, 'proposal': proposal.state_dict(), 'flow': flow.state_dict(),
+                      'optimizer': optimizer.state_dict(), 'scheduler': scheduler.state_dict(), 'scaler': scaler.state_dict(),
+                      'best_val_loss': best, 'stale_epochs': stale, 'python_rng': random.getstate(),
+                      'last_validation_epoch': last_validation,
+                      'runtime_options': runtime,
+                      'numpy_rng': np.random.get_state(), 'torch_rng': torch.get_rng_state(),
+                      'cuda_rng': torch.cuda.get_rng_state_all() if devices else None, **hashes,
+                      'verification': 'trained; material stability and property performance not certified'}
+        checkpoint_started = time.perf_counter()
+        save_checkpoint(output, checkpoint)
+        if improved:
+            save_checkpoint(output.with_suffix('.best.pt'), checkpoint)
+        history['checkpoint_seconds'] = time.perf_counter()-checkpoint_started
+        history['wall_seconds'] = time.perf_counter()-started
+        history['other_seconds'] = history['wall_seconds']-training_seconds-validation_seconds-history['checkpoint_seconds']
+        print(f'Epoch {epoch+1}/{epochs} | {len(batches)}/{len(batches)} batches | train={train_loss:.4f} '
+              f'| val={val_text} | lr={history["learning_rate"]:.2g} | time={history["seconds"]:.1f}s '
+              f'| wall={history["wall_seconds"]:.1f}s | train_t={training_seconds:.1f}s '
+              f'| val_t={validation_seconds:.1f}s | save_t={history["checkpoint_seconds"]:.1f}s', flush=True)
+        with output.with_suffix('.history.jsonl').open('a', encoding='utf-8') as stream:
+            stream.write(json.dumps(history)+'\n')
+        completed = epoch+1
+        save_status(output, {'state': 'running', 'phase': 'epoch_saved', 'completed_epochs': completed,
+                             'best_val_loss': best if np.isfinite(best) else None, 'last': history})
+        if validated is not None and patience and stale >= patience:
+            print(json.dumps({'event': 'early_stop', 'epoch': epoch}), flush=True)
+            reason = 'early_stopping'
+            break
+    result = {'state': 'complete', 'reason': reason, 'completed_epochs': completed,
+              'best_val_loss': best, 'train_records': len(records), 'val_records': len(validation),
+              'verification': 'Training finished; material stability and property performance not certified'}
+    save_status(output, result)
+    print(json.dumps({'event': 'training_complete', **result}), flush=True)
+
+from unifiedgroupgen.pl_data.dataset import _training_entry, prepare_training_records, batch_indices
+from unifiedgroupgen.pl_modules.objectives.joint import joint_loss
+from unifiedgroupgen.common.source import file_hash
+from unifiedgroupgen.tests.legacy.training_before_native.common.checkpoints import save_checkpoint, save_status

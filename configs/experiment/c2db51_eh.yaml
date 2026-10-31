@@ -1,0 +1,6 @@
+# @package _global_
+defaults:
+- override /data: c2db51
+- override /conditioning: energy_above_hull
+- override /runtime: rtx4090_layer
+experiment_name: c2db51_eh

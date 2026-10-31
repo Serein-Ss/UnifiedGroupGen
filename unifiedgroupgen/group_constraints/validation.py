@@ -1,0 +1,73 @@
+import numpy as np
+from pymatgen.core import Lattice, Structure
+import spglib
+from unifiedgroupgen.evaluation.common import summarize_attempts
+
+def to_structure(compiled, generated, vacuum=20.0):
+    # pymatgen's partial-PBC Cython distance kernel requires double buffers.
+    lattice = generated["lattice"].detach().cpu().double().numpy().copy()
+    coordinates = generated["coordinates"].detach().cpu().double().numpy().copy()
+    if not np.isfinite(lattice).all() or not np.isfinite(coordinates).all():
+        raise FloatingPointError('Nonfinite lattice/coordinates rejected before structure export')
+    determinant=np.linalg.det(lattice)
+    if not np.isfinite(determinant) or abs(determinant) < 1e-10:
+        raise FloatingPointError('Degenerate lattice rejected before structure export')
+    if compiled.descriptor.kind != "space":
+        thickness = np.ptp(coordinates[:, 2])
+        cell_height = max(vacuum, thickness+10)
+        lattice[2, 2] = cell_height
+        coordinates[:, 2] = (coordinates[:, 2] - coordinates[:, 2].mean())/cell_height + 0.5
+    # pymatgen stores lattice vectors as rows.
+    pmg_lattice = Lattice(lattice.T, pbc=tuple(compiled.periodic))
+    return Structure(pmg_lattice, compiled.elements.tolist(), coordinates)
+
+
+def validate(compiled, generated, minimum_distance=0.6, isolate_identifier=False):
+    coords = generated["coordinates"].detach().cpu().numpy()
+    lattice = generated["lattice"].detach().cpu().numpy()
+    residual = 0.0
+    for rotation, permutation in compiled.permutations(coords, tolerance=1e-4):
+        # Closure checked including affine translations in permutations().
+        h = lattice.T@lattice
+        residual = max(residual, float(np.max(np.abs(rotation.T@h@rotation-h))))
+    structure = to_structure(compiled, generated)
+    distances = structure.distance_matrix
+    np.fill_diagonal(distances, np.inf)
+    closest = float(distances.min()) if len(structure)>1 else None
+    orbit_regular = True
+    for index in range(len(compiled.blocks)):
+        ids = np.flatnonzero(compiled.atom_orbit == index)
+        if len(ids)>1 and np.min(distances[np.ix_(ids, ids)])<1e-5:
+            orbit_regular = False
+    report = {"target_kind": compiled.descriptor.kind, "target_group": compiled.descriptor.number,
+              "atoms": compiled.num_atoms, "coordinate_dof": compiled.coordinate_dof,
+              "lattice_dof": compiled.lattice_dof, "group_operation_closure": True,
+              "metric_residual": residual, "minimum_distance_angstrom": closest,
+              "distance_valid": closest is None or closest >= minimum_distance,
+              "orbit_multiplicity_regular": orbit_regular,
+              "no_coincident_orbits": closest is None or closest>1e-5,
+              "chemistry_validated": False, "stability_validated": False, "properties_validated": False}
+    if isolate_identifier and compiled.descriptor.kind in ('space', 'layer'):
+        from unifiedgroupgen.tests.native_identifier import identify_isolated
+        identified = identify_isolated(structure, compiled.descriptor.kind)
+        number = identified['number']
+        report[f'recovered_{compiled.descriptor.kind}_group'] = number
+        report['exact_target_group'] = number == compiled.descriptor.number if number is not None else None
+        if compiled.descriptor.kind == 'layer':
+            report['exact_layer_group'] = report['exact_target_group']
+        report['group_identifier'] = 'isolated spglib, symprec=0.001 Angstrom; layer aperiodic_dir=2'
+        report['group_identification_error'] = identified.get('error')
+    elif compiled.descriptor.kind == "space":
+        result = spglib.get_symmetry_dataset((structure.lattice.matrix, structure.frac_coords, compiled.elements), symprec=1e-3)
+        report["recovered_space_group"] = int(result.number) if result is not None else None
+        report["exact_target_group"] = result.number == compiled.descriptor.number if result is not None else None
+    elif compiled.descriptor.kind == 'layer' and hasattr(spglib, 'get_layergroup'):
+        result = spglib.get_layergroup((structure.lattice.matrix, structure.frac_coords, compiled.elements),
+                                      aperiodic_dir=2, symprec=1e-3)
+        report['recovered_layer_group'] = int(result.number) if result is not None else None
+        report['exact_layer_group'] = result.number == compiled.descriptor.number if result is not None else None
+        report['exact_target_group'] = report['exact_layer_group']
+        report['group_identifier'] = 'spglib.get_layergroup, aperiodic_dir=2, symprec=0.001 Angstrom'
+    else:
+        report["exact_layer_group"] = None
+    return report

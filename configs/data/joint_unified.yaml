@@ -1,0 +1,28 @@
+dataset: mp20_c2db51
+kind: space
+prepared_root: artifacts/main15/joint
+element_policy: training
+require_data_audit: true
+require_full_preparation: true
+data_audit: data/dataset/audits/source_free_v2/${experiment_name}.json
+minimum_conversion_coverage: 0.95
+require_source_integrity: true
+data_revision: source_integrity_v1
+source_configs:
+  mp_20: configs/mp20_verified_v1.yaml
+  c2db_51: configs/c2db_verified_v1.yaml
+train_files:
+- artifacts/full_verified_v1/mp_20/train.jsonl
+- artifacts/full_verified_v1/c2db_51/train.jsonl
+val_files:
+- artifacts/full_verified_v1/mp_20/val.jsonl
+- artifacts/full_verified_v1/c2db_51/val.jsonl
+test_files:
+- artifacts/full_verified_v1/mp_20/test.jsonl
+- artifacts/full_verified_v1/c2db_51/test.jsonl
+kinds:
+- space
+- layer
+evaluation_domains:
+- mp_20
+- c2db_51

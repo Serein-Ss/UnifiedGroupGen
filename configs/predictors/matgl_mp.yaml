@@ -1,0 +1,3 @@
+# Public frozen models; these settings do not change generator training.
+properties: [formation_energy, band_gap]
+band_gap_fidelity: PBE

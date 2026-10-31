@@ -1,0 +1,9 @@
+# @package _global_
+defaults:
+- override /data: joint_unified
+- override /conditioning: multi_property
+- override /learning: unified
+- override /runtime: rtx4090_crystal
+experiment_name: joint_all_v2
+experiment:
+  experiment_family: source_free_v2

@@ -1,0 +1,20 @@
+{
+  "source_sha256": "ab51e361f6db849949eb6a289bcf5ea61f481aa7e757d15c07605bfba86ea800",
+  "rows_requested": 3381,
+  "conversion_config": {
+    "dataset": "c2db_51",
+    "kind": "layer",
+    "coordinate_mode": "fractional",
+    "symmetry_tolerance": 0.1,
+    "group_column": "lgnum",
+    "property_columns": {
+      "formation_energy": "hform",
+      "band_gap": "gap",
+      "energy_above_hull": "ehull"
+    },
+    "max_atoms": 104,
+    "max_orbits": 52,
+    "layer_group_policy": "identify"
+  },
+  "converter_version": 8
+}

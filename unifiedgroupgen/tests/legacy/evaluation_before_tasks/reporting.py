@@ -1,0 +1,182 @@
+"""PNG-only figures with metric-specific denominators and explicit calculation failures."""
+import csv
+import json
+from unifiedgroupgen.tests.legacy.evaluation_before_tasks.protocols import PROFILES
+from unifiedgroupgen.tests.legacy.evaluation_before_tasks.io import write_json
+from pathlib import Path
+import numpy as np
+
+
+def figures(rows, report, references, output):
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    output = Path(output)
+    plt.rcParams.update({'font.size': 9, 'axes.spines.top': False, 'axes.spines.right': False})
+    fig, axes = plt.subplots(1, 3, figsize=(14, 4.3), constrained_layout=True)
+    fields = ['generation_success', 'periodic_distance_valid', 'chemical_valid',
+              'basic_valid', 'exact_target_group', 'target_operation_containment']
+    labels=['Generation success','Distance validity','Composition validity','Joint validity','Exact-group accuracy','Group-operation compliance']
+    values = [report['common'][k]['rate'] for k in fields]
+    for i, (key, value) in enumerate(zip(fields, values)):
+        if value is not None:
+            axes[0].barh(i, value, color='#407c9d')
+            metric = report['common'][key]
+            axes[0].text(min(value+.02, .7), i, f"{metric['passed']}/{metric['total']}", va='center', fontsize=8)
+        else:
+            axes[0].text(.03, i, 'Not assessed', va='center', color='gray')
+    axes[0].set(yticks=range(len(fields)), yticklabels=labels,
+                xlim=(0, 1.15), xlabel='Ratio (denominator printed for each metric)', title='Generation and structure validity')
+    axes[0].invert_yaxis()
+    if report['task']=='csp':
+        for profile, values in report['csp']['profiles'].items():
+            budgets = sorted(int(k) for k in values if k.isdigit())
+            axes[1].plot(budgets, [values[str(k)]['match_rate'] for k in budgets], 'o-',
+                         label=report['matching_profile_labels'][profile].replace(': ',':\n'))
+        axes[1].set(xlabel='Candidates per reference case', ylabel='Match@K (all cases)', ylim=(0, 1.05))
+        axes[1].set_xticks(budgets)
+        axes[1].legend(fontsize=7)
+    else:
+        fields = ['unique_valid', 'novel_valid', 'vun_yield']
+        for i, key in enumerate(fields):
+            value = report['dng'][key]['rate']
+            if value is not None:
+                axes[1].bar(i, value, color='#dc9d4c')
+            else:
+                axes[1].text(i, .1, 'N/A', ha='center')
+        axes[1].set(xticks=range(3), xticklabels=['Unique valid', 'Novel valid', 'VUN'], ylim=(0, 1.05),
+                    ylabel='Fraction of requested structures')
+    axes[1].set_title('CSP reconstruction' if report['task']=='csp' else 'De novo population')
+    quantities = report['properties']['quantities']
+    for i, (name, value) in enumerate(quantities.items()):
+        hit = value['valid_hit']['rate']
+        if hit is not None:
+            axes[2].bar(i, hit, color='#679975')
+        else:
+            axes[2].text(i, .1, 'Not assessed', ha='center', rotation=90)
+    if quantities:
+        axes[2].set(xticks=range(len(quantities)), xticklabels=list(quantities), ylim=(0, 1.05))
+        axes[2].tick_params(axis='x', rotation=25)
+    else:
+        axes[2].text(.5, .5, 'No property targets / predictions', ha='center', transform=axes[2].transAxes)
+    axes[2].set(title='Independent proxy: valid target hits', ylabel='Fraction of targeted attempts')
+    fig.suptitle(f"{report['dataset'] or report['kind']} | {report['task'].upper()} | Requested N={report['requested']} | {report['protocol_id']}")
+    fig.savefig(output/'metrics.png', dpi=200, facecolor='white'); plt.close(fig)
+    keys = [('atoms','Atoms/cell'), ('num_elements','Distinct elements'),
+            ('area_per_atom_angstrom2','Area/atom (A2)') if report['kind']=='layer' else ('volume_per_atom_angstrom3','Volume/atom (A3)'),
+            ('layer_thickness_angstrom','Layer thickness (A)') if report['kind']=='layer' else ('density_g_cm3','Density (g/cm3)')]
+    fig, axes = plt.subplots(1, 4, figsize=(13, 3.4), constrained_layout=True)
+    for ax, (key, label) in zip(axes, keys):
+        for data, name, color in [(rows,'Valid generated','#407c9d'), (references,'Reference','#dc9d4c')]:
+            values = np.sort([r[key] for r in data if r.get(key) is not None and (name=='Reference' or r.get('basic_valid'))])
+            if len(values):
+                ax.step(values, np.arange(1,len(values)+1)/len(values), where='post', color=color, marker='o' if len(values)<3 else None,
+                        markersize=3,label=f'{name}: {len(values)}')
+        ax.set(xlabel=label, ylabel='Cumulative fraction', ylim=(0,1.05))
+        if ax.lines:
+            ax.legend(fontsize=7)
+    fig.suptitle('Raw structural distributions; valid-generated denominator stated in legends')
+    fig.savefig(output/'distributions.png', dpi=200, facecolor='white'); plt.close(fig)
+    if report['groups']:
+        fig, ax = plt.subplots(figsize=(12,3.5), constrained_layout=True)
+        groups = report['groups']
+        for field, label, marker in [('exact','Exact reidentified group','o'),('containment','Target operations contained','x'),('basic_valid','Basic valid','.')]:
+            selected = [(g['group'],g[field]['rate']) for g in groups if g[field]['rate'] is not None]
+            if selected:
+                x, y = zip(*selected); ax.scatter(x,y,label=label,marker=marker,s=18)
+        ax.set(xlabel='Space / layer group number', ylabel='Fraction of requested group structures', ylim=(-.03,1.08))
+        if ax.collections:
+            ax.legend(fontsize=8)
+        fig.savefig(output/'groups.png', dpi=200, facecolor='white'); plt.close(fig)
+    assessed=[p for p,v in quantities.items() if v['predictions']['evaluated']]
+    if assessed:
+        fig,axes=plt.subplots(1,len(assessed),figsize=(4.5*len(assessed),3.5),squeeze=False,constrained_layout=True)
+        for ax,p in zip(axes.ravel(),assessed):
+            for source,name,color in [(rows,'Generated','#407c9d'),(references,'Reference','#dc9d4c')]:
+                values=np.sort([r['predicted_'+p] for r in source if r.get('predicted_'+p) is not None])
+                if len(values): ax.step(values,np.arange(1,len(values)+1)/len(values),where='post',marker='o' if len(values)<3 else None,
+                                        markersize=3,label=f'{name}: {len(values)}',color=color)
+            ax.set(xlabel=p+' (independent proxy)',ylabel='Cumulative fraction');ax.legend(fontsize=8)
+        fig.savefig(output/'properties.png',dpi=200);plt.close(fig)
+
+
+def campaign_summary(output, state):
+    import csv
+    from unifiedgroupgen.tests.legacy.evaluation_before_tasks.io import write_json
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    output=Path(output);rows=[]
+    for entry in state['jobs']:
+        model,job=entry['name'].split('/',1)
+        path=output/entry['name']/'metrics/summary.json'
+        if not path.exists(): continue
+        report=__import__('json').loads(path.read_text(encoding='utf-8'))
+        row={'model':model,'job':job,'task':report['task'],'kind':report['kind'],'dataset':report['dataset'],
+             'requested':report['requested'],'generated':report['generation']['generated'],
+             'generation_failed':report['generation']['failed'],'valid_structures':report['common']['basic_valid']['passed'],
+             'seconds':entry['seconds'],'protocol':report['protocol_id']}
+        for key in ('generation_success','basic_valid','legacy_joint_valid','exact_target_group','target_operation_containment','composition_satisfied'):
+            row[key]=report['common'][key]['rate']
+        if report['task']=='csp':
+            for profile,values in report['csp']['profiles'].items():
+                for k,v in values.items():
+                    if k.isdigit(): row[profile+'_match_at_'+k]=v['match_rate']
+        else:
+            for key in ('unique_valid','novel_valid','vun_yield'):
+                row[key]=report['dng'][key]['rate']
+            for profile,values in report['dng'].get('coverage',{}).items():
+                for key in ('cov_precision','cov_recall','amsd_recall','amsd_precision','amcd_recall','amcd_precision'):
+                    row[profile+'_'+key]=values.get(key)
+        row['valid_joint_property_hit']=report['properties']['valid_joint_hit']['rate']
+        targets=report['identity']['request'].get('properties',{})
+        row['property_targets']=__import__('json').dumps(targets,sort_keys=True)
+        row['proxy_domain_status']=report['properties']['evaluator'].get('domain_status')
+        for name,values in report['properties']['quantities'].items():
+            row[name+'_predicted_mean']=values['predictions']['mean']
+            row[name+'_target_error']=values['target_error']['mean']
+            row[name+'_hit_rate']=values['hit']['rate']
+            row[name+'_valid_hit_rate']=values['valid_hit']['rate']
+            row[name+'_wasserstein_same_proxy']=values['wasserstein_same_proxy']['value']
+        rows.append(row)
+    fields=sorted({k for r in rows for k in r})
+    with (output/'summary.csv').open('w',newline='',encoding='utf-8-sig') as stream:
+        writer=csv.DictWriter(stream,fieldnames=fields or ['model']);writer.writeheader();writer.writerows(rows)
+    write_json(output/'summary.json',{'state':state['state'],'jobs':rows,'scope':'Raw CSP/DNG metrics; no physical validation'})
+    # Primary no-property DNG comparison; all conditional jobs remain in the table.
+    selected=[r for r in rows if r['job'].endswith('_dng')]
+    fig,axes=plt.subplots(1,3,figsize=(14,4),constrained_layout=True)
+    for ax,key in zip(axes,('basic_valid','exact_target_group','vun_yield')):
+        for i,r in enumerate(selected):
+            if r.get(key) is not None: ax.bar(i,r[key],color='#407c9d')
+            else: ax.text(i,.05,'N/A',ha='center',rotation=90)
+        ax.set(xticks=range(len(selected)),xticklabels=[r['model']+'/'+r['dataset'] for r in selected],
+               ylabel='Ratio (see metric denominator)',title=key.replace('_',' '),ylim=(0,1.05))
+        ax.tick_params(axis='x',labelrotation=90,labelsize=7)
+    fig.savefig(output/'model_comparison.png',dpi=200);plt.close(fig)
+
+
+def write_tables(output, rows, report, kind):
+    """Write tabular protocol results without plotting or recomputing metrics."""
+    task = report['task']
+    output.mkdir(parents=True, exist_ok=True)
+    fields = sorted({key for r in rows for key in r})
+    with (output/'samples.csv').open('w',newline='',encoding='utf-8-sig') as stream:
+        writer = csv.DictWriter(stream,fieldnames=fields); writer.writeheader()
+        for row in rows:
+            writer.writerow({k:json.dumps(v,ensure_ascii=False,sort_keys=True) if isinstance(v,(dict,list)) else v for k,v in row.items()})
+    if task=='csp':
+        with (output/'cases.csv').open('w',newline='',encoding='utf-8-sig') as stream:
+            writer=csv.DictWriter(stream,fieldnames=list(report['csp']['case_rows'][0]) if report['csp']['case_rows'] else ['case_id']);writer.writeheader();writer.writerows(report['csp']['case_rows'])
+        with (output/'csp_metrics.csv').open('w',newline='',encoding='utf-8-sig') as stream:
+            writer=csv.DictWriter(stream,fieldnames=['profile','profile_label','kind','ltol','stol','angle_degrees','scale',
+                'candidates_per_case','test_cases','matched_cases','match_rate','valid_match_rate'])
+            writer.writeheader()
+            for profile,values in report['csp']['profiles'].items():
+                for k,value in values.items():
+                    if k.isdigit(): writer.writerow({'profile':profile,'profile_label':report['matching_profile_labels'][profile],
+                        'kind':kind,'ltol':PROFILES[profile]['ltol'],'stol':PROFILES[profile]['stol'],
+                        'angle_degrees':PROFILES[profile]['angle_tol'],'scale':PROFILES[profile]['scale'] if kind=='space' else False,
+                        'candidates_per_case':int(k),'test_cases':report['csp']['cases'],
+                        **{n:value[n] for n in ('matched_cases','match_rate','valid_match_rate')}})
+    write_json(output/'summary.json', report)

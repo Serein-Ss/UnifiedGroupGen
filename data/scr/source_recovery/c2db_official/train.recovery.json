@@ -1,0 +1,11 @@
+{
+  "source": "E:\\WORKSPACE\\CodePlace\\test_CGDiT\\data\\c2db_51\\train.csv",
+  "source_sha256": "8c6a17ecfa6fd6c883274e24b46254b06c7b3bf20bdd3fe1e9a299993acd06f1",
+  "input": 10143,
+  "source_rows": 10143,
+  "full_source": true,
+  "accepted": 10143,
+  "rejected": [],
+  "passed": true,
+  "recovered_sha256": "88c0687a03fd72a412d196038634d3746db6ff8ee3bc88b1db8c88ad2e3fd164"
+}

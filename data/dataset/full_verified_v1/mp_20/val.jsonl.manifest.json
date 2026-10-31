@@ -1,0 +1,19 @@
+{
+  "source_sha256": "7b5f4085464b3eac9fd2123acee97ec372214004ce7e983b535b33395abc3e29",
+  "rows_requested": 9047,
+  "conversion_config": {
+    "dataset": "mp_20",
+    "kind": "space",
+    "coordinate_mode": "fractional",
+    "symmetry_tolerance": 0.001,
+    "group_column": null,
+    "property_columns": {
+      "formation_energy": "formation_energy_per_atom",
+      "band_gap": "band_gap",
+      "energy_above_hull": "e_above_hull"
+    },
+    "max_atoms": 192,
+    "max_orbits": 32
+  },
+  "converter_version": 3
+}

@@ -1,0 +1,7 @@
+properties:
+  formation_energy:
+    type: scalar
+cond_dropout: 0.1
+composition_probability: 0.0
+observation_probability: 0.0
+property_subset_training: false

@@ -1,0 +1,112 @@
+{
+  "id": "1MoS2-1",
+  "dataset": "c2db_51",
+  "descriptor": {
+    "kind": "layer",
+    "number": 78,
+    "orbits": [
+      {
+        "letter": "a",
+        "atomic_number": 42
+      },
+      {
+        "letter": "f",
+        "atomic_number": 16
+      }
+    ]
+  },
+  "state": [
+    -0.03499801226744825,
+    1.5635562768792681
+  ],
+  "properties": {
+    "formation_energy": -0.920927545,
+    "band_gap": 1.58038944,
+    "energy_above_hull": 0.0
+  },
+  "provenance": {
+    "source_csv": "E:\\WORKSPACE\\CodePlace\\test_CGDiT\\UnifiedGroupGen\\artifacts\\source_recovery\\c2db_official\\val.csv",
+    "source_row": 63,
+    "source_cif_sha256": "d4e8132c5e5c6e895c1912b675dfa4c7e85f09546143e0a6bc65d36114dadfc9",
+    "official_structure_url": "ase-db:E:\\WORKSPACE\\CodePlace\\test_CGDiT\\UnifiedGroupGen\\artifacts\\source_recovery\\c2db_alternatives\\mlip_arena_c2db.db#row=3",
+    "official_structure_sha256": "21c8354f14bb677da5f2b2efd2ac7047b539f9c49b93b4c075d935e2a6efa7cb",
+    "original_csv_sha256": "dfb02ba5becab042e1f1d5aa97cdb6d783476de858f961852e9019193c550973",
+    "source_verification": "UID + species + Cartesian positions + cell shape + energy",
+    "orbit_order": "coordinate_dof,letter,element,source_index",
+    "coordinate_mode": "fractional",
+    "origin_xy": [
+      0.0,
+      0.0
+    ],
+    "axis_transform": [
+      [
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0
+      ]
+    ],
+    "operation_residual_angstrom": 1.414009558331486e-15,
+    "coordinate_tolerance_angstrom": 1e-05,
+    "chart_fit_rms_angstrom": 3.679369525623472e-16,
+    "chart_fit_max_angstrom": 6.372854958200451e-16,
+    "cell": "spglib_layer_conventional",
+    "source_atoms": 3,
+    "expanded_atoms": 3,
+    "declared_layer_group": 78,
+    "identified_layer_group": 78,
+    "layer_group_policy": "identify",
+    "symmetry_tolerance_angstrom": 0.1,
+    "source_operation_residual_angstrom": 3.184066440648929e-08,
+    "std_position_rms_angstrom": 1.5009833042057502e-08,
+    "std_position_max_angstrom": 1.8383216115239447e-08,
+    "native_std_chart_idealized": false,
+    "std_position_total_max_upper_bound_angstrom": 1.8383216752524944e-08,
+    "std_metric_relative_change": 4.766304939083923e-16,
+    "displacement_metric": "Nearest same-species standard position at fixed ideal cell; excludes lattice strain",
+    "source_idealization": "spglib layer standardization and bounded orbit fit; not raw-coordinate identity",
+    "transformation_matrix": [
+      [
+        0.9999999999999999,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.9999999999999998,
+        0.0
+      ],
+      [
+        1.5407439555097887e-33,
+        -1.5407439555097887e-33,
+        1.0
+      ]
+    ],
+    "origin_shift": [
+      0.0,
+      0.0,
+      -0.5
+    ],
+    "std_rotation_matrix": [
+      [
+        1.0,
+        0.0,
+        6.123233995736766e-17
+      ],
+      [
+        -6.494150356796986e-33,
+        1.0,
+        1.0605752387249068e-16
+      ],
+      [
+        -6.123233995736766e-17,
+        -1.0605752387249068e-16,
+        1.0
+      ]
+    ],
+    "cell_orientation_inferred": false,
+    "cif_fractional_rounding_disabled": true
+  }
+}

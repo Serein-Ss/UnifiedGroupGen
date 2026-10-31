@@ -1,0 +1,6 @@
+batch_size: ${train.batch_size}
+edge_budget: ${train.edge_budget}
+edge_chunk_size: ${model.edge_chunk_size}
+checkpoint: ${model.checkpoint_layers}
+validation_interval: ${train.validation_interval}
+coordinate_length_scale: ${loss.coordinate_length_scale}

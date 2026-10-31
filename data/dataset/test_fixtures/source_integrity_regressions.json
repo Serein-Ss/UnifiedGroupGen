@@ -1,0 +1,53 @@
+{
+  "mp-1281111": {
+    "": "33276",
+    "material_id": "mp-1281111",
+    "formation_energy_per_atom": "-2.080675432333334",
+    "band_gap": "2.08",
+    "pretty_formula": "Li2CrO2",
+    "e_above_hull": "0.0285620549999991",
+    "elements": "['Cr', 'Li', 'O']",
+    "cif": "# generated using pymatgen\ndata_Li2CrO2\n_symmetry_space_group_name_H-M   'P 1'\n_cell_length_a   4.73515477\n_cell_length_b   6.86261829\n_cell_length_c   6.86263876\n_cell_angle_alpha   90.71755155\n_cell_angle_beta   101.51015258\n_cell_angle_gamma   101.50999527\n_symmetry_Int_Tables_number   1\n_chemical_formula_structural   Li2CrO2\n_chemical_formula_sum   'Li8 Cr4 O8'\n_cell_volume   213.80768456\n_cell_formula_units_Z   4\nloop_\n _symmetry_equiv_pos_site_id\n _symmetry_equiv_pos_as_xyz\n  1  'x, y, z'\nloop_\n _atom_site_type_symbol\n _atom_site_label\n _atom_site_symmetry_multiplicity\n _atom_site_fract_x\n _atom_site_fract_y\n _atom_site_fract_z\n _atom_site_occupancy\n  Li  Li0  1  0.74923100  0.96619200  0.53313000  1\n  Li  Li1  1  0.00078700  0.71687200  0.28380800  1\n  Li  Li2  1  0.50081300  0.21688300  0.78379900  1\n  Li  Li3  1  0.24920600  0.46620500  0.03311800  1\n  Li  Li4  1  0.00078700  0.28380600  0.71687300  1\n  Li  Li5  1  0.24920700  0.03311400  0.46620500  1\n  Li  Li6  1  0.74923200  0.53313000  0.96619700  1\n  Li  Li7  1  0.50081400  0.78379500  0.21688700  1\n  Cr  Cr8  1  0.25980600  0.75469700  0.75467600  1\n  Cr  Cr9  1  0.49019400  0.49533800  0.49530700  1\n  Cr  Cr10  1  0.99023600  0.99535200  0.99535800  1\n  Cr  Cr11  1  0.75972800  0.25463900  0.25463700  1\n  O  O12  1  0.62493700  0.22930700  0.52067400  1\n  O  O13  1  0.87501100  0.98136500  0.26864300  1\n  O  O14  1  0.37500900  0.48136600  0.76864400  1\n  O  O15  1  0.12501900  0.72931400  0.02067700  1\n  O  O16  1  0.12502200  0.02068100  0.72931500  1\n  O  O17  1  0.37501100  0.76863700  0.48137000  1\n  O  O18  1  0.87501600  0.26864000  0.98137000  1\n  O  O19  1  0.62493400  0.52066600  0.22931100  1\n",
+    "spacegroup.number": "12"
+  },
+  "mp-997160": {
+    "": "37983",
+    "material_id": "mp-997160",
+    "formation_energy_per_atom": "-1.389941853649426",
+    "band_gap": "0.0",
+    "pretty_formula": "MnAgO2",
+    "e_above_hull": "0.0441036674999999",
+    "elements": "['Ag', 'Mn', 'O']",
+    "cif": "# generated using pymatgen\ndata_MnAgO2\n_symmetry_space_group_name_H-M   'P 1'\n_cell_length_a   3.12223665\n_cell_length_b   3.12224427\n_cell_length_c   12.60082141\n_cell_angle_alpha   82.88358194\n_cell_angle_beta   89.99982183\n_cell_angle_gamma   119.99974362\n_symmetry_Int_Tables_number   1\n_chemical_formula_structural   MnAgO2\n_chemical_formula_sum   'Mn2 Ag2 O4'\n_cell_volume   105.28669786\n_cell_formula_units_Z   2\nloop_\n _symmetry_equiv_pos_site_id\n _symmetry_equiv_pos_as_xyz\n  1  'x, y, z'\nloop_\n _atom_site_type_symbol\n _atom_site_label\n _atom_site_symmetry_multiplicity\n _atom_site_fract_x\n _atom_site_fract_y\n _atom_site_fract_z\n _atom_site_occupancy\n  Mn  Mn0  1  0.74999900  0.50000000  0.75000000  1\n  Mn  Mn1  1  0.25000300  0.50000000  0.25000100  1\n  Ag  Ag2  1  0.00000900  0.00001900  0.99997200  1\n  Ag  Ag3  1  0.49999000  0.99998100  0.50002800  1\n  O  O4  1  0.94350600  0.88702400  0.16945900  1\n  O  O5  1  0.44349400  0.88697300  0.66953900  1\n  O  O6  1  0.55649300  0.11297600  0.33054100  1\n  O  O7  1  0.05650600  0.11302700  0.83046000  1\n",
+    "spacegroup.number": "166"
+  },
+  "mp-570459": {
+    "": "37858",
+    "material_id": "mp-570459",
+    "formation_energy_per_atom": "0.0436439433333332",
+    "band_gap": "0.0",
+    "pretty_formula": "Te",
+    "e_above_hull": "0.0436439433333335",
+    "elements": "['Te']",
+    "cif": "# generated using pymatgen\ndata_Te\n_symmetry_space_group_name_H-M   'P 1'\n_cell_length_a   4.37819230\n_cell_length_b   4.37819230\n_cell_length_c   6.00456217\n_cell_angle_alpha   89.31403603\n_cell_angle_beta   89.31403603\n_cell_angle_gamma   59.01512557\n_symmetry_Int_Tables_number   1\n_chemical_formula_structural   Te\n_chemical_formula_sum   Te3\n_cell_volume   98.66528580\n_cell_formula_units_Z   3\nloop_\n _symmetry_equiv_pos_site_id\n _symmetry_equiv_pos_as_xyz\n  1  'x, y, z'\nloop_\n _atom_site_type_symbol\n _atom_site_label\n _atom_site_symmetry_multiplicity\n _atom_site_fract_x\n _atom_site_fract_y\n _atom_site_fract_z\n _atom_site_occupancy\n  Te  Te0  1  0.31322900  0.31322900  0.66232500  1\n  Te  Te1  1  0.68677100  0.68677100  0.33767500  1\n  Te  Te2  1  0.00000000  0.00000000  0.00000000  1\n",
+    "spacegroup.number": "12"
+  },
+  "mp-621925": {
+    "": "621925",
+    "material_id": "mp-621925",
+    "theoretical": "False",
+    "energy_above_hull": "0.04334983535714354",
+    "formation_energy_per_atom": "-0.7190963229802959",
+    "year": "1969",
+    "cif": "# generated using pymatgen\ndata_Mn2GeS4\n_symmetry_space_group_name_H-M   'P 1'\n_cell_length_a   6.02910326\n_cell_length_b   7.38706107\n_cell_length_c   12.76598866\n_cell_angle_alpha   90.00628103\n_cell_angle_beta   90.03439555\n_cell_angle_gamma   89.98771721\n_symmetry_Int_Tables_number   1\n_chemical_formula_structural   Mn2GeS4\n_chemical_formula_sum   'Mn8 Ge4 S16'\n_cell_volume   568.56323753\n_cell_formula_units_Z   4\nloop_\n _symmetry_equiv_pos_site_id\n _symmetry_equiv_pos_as_xyz\n  1  'x, y, z'\nloop_\n _atom_site_type_symbol\n _atom_site_label\n _atom_site_symmetry_multiplicity\n _atom_site_fract_x\n _atom_site_fract_y\n _atom_site_fract_z\n _atom_site_occupancy\n  Mn  Mn0  1  0.50184000  0.25061200  0.22947900  1\n  Mn  Mn1  1  0.99874600  0.25008600  0.72870700  1\n  Mn  Mn2  1  0.49573800  0.75063200  0.76972100  1\n  Mn  Mn3  1  0.49971000  0.00113100  0.50056600  1\n  Mn  Mn4  1  0.00462300  0.74964500  0.26898700  1\n  Mn  Mn5  1  0.99991900  0.00167600  0.00106700  1\n  Mn  Mn6  1  0.99927900  0.49789900  0.00123700  1\n  Mn  Mn7  1  0.50052500  0.49860200  0.50058700  1\n  Ge  Ge8  1  0.91788000  0.75011500  0.58920000  1\n  Ge  Ge9  1  0.08280400  0.24963000  0.40981900  1\n  Ge  Ge10  1  0.41581400  0.25011900  0.91029500  1\n  Ge  Ge11  1  0.58331400  0.75073300  0.09048300  1\n  S  S12  1  0.75078700  0.98815700  0.66733600  1\n  S  S13  1  0.74315900  0.75020700  0.93041200  1\n  S  S14  1  0.78465700  0.25012200  0.90689100  1\n  S  S15  1  0.71367600  0.24959000  0.40665400  1\n  S  S16  1  0.75032100  0.98914000  0.16818200  1\n  S  S17  1  0.24534300  0.01434300  0.83189900  1\n  S  S18  1  0.25341000  0.48529900  0.33173600  1\n  S  S19  1  0.28720300  0.74967900  0.59275600  1\n  S  S20  1  0.75679600  0.74953700  0.42938500  1\n  S  S21  1  0.75139100  0.51213600  0.66745700  1\n  S  S22  1  0.21432100  0.74967000  0.09270500  1\n  S  S23  1  0.24532200  0.48561800  0.83182000  1\n  S  S24  1  0.25622100  0.24976000  0.07148700  1\n  S  S25  1  0.75032000  0.51230000  0.16843200  1\n  S  S26  1  0.25317000  0.01367400  0.33195000  1\n  S  S27  1  0.24371200  0.24988700  0.57075000  1\n"
+  },
+  "mp-1078353": {
+    "": "1078353",
+    "material_id": "mp-1078353",
+    "theoretical": "False",
+    "energy_above_hull": "0.03229314225001367",
+    "formation_energy_per_atom": "-1.8930753602931034",
+    "year": "2013",
+    "cif": "# generated using pymatgen\ndata_MnPb2WO6\n_symmetry_space_group_name_H-M   'P 1'\n_cell_length_a   5.80682125\n_cell_length_b   5.80934527\n_cell_length_c   10.05465674\n_cell_angle_alpha   73.28351843\n_cell_angle_beta   89.96123196\n_cell_angle_gamma   120.08865651\n_symmetry_Int_Tables_number   1\n_chemical_formula_structural   MnPb2WO6\n_chemical_formula_sum   'Mn2 Pb4 W2 O12'\n_cell_volume   276.74611061\n_cell_formula_units_Z   2\nloop_\n _symmetry_equiv_pos_site_id\n _symmetry_equiv_pos_as_xyz\n  1  'x, y, z'\nloop_\n _atom_site_type_symbol\n _atom_site_label\n _atom_site_symmetry_multiplicity\n _atom_site_fract_x\n _atom_site_fract_y\n _atom_site_fract_z\n _atom_site_occupancy\n  Mn  Mn0  1  0.75028100  0.50009800  0.75006000  1\n  Mn  Mn1  1  0.24973400  0.50009500  0.24990200  1\n  Pb  Pb2  1  0.62429100  0.24913700  0.12529900  1\n  Pb  Pb3  1  0.12503300  0.25017900  0.62473700  1\n  Pb  Pb4  1  0.87404100  0.75085400  0.37470200  1\n  Pb  Pb5  1  0.37672300  0.75117600  0.87485500  1\n  W  W6  1  0.00022600  0.99976900  0.99989400  1\n  W  W7  1  0.49976500  0.00023500  0.50012100  1\n  O  O8  1  0.11893200  0.23719200  0.11890900  1\n  O  O9  1  0.61853500  0.23821400  0.61880700  1\n  O  O10  1  0.38155900  0.23778600  0.38106800  1\n  O  O11  1  0.88093600  0.23635200  0.88117700  1\n  O  O12  1  0.64306800  0.76144900  0.11857100  1\n  O  O13  1  0.14293200  0.76225900  0.61865000  1\n  O  O14  1  0.38145000  0.76280700  0.38105300  1\n  O  O15  1  0.88150000  0.76186000  0.88116600  1\n  O  O16  1  0.11867900  0.76249800  0.11895700  1\n  O  O17  1  0.61812000  0.76272900  0.61907100  1\n  O  O18  1  0.85711900  0.23790100  0.38173800  1\n  O  O19  1  0.35707400  0.23740900  0.88126400  1\n"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "source": "https://github.com/materialyzeai/matgl",
+  "revision": "096f512e852bc2a5bd454775d1b890404f559fbc",
+  "base_url": "https://raw.githubusercontent.com/materialyzeai/matgl/096f512e852bc2a5bd454775d1b890404f559fbc/pretrained_models/",
+  "models": {
+    "formation_energy": {
+      "name": "MEGNet-MP-2018.6.1-Eform",
+      "unit": "eV/atom",
+      "training_data": "Materials Project mp.2018.6.1",
+      "files": {
+        "model.json": "d858219134667d55e3c183435475ba248231a67311573373ed7298191f05d0a4",
+        "model.pt": "2cafe3234e3ab5987f22b6d2cb6be15a68121046571129ace5ed3fcad1c19624",
+        "state.pt": "35381368b17a2783f9ee09af5556cf1d84b74bf786b82d3fadd4acb38c51d040"
+      }
+    },
+    "band_gap": {
+      "name": "MEGNet-MP-2019.4.1-BandGap-mfi",
+      "unit": "eV",
+      "training_data": "Published multi-fidelity MP band-gap model",
+      "files": {
+        "model.json": "9f8f4b8709e97c6ce25353f6b6c322ce3b5e031c71115cf6b94d5cd794f39bc2",
+        "model.pt": "2bf11f0548fc3c0d52718d9f4ca4ccd40c2b6c831b9d5e2c249e5270257eb201",
+        "state.pt": "2927ab9646ec3e099a3e42b1358a3c477db7356e2413bfa540fe0106cde628f9"
+      }
+    }
+  }
+}

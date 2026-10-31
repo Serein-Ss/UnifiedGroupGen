@@ -1,0 +1,227 @@
+{
+  "mattergen/common/data/chemgraph.py": {
+    "upstream_sha256": "9ef20e6b5442e736604146ef42097d5a1f3972d915257800136b473a45fc21e8",
+    "local_sha256": "9ef20e6b5442e736604146ef42097d5a1f3972d915257800136b473a45fc21e8",
+    "changes": "absolute import namespace only",
+    "normalized_upstream_sha256": "9ef20e6b5442e736604146ef42097d5a1f3972d915257800136b473a45fc21e8"
+  },
+  "mattergen/common/gemnet/gemnet.py": {
+    "upstream_sha256": "a64744b7781c97fdcc83e72bc95f9f735484aef5f153ba4d0414bf3c7c2b32a4",
+    "local_sha256": "0d1f83483cd2def42349daf0ea2db3e6cc86ed3653c83f7c1fe4d99cecf228fd",
+    "changes": "absolute import namespace only",
+    "normalized_upstream_sha256": "a64744b7781c97fdcc83e72bc95f9f735484aef5f153ba4d0414bf3c7c2b32a4"
+  },
+  "mattergen/common/gemnet/initializers.py": {
+    "upstream_sha256": "1a401159734fec92ab69942a33bb6d7316280f09ee8288223af8261a3a258f55",
+    "local_sha256": "1a401159734fec92ab69942a33bb6d7316280f09ee8288223af8261a3a258f55",
+    "changes": "absolute import namespace only",
+    "normalized_upstream_sha256": "1a401159734fec92ab69942a33bb6d7316280f09ee8288223af8261a3a258f55"
+  },
+  "mattergen/common/gemnet/layers/atom_update_block.py": {
+    "upstream_sha256": "610b4f4221c49d126a58ff968ac5e5302cda7a13c165a6a97ea67705c72d5270",
+    "local_sha256": "a59552e178397ad3e15cf2b87bbfd8ef6a526ea8c261c9abd81ed76bdab5eb26",
+    "changes": "absolute import namespace only",
+    "normalized_upstream_sha256": "610b4f4221c49d126a58ff968ac5e5302cda7a13c165a6a97ea67705c72d5270"
+  },
+  "mattergen/common/gemnet/layers/base_layers.py": {
+    "upstream_sha256": "9cea3bab0cd7cd4add5409963e3e6f19cb3fff525021bf33df47eeaa15d56722",
+    "local_sha256": "ed2bd9014aad6da895d37ed96283581de8864bfa703ad37a33a6e4d737ca2994",
+    "changes": "absolute import namespace only",
+    "normalized_upstream_sha256": "9cea3bab0cd7cd4add5409963e3e6f19cb3fff525021bf33df47eeaa15d56722"
+  },
+  "mattergen/common/gemnet/layers/basis_utils.py": {
+    "upstream_sha256": "3596d63646e82e73c8d63673781aaec34f8b38b8cf1572b65a6d020fcc6871bc",
+    "local_sha256": "3596d63646e82e73c8d63673781aaec34f8b38b8cf1572b65a6d020fcc6871bc",
+    "changes": "absolute import namespace only",
+    "normalized_upstream_sha256": "3596d63646e82e73c8d63673781aaec34f8b38b8cf1572b65a6d020fcc6871bc"
+  },
+  "mattergen/common/gemnet/layers/efficient.py": {
+    "upstream_sha256": "b57ce1260460265d921b623a4c727939ec74dd705d3d3e95d7f060444c4012a9",
+    "local_sha256": "30f23f9f4da842bec7bcbee01d85b115b7b8325aae37aa8ebe64147dce8c5474",
+    "changes": "absolute import namespace only",
+    "normalized_upstream_sha256": "b57ce1260460265d921b623a4c727939ec74dd705d3d3e95d7f060444c4012a9"
+  },
+  "mattergen/common/gemnet/layers/embedding_block.py": {
+    "upstream_sha256": "4fe4cec5d9a65616204d6e72714b4f317f1f993b22a4a287a53c180c85f06e11",
+    "local_sha256": "552d5210626802fdcc95114046251d2bb0a3c57620a17d3657afe2d9573e8db9",
+    "changes": "absolute import namespace only",
+    "normalized_upstream_sha256": "4fe4cec5d9a65616204d6e72714b4f317f1f993b22a4a287a53c180c85f06e11"
+  },
+  "mattergen/common/gemnet/layers/interaction_block.py": {
+    "upstream_sha256": "20324417d6fce345085fb6c19f4f607d41d49902078d06bc4920c7c89b70d077",
+    "local_sha256": "cddba980c4b0f5a7b682ef93c9e835720785122822a7d9d6eebf61033e9ebbec",
+    "changes": "absolute import namespace only",
+    "normalized_upstream_sha256": "20324417d6fce345085fb6c19f4f607d41d49902078d06bc4920c7c89b70d077"
+  },
+  "mattergen/common/gemnet/layers/radial_basis.py": {
+    "upstream_sha256": "4c714c4e84fe5c7fc213a02f46d4c14f71a1cfedd9e2ab80348d63afc8cc6bd4",
+    "local_sha256": "4c714c4e84fe5c7fc213a02f46d4c14f71a1cfedd9e2ab80348d63afc8cc6bd4",
+    "changes": "absolute import namespace only",
+    "normalized_upstream_sha256": "4c714c4e84fe5c7fc213a02f46d4c14f71a1cfedd9e2ab80348d63afc8cc6bd4"
+  },
+  "mattergen/common/gemnet/layers/scaling.py": {
+    "upstream_sha256": "4206c90a8fae098e6484e059057dc908ceece4d0612277a242f193f4d8e4508a",
+    "local_sha256": "eb30a56ccb15c02395f5d116f0cdb9f147bdc43daad7e4225bf7ad45eaa8734a",
+    "changes": "absolute import namespace only",
+    "normalized_upstream_sha256": "4206c90a8fae098e6484e059057dc908ceece4d0612277a242f193f4d8e4508a"
+  },
+  "mattergen/common/gemnet/layers/spherical_basis.py": {
+    "upstream_sha256": "f9bdac3f421ccc63f160c00a1ff97b8c9d6c614dc9ee91251d066e27bb0453e8",
+    "local_sha256": "d1b54407a03a444f29baacb4cef294b646ba7d4aa5f031a718b8720a3ee51104",
+    "changes": "absolute import namespace only",
+    "normalized_upstream_sha256": "f9bdac3f421ccc63f160c00a1ff97b8c9d6c614dc9ee91251d066e27bb0453e8"
+  },
+  "mattergen/common/gemnet/utils.py": {
+    "upstream_sha256": "80ca02a38819be86ebab291d823ce3292f2cfe22d9c7bba7bbe11038d3f1f2a4",
+    "local_sha256": "80ca02a38819be86ebab291d823ce3292f2cfe22d9c7bba7bbe11038d3f1f2a4",
+    "changes": "absolute import namespace only",
+    "normalized_upstream_sha256": "80ca02a38819be86ebab291d823ce3292f2cfe22d9c7bba7bbe11038d3f1f2a4"
+  },
+  "mattergen/common/utils/data_utils.py": {
+    "upstream_sha256": "d9eb3078299d18c2bb7c6dc5de604f5c5118819b62cc20a84a26d87f21138d1c",
+    "local_sha256": "8eda2cbbed543f74166aa7513da07035ac34b5c59dbd293fef704eff3555f31b",
+    "changes": "absolute import namespace only",
+    "normalized_upstream_sha256": "d9eb3078299d18c2bb7c6dc5de604f5c5118819b62cc20a84a26d87f21138d1c"
+  },
+  "mattergen/common/utils/globals.py": {
+    "upstream_sha256": "7eca06d705c1a3a9568ce661febc12c375112f84fa4eb799de3de2ee0079d311",
+    "local_sha256": "3780b54963976eef614c9bb9e74a3b4d716599d7c05fc2b6cc999be30abfde08",
+    "changes": "device helper extraction; no environment mutation",
+    "normalized_upstream_sha256": "7eca06d705c1a3a9568ce661febc12c375112f84fa4eb799de3de2ee0079d311"
+  },
+  "mattergen/common/utils/lattice_score.py": {
+    "upstream_sha256": "269b419c1048be6eef92c56943368406af3aa2fa4ad3c605b0b91e922e421b13",
+    "local_sha256": "269b419c1048be6eef92c56943368406af3aa2fa4ad3c605b0b91e922e421b13",
+    "changes": "absolute import namespace only",
+    "normalized_upstream_sha256": "269b419c1048be6eef92c56943368406af3aa2fa4ad3c605b0b91e922e421b13"
+  },
+  "mattergen/common/utils/ocp_graph_utils.py": {
+    "upstream_sha256": "b1c3b2a9e99378d8fdaacb5ca217aa19bbcb069d5cb33580df324af72c878f4a",
+    "local_sha256": "744d87706696fe9cbf6f667ad87a0d3f404a49a6f2c9e9e0777a1d173e524dd6",
+    "changes": "absolute import namespace only",
+    "normalized_upstream_sha256": "b1c3b2a9e99378d8fdaacb5ca217aa19bbcb069d5cb33580df324af72c878f4a"
+  },
+  "mattergen/common/gemnet/cgmanifest.json": {
+    "upstream_sha256": "541a1c0550a651d191adea68f6660dd7a47546445237bae1f200921bc93a4fc5",
+    "local_sha256": "541a1c0550a651d191adea68f6660dd7a47546445237bae1f200921bc93a4fc5",
+    "changes": "none"
+  },
+  "mattergen/common/gemnet/gemnet-dT.json": {
+    "upstream_sha256": "867604ed6a605649241cd94d9604f25226fb1e362f332b7d1a9ae40d3f747e90",
+    "local_sha256": "867604ed6a605649241cd94d9604f25226fb1e362f332b7d1a9ae40d3f747e90",
+    "changes": "none"
+  },
+  "fairchem/core/common/gp_utils.py": {
+    "upstream_sha256": "1c79f3990f12589000a18d0be93ecbca9722706ed24ed00df815bfbbb87bee40",
+    "local_sha256": "1c79f3990f12589000a18d0be93ecbca9722706ed24ed00df815bfbbb87bee40",
+    "changes": "absolute import namespace only",
+    "normalized_upstream_sha256": "1c79f3990f12589000a18d0be93ecbca9722706ed24ed00df815bfbbb87bee40"
+  },
+  "fairchem/core/common/registry.py": {
+    "upstream_sha256": "6c8dcb039cdeee79721e282637bb2d74eb369a83840424f64a075767890acf73",
+    "local_sha256": "030fd340ff4e653fb9ae3ff15ea433b71eb6c04a4e18a4a4a679037805435421",
+    "changes": "absolute import namespace only",
+    "normalized_upstream_sha256": "6c8dcb039cdeee79721e282637bb2d74eb369a83840424f64a075767890acf73"
+  },
+  "fairchem/core/common/utils.py": {
+    "upstream_sha256": "b9403129d1dcb31fd8541144b23264d2af446247b33e88912956d6c307057781",
+    "local_sha256": "2c6c92658ab81b162b15daa70eefb3fd43797a0bc17e687f5f22e0907fbdb168",
+    "changes": "absolute import namespace only",
+    "normalized_upstream_sha256": "b9403129d1dcb31fd8541144b23264d2af446247b33e88912956d6c307057781"
+  },
+  "fairchem/core/models/base.py": {
+    "upstream_sha256": "860b098d77c42b7853b678f9323ca8650e6898b0fee004e43e424cb8314ddd1a",
+    "local_sha256": "fb2315d13b17de58f1e506a38dd432ef7bf8d86fddd4572051d43a151c9c8035",
+    "changes": "absolute import namespace only",
+    "normalized_upstream_sha256": "860b098d77c42b7853b678f9323ca8650e6898b0fee004e43e424cb8314ddd1a"
+  },
+  "fairchem/core/models/equiformer_v2/activation.py": {
+    "upstream_sha256": "0da398113f489603a5fa2ced30611bc45eb4c8922c05bd55fe401cd75adad087",
+    "local_sha256": "0da398113f489603a5fa2ced30611bc45eb4c8922c05bd55fe401cd75adad087",
+    "changes": "absolute import namespace only",
+    "normalized_upstream_sha256": "0da398113f489603a5fa2ced30611bc45eb4c8922c05bd55fe401cd75adad087"
+  },
+  "fairchem/core/models/equiformer_v2/drop.py": {
+    "upstream_sha256": "af8fba6209fe4b2dad5870f703568e26a8f3bd492462000817deeb31d440819c",
+    "local_sha256": "af8fba6209fe4b2dad5870f703568e26a8f3bd492462000817deeb31d440819c",
+    "changes": "absolute import namespace only",
+    "normalized_upstream_sha256": "af8fba6209fe4b2dad5870f703568e26a8f3bd492462000817deeb31d440819c"
+  },
+  "fairchem/core/models/equiformer_v2/edge_rot_mat.py": {
+    "upstream_sha256": "e2cc1a87726fa1b0e50c5e7761262d7532d920f7d526c4e9705cfa7c6ddc0d93",
+    "local_sha256": "d805c3257ff03678221e3a1960c98a6fb7b613a6020070f53df2159ee64a2565",
+    "changes": "absolute import namespace only",
+    "normalized_upstream_sha256": "d805c3257ff03678221e3a1960c98a6fb7b613a6020070f53df2159ee64a2565"
+  },
+  "fairchem/core/models/equiformer_v2/equiformer_v2_deprecated.py": {
+    "upstream_sha256": "cd5957a237d35bd3929a8f471e05a10c1f7eeb9fa3902e36fbbbe093d11412e4",
+    "local_sha256": "ad0144ae61fcf4683b67d5027501068354201f1154e07bde347454d751172fcf",
+    "changes": "absolute import namespace only",
+    "normalized_upstream_sha256": "cd5957a237d35bd3929a8f471e05a10c1f7eeb9fa3902e36fbbbe093d11412e4"
+  },
+  "fairchem/core/models/equiformer_v2/gaussian_rbf.py": {
+    "upstream_sha256": "f78c3f78c3d170acb0901c6f5586fadd78db9846111b53f5833da8d117f252bd",
+    "local_sha256": "f78c3f78c3d170acb0901c6f5586fadd78db9846111b53f5833da8d117f252bd",
+    "changes": "absolute import namespace only",
+    "normalized_upstream_sha256": "f78c3f78c3d170acb0901c6f5586fadd78db9846111b53f5833da8d117f252bd"
+  },
+  "fairchem/core/models/equiformer_v2/input_block.py": {
+    "upstream_sha256": "9e0c9758876431536ea6f5c788e51c8de14fc6c33f7b1576cc7a369825c76a13",
+    "local_sha256": "c73a9e41068c01898afeb35c3af7cf4070906696b92f57105e1317a4b31747d6",
+    "changes": "absolute import namespace only",
+    "normalized_upstream_sha256": "c73a9e41068c01898afeb35c3af7cf4070906696b92f57105e1317a4b31747d6"
+  },
+  "fairchem/core/models/equiformer_v2/layer_norm.py": {
+    "upstream_sha256": "0c5c5f565e4ae0c495b4b204e42389f198634754587423934df5e0c574938dd2",
+    "local_sha256": "0c5c5f565e4ae0c495b4b204e42389f198634754587423934df5e0c574938dd2",
+    "changes": "absolute import namespace only",
+    "normalized_upstream_sha256": "0c5c5f565e4ae0c495b4b204e42389f198634754587423934df5e0c574938dd2"
+  },
+  "fairchem/core/models/equiformer_v2/module_list.py": {
+    "upstream_sha256": "236a9cbf54033ffd5f31c49cb9ec985f1b643644c322d2a1b2d0abc5acc46378",
+    "local_sha256": "236a9cbf54033ffd5f31c49cb9ec985f1b643644c322d2a1b2d0abc5acc46378",
+    "changes": "absolute import namespace only",
+    "normalized_upstream_sha256": "236a9cbf54033ffd5f31c49cb9ec985f1b643644c322d2a1b2d0abc5acc46378"
+  },
+  "fairchem/core/models/equiformer_v2/radial_function.py": {
+    "upstream_sha256": "2cb5594bf3c867df31a6f0f4e7a72be91e8e5342352b80e6f16c3b9b68db58d0",
+    "local_sha256": "50705b0867e3dab1e43bf757b5c8adff1296a5c51e68982fedf61d8a847bc6cb",
+    "changes": "absolute import namespace only",
+    "normalized_upstream_sha256": "50705b0867e3dab1e43bf757b5c8adff1296a5c51e68982fedf61d8a847bc6cb"
+  },
+  "fairchem/core/models/equiformer_v2/so2_ops.py": {
+    "upstream_sha256": "c7bf61e011e3c11dc30b64357c2719cf928dea1d6ebc6b4b3e95956a88f9daf5",
+    "local_sha256": "b55483d83917cdb16855a66c9f13c4b41dcae1b570cc1306fde229bee7d8e868",
+    "changes": "absolute import namespace only",
+    "normalized_upstream_sha256": "b55483d83917cdb16855a66c9f13c4b41dcae1b570cc1306fde229bee7d8e868"
+  },
+  "fairchem/core/models/equiformer_v2/so3.py": {
+    "upstream_sha256": "56a8d0640c28fd2336be42b806c292e999305d2ff5b862036d083ae87ba1edb8",
+    "local_sha256": "56a8d0640c28fd2336be42b806c292e999305d2ff5b862036d083ae87ba1edb8",
+    "changes": "absolute import namespace only",
+    "normalized_upstream_sha256": "56a8d0640c28fd2336be42b806c292e999305d2ff5b862036d083ae87ba1edb8"
+  },
+  "fairchem/core/models/equiformer_v2/transformer_block.py": {
+    "upstream_sha256": "8633f3337b397891aa7eb81120d0eacefcbe90c6b8bab202c78469c3b2c5951e",
+    "local_sha256": "a144b944752a46ac62c2378d7986c9e0fa901896dd70a164b670d043c3ca569f",
+    "changes": "absolute import namespace only",
+    "normalized_upstream_sha256": "8633f3337b397891aa7eb81120d0eacefcbe90c6b8bab202c78469c3b2c5951e"
+  },
+  "fairchem/core/models/equiformer_v2/wigner.py": {
+    "upstream_sha256": "9debee792078cdb77ed8ec768c6a839abe3107790d4da6546be8928a6d79eac1",
+    "local_sha256": "19adf244291c7a4ed709d1abc82e48e5b39302319db8873b0f2d58f57f4dcb93",
+    "changes": "absolute import namespace only",
+    "normalized_upstream_sha256": "19adf244291c7a4ed709d1abc82e48e5b39302319db8873b0f2d58f57f4dcb93"
+  },
+  "fairchem/core/models/scn/smearing.py": {
+    "upstream_sha256": "52ba4200a265f816baeb3e85cf109c600257eddc314ff1475ce779dd8fc36116",
+    "local_sha256": "52ba4200a265f816baeb3e85cf109c600257eddc314ff1475ce779dd8fc36116",
+    "changes": "absolute import namespace only",
+    "normalized_upstream_sha256": "52ba4200a265f816baeb3e85cf109c600257eddc314ff1475ce779dd8fc36116"
+  },
+  "fairchem/core/models/equiformer_v2/Jd.pt": {
+    "upstream_sha256": "b4059c45be246dcb6c49c545670b65c56550eb0c2e7a9c92b4b50a92d370dbe2",
+    "local_sha256": "b4059c45be246dcb6c49c545670b65c56550eb0c2e7a9c92b4b50a92d370dbe2",
+    "changes": "none"
+  }
+}

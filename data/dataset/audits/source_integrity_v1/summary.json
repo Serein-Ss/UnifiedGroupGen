@@ -1,0 +1,160 @@
+{
+  "protocol": "source-cif-integrity-v1",
+  "complete": true,
+  "datasets": {
+    "mp_20": {
+      "records": 45229,
+      "composition_failed": 2,
+      "geometry_failed_after_composition": 46,
+      "affected": 48,
+      "errors": 0,
+      "repaired_passed": 45229,
+      "source_splits": {
+        "train": {
+          "records": 27136,
+          "composition_failed": 1,
+          "geometry_failed_after_composition": 25,
+          "affected": 26,
+          "errors": 0,
+          "repaired_passed": 27136
+        },
+        "val": {
+          "records": 9047,
+          "composition_failed": 1,
+          "geometry_failed_after_composition": 10,
+          "affected": 11,
+          "errors": 0,
+          "repaired_passed": 9047
+        },
+        "test": {
+          "records": 9046,
+          "composition_failed": 0,
+          "geometry_failed_after_composition": 11,
+          "affected": 11,
+          "errors": 0,
+          "repaired_passed": 9046
+        }
+      }
+    },
+    "mpts_52": {
+      "records": 40476,
+      "composition_failed": 1,
+      "geometry_failed_after_composition": 19,
+      "affected": 20,
+      "errors": 2,
+      "repaired_passed": 40474,
+      "source_splits": {
+        "train": {
+          "records": 27380,
+          "composition_failed": 0,
+          "geometry_failed_after_composition": 14,
+          "affected": 14,
+          "errors": 1,
+          "repaired_passed": 27379
+        },
+        "val": {
+          "records": 5000,
+          "composition_failed": 0,
+          "geometry_failed_after_composition": 0,
+          "affected": 0,
+          "errors": 0,
+          "repaired_passed": 5000
+        },
+        "test": {
+          "records": 8096,
+          "composition_failed": 1,
+          "geometry_failed_after_composition": 5,
+          "affected": 6,
+          "errors": 1,
+          "repaired_passed": 8095
+        }
+      }
+    },
+    "c2db_51": {
+      "records": 16905,
+      "composition_failed": 0,
+      "geometry_failed_after_composition": 0,
+      "affected": 0,
+      "errors": 0,
+      "repaired_passed": 16905,
+      "source_splits": {
+        "train": {
+          "records": 10143,
+          "composition_failed": 0,
+          "geometry_failed_after_composition": 0,
+          "affected": 0,
+          "errors": 0,
+          "repaired_passed": 10143
+        },
+        "val": {
+          "records": 3381,
+          "composition_failed": 0,
+          "geometry_failed_after_composition": 0,
+          "affected": 0,
+          "errors": 0,
+          "repaired_passed": 3381
+        },
+        "test": {
+          "records": 3381,
+          "composition_failed": 0,
+          "geometry_failed_after_composition": 0,
+          "affected": 0,
+          "errors": 0,
+          "repaired_passed": 3381
+        }
+      }
+    }
+  },
+  "joint_historical_split_impact": {
+    "train": {
+      "mp_20": {
+        "records": 36289,
+        "affected": 40
+      },
+      "mpts_52": {
+        "records": 32464,
+        "affected": 18
+      },
+      "c2db_51": {
+        "records": 13432,
+        "affected": 0
+      }
+    },
+    "val": {
+      "mp_20": {
+        "records": 4480,
+        "affected": 3
+      },
+      "mpts_52": {
+        "records": 3976,
+        "affected": 1
+      },
+      "c2db_51": {
+        "records": 1734,
+        "affected": 0
+      }
+    },
+    "test": {
+      "mp_20": {
+        "records": 4460,
+        "affected": 5
+      },
+      "mpts_52": {
+        "records": 4036,
+        "affected": 1
+      },
+      "c2db_51": {
+        "records": 1739,
+        "affected": 0
+      }
+    }
+  },
+  "scope": "Source CIF equivalence under explicit modelling tolerance, not physical stability; original data and weights retained.",
+  "seconds": 248.93800000008196,
+  "journal_sha256": "173b92b9d2a741904d2cc3dc2e22c22ec41103830fc730278006bab638310c64",
+  "quarantined_records": 2,
+  "verified_records": 102608,
+  "all_source_records_repaired": false,
+  "passed": true,
+  "passed_scope": "All raw records accounted for. Only certified output records may train; quarantined inputs remain excluded and visible."
+}

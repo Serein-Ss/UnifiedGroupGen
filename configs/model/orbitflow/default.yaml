@@ -1,0 +1,6 @@
+# Audited model defaults; runtime.checkpoint and runtime.edge_chunk_size override execution.
+flow_hidden: 512
+flow_layers: 6
+frequencies: 128
+checkpoint_layers: true
+edge_chunk_size: 4096

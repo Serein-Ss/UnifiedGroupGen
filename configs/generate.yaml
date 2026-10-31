@@ -1,0 +1,18 @@
+defaults:
+  - generation: default
+  - _self_
+  - override hydra/job_logging: disabled
+task: generate
+device: auto
+seed: 142
+threads: 2
+export:
+  samples: null
+  index: 0
+  output: null
+hydra:
+  job:
+    chdir: false
+  run:
+    dir: .
+  output_subdir: null

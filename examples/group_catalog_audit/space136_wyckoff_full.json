@@ -1,0 +1,170 @@
+{
+  "hall": {
+    "number": 136,
+    "international_short": "P4_2/mnm",
+    "international_full": "P 4_2/m 2_1/n 2/m",
+    "international": "P 4_2/m n m",
+    "schoenflies": "D4h^14",
+    "hall_number": 419,
+    "hall_symbol": "-P 4n 2n",
+    "choice": "",
+    "pointgroup_international": "4/mmm",
+    "pointgroup_schoenflies": "D4h",
+    "arithmetic_crystal_class_number": 36,
+    "arithmetic_crystal_class_symbol": "4/mmmP"
+  },
+  "wyckoff": [
+    {
+      "letter": "a",
+      "multiplicity": 2,
+      "dof": 0,
+      "site_symmetry": "m.mm",
+      "positions": [
+        "0, 0, 0",
+        "1/2, 1/2, 1/2"
+      ]
+    },
+    {
+      "letter": "b",
+      "multiplicity": 2,
+      "dof": 0,
+      "site_symmetry": "m.mm",
+      "positions": [
+        "0, 0, 1/2",
+        "1/2, 1/2, 0"
+      ]
+    },
+    {
+      "letter": "c",
+      "multiplicity": 4,
+      "dof": 0,
+      "site_symmetry": "2/m..",
+      "positions": [
+        "0, 1/2, 0",
+        "0, 1/2, 1/2",
+        "1/2, 0, 1/2",
+        "1/2, 0, 0"
+      ]
+    },
+    {
+      "letter": "d",
+      "multiplicity": 4,
+      "dof": 0,
+      "site_symmetry": "-4..",
+      "positions": [
+        "0, 1/2, 1/4",
+        "0, 1/2, 3/4",
+        "1/2, 0, 1/4",
+        "1/2, 0, 3/4"
+      ]
+    },
+    {
+      "letter": "e",
+      "multiplicity": 4,
+      "dof": 1,
+      "site_symmetry": "2.mm",
+      "positions": [
+        "0, 0, z",
+        "1/2, 1/2, z+1/2",
+        "1/2, 1/2, -z+1/2",
+        "0, 0, -z"
+      ]
+    },
+    {
+      "letter": "f",
+      "multiplicity": 4,
+      "dof": 1,
+      "site_symmetry": "m.2m",
+      "positions": [
+        "x, x, 0",
+        "-x, -x, 0",
+        "-x+1/2, x+1/2, 1/2",
+        "x+1/2, -x+1/2, 1/2"
+      ]
+    },
+    {
+      "letter": "g",
+      "multiplicity": 4,
+      "dof": 1,
+      "site_symmetry": "m.2m",
+      "positions": [
+        "x, -x, 0",
+        "-x, x, 0",
+        "x+1/2, x+1/2, 1/2",
+        "-x+1/2, -x+1/2, 1/2"
+      ]
+    },
+    {
+      "letter": "h",
+      "multiplicity": 8,
+      "dof": 1,
+      "site_symmetry": "2..",
+      "positions": [
+        "0, 1/2, z",
+        "0, 1/2, z+1/2",
+        "1/2, 0, -z+1/2",
+        "1/2, 0, -z",
+        "0, 1/2, -z",
+        "0, 1/2, -z+1/2",
+        "1/2, 0, z+1/2",
+        "1/2, 0, z"
+      ]
+    },
+    {
+      "letter": "i",
+      "multiplicity": 8,
+      "dof": 2,
+      "site_symmetry": "m..",
+      "positions": [
+        "x, y, 0",
+        "-x, -y, 0",
+        "-y+1/2, x+1/2, 1/2",
+        "y+1/2, -x+1/2, 1/2",
+        "-x+1/2, y+1/2, 1/2",
+        "x+1/2, -y+1/2, 1/2",
+        "y, x, 0",
+        "-y, -x, 0"
+      ]
+    },
+    {
+      "letter": "j",
+      "multiplicity": 8,
+      "dof": 2,
+      "site_symmetry": "..m",
+      "positions": [
+        "x, x, z",
+        "-x, -x, z",
+        "-x+1/2, x+1/2, z+1/2",
+        "x+1/2, -x+1/2, z+1/2",
+        "-x+1/2, x+1/2, -z+1/2",
+        "x+1/2, -x+1/2, -z+1/2",
+        "x, x, -z",
+        "-x, -x, -z"
+      ]
+    },
+    {
+      "letter": "k",
+      "multiplicity": 16,
+      "dof": 3,
+      "site_symmetry": "1",
+      "positions": [
+        "x, y, z",
+        "-x, -y, z",
+        "-y+1/2, x+1/2, z+1/2",
+        "y+1/2, -x+1/2, z+1/2",
+        "-x+1/2, y+1/2, -z+1/2",
+        "x+1/2, -y+1/2, -z+1/2",
+        "y, x, -z",
+        "-y, -x, -z",
+        "-x, -y, -z",
+        "x, y, -z",
+        "y+1/2, -x+1/2, -z+1/2",
+        "-y+1/2, x+1/2, -z+1/2",
+        "x+1/2, -y+1/2, z+1/2",
+        "-x+1/2, y+1/2, z+1/2",
+        "-y, -x, z",
+        "y, x, z"
+      ]
+    }
+  ]
+}

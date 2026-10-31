@@ -1,0 +1,8 @@
+defaults:
+- default
+- _self_
+candidate_backbone:
+  _target_: unifiedgroupgen.pl_modules.backbones.cspnet.CSPNetBackbone
+  layers: 6
+  frequencies: 128
+  layer_norm: true

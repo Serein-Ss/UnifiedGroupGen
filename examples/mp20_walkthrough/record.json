@@ -1,0 +1,38 @@
+{
+  "id": "mp-2657",
+  "dataset": "mp_20",
+  "descriptor": {
+    "kind": "space",
+    "number": 136,
+    "orbits": [
+      {
+        "letter": "a",
+        "atomic_number": 22
+      },
+      {
+        "letter": "f",
+        "atomic_number": 8
+      }
+    ]
+  },
+  "state": [
+    1.2415616737794481,
+    -0.020637444068401928,
+    0.30457999999999985
+  ],
+  "properties": {
+    "formation_energy": -3.464416566111112,
+    "band_gap": 1.7719,
+    "energy_above_hull": 0.0372127725000002
+  },
+  "provenance": {
+    "source_csv": "E:\\WORKSPACE\\CodePlace\\test_CGDiT\\data\\mp_20\\train.csv",
+    "source_row": 19132,
+    "source_cif_sha256": "29d92e0bc4f4756670c35cfc03d73ffde9b046b31c0d0042bea733910913c44e",
+    "orbit_order": "coordinate_dof,letter,element,source_index",
+    "coordinate_mode": "fractional",
+    "cell": "pyxtal_conventional",
+    "source_atoms": 6,
+    "expanded_atoms": 6
+  }
+}

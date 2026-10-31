@@ -1,177 +1,52 @@
 # UnifiedGroupGen
 
-## 修复数据上的新训练入口（15 套主实验）
+通过群—轨道编译与流匹配生成三维晶体和二维材料。本仓库提供代码、配置、当前训练输入和测试；模型权重、运行日志、生成结构及评估结果不随代码提交。
 
-仅使用 MP20、C2DB 和 MP20+C2DB；每个数据设置训练基础模型、三个单性质 CFG 模型和三性质 CFG 模型，不增加控制微调。完整更新、准备、训练、性质评估和化学/骨架控制命令见 [MAIN15_TRAINING_AND_TASKS.md](docs/MAIN15_TRAINING_AND_TASKS.md)。新队列为 `scripts/train_main15.py`，两来源评估使用 `scripts/evaluate_main15.py`，不要复用旧三来源的域编号。旧训练命令与结果保留为历史记录。
-
-保持模型参数、群约束和 15 套配置的训练加速与服务器测速/续训步骤见 [TRAINING_ACCELERATION.md](docs/TRAINING_ACCELERATION.md)。
-
-旧 M1/M2/M3 的分模块测试、十组各 4096 次生成及前期 FE/BG 预测器桥接见 [LEGACY_4096_EVALUATION.md](docs/LEGACY_4096_EVALUATION.md)。该工具使用独立输出、CPU 和单线程，可只下载评估脚本而不更新正在训练的工作树。
-
-4090 正式调度已接入试跑参数：MP20 batch 256/边预算 400000，C2DB batch 768/200000，联合 batch 256/400000；统一 3 Å、坐标损失除以 9。顺序为三个基础、三个三性质、九个单性质。当前只执行 [服务器更新与计划检查](docs/REMOTE_MAIN15_START.md)，暂不启动15套队列。历史加速配对方案见 [PAIRED_ACCELERATION_STUDY.md](docs/PAIRED_ACCELERATION_STUDY.md)。
-
-> **2026-10-22 来源一致性修订：** 68条旧编码需处理，66条修复、2条MPTS52隔离；正式数据102,608条，联合划分82,183/10,190/10,235。M1/M2/M3均需干净重训，以下旧训练与生成指标保留历史身份。详见[完整审计与迁移](docs/SOURCE_INTEGRITY_AUDIT_20261022.md)。
-
-
-基于群—轨道参数化和性质条件流匹配的材料结构生成研究实现。
-
-**当前状态（2026-10-19）：共享空间群/层群模型完成245轮并早停，49次验证，最佳检查点仍在第195轮（21.752631）。新包已核验，最优权重、七组评估输出及数据划分均与此前一致。最新服务器结果已核验：完整测试10235条，六组共1536次采样全部输出，精确目标群回收1526/1536。论文正文已更新并嵌入PNG；公平基准比较、独立性质命中率和稳定性验证仍待完成。**
-
-核心论点：把固定离散描述下的连续结构限制在群约束的合法参数域，将空间群、层群和平面群编译成相同的结构展开、随机先验、合法训练路径和切向更新接口。性质条件同时进入描述 Transformer 与几何流模型。
-
-## 文档
-
-- [真实模型全过程视频（4分24秒）](assets/videos/model_walkthrough/README.md)：TiO2/MoS2输入、训练路径、真实中间特征与速度、历史曲线、连续生成及输出检验。
-
-- [中文论文长稿与当前结果](docs/UNIFIEDGROUPGEN_MANUSCRIPT_ZH.md)：统一理论、实际模型、TiO₂/MoS₂示例、实测结果和图1–6的证据缺口。
-
-- [统一表示验证与标准生成评估](docs/STANDARD_EVALUATION.md)：全数据/全群目录、来源重编码、3D/2D有效性、覆盖、分布、去重、新颖性及独立性质接口；新图只输出PNG。
-
-- [现有联合检查点评估与服务器执行](docs/JOINT_EVALUATION.md)：无需续训的完整测试、六组生成、进度、恢复和结果打包。
-- [当前结果及数据集图表](assets/README.md)：2026-10-17备份审计、数据统计和模型架构图。
-
-- [完整研究方案](docs/RESEARCH_PLAN.md)：Introduction、Related Work、Preliminaries、Method、Experiments 和研究里程碑。
-- [核心理论与证明](docs/THEORY.md)：群作用、零空间、晶格、条件纤维、流匹配、磁性扩展及成立边界。
-- [实现对应关系](docs/IMPLEMENTATION.md)：与 CGDiT/newton、CrystalFlow 的关系、接口、数据协议和已实现范围。
-- [验证记录](docs/VALIDATION.md)：本次实际执行结果与未完成项目。
-- [正式训练前准备](docs/PRETRAINING_READINESS.md)：全数据状态、训练入口检查、运行命令与未满足条件。
-- [参数量与容量对照](docs/MODEL_SCALE.md)：模型容量、参考工作计数边界与 GPU 实测。
-- [文献与来源](docs/REFERENCES.md)。
-- [Linux / RTX4090下载与完整训练](docs/REMOTE_TRAINING.md)：仓库内完整数据包、路径迁移、验证、启动、恢复、epoch与耗时。
-
-## 服务器快速开始
-
-仓库内已包含完整训练数据包（102,610条来源记录及联合划分），不依赖外部CGDiT工作目录。
+## 安装与入口
 
 ```bash
-git clone https://github.com/Serein-Ss/UnifiedGroupGen.git
-cd UnifiedGroupGen
-conda create -n unifiedgroupgen python=3.10 -y
-conda activate unifiedgroupgen
-python -m pip install torch==2.7.1 --index-url https://download.pytorch.org/whl/cu118
-python -m pip install -r requirements-remote.txt
-python -m pip install -e ".[test]"
-export MKL_THREADING_LAYER=SEQUENTIAL
-export OMP_NUM_THREADS=4
-export MKL_NUM_THREADS=4
-python scripts/unpack_training_data.py
-python scripts/verify_training_data.py
+conda env create -f unifiedgroupgen/environment.yml
+conda activate unifiedgroupgen_cuda
+python -m pip install --no-build-isolation -e ./unifiedgroupgen
+
+# 查看组合配置，不启动训练。
+ugg experiment=new_mp20_u task=plan
+python -m unifiedgroupgen.generate --help
+python -m unifiedgroupgen.evaluate --help
+```
+
+主要面向Linux CUDA服务器；Windows用于可选的小规模测试。CUDA环境、依赖版本与安装验证见[环境说明](docs/ENVIRONMENT.md)。本机路径在`.env`中设置，参考`.env.example`；实际`.env`不提交。
+
+## 代码组织
+
+- `unifiedgroupgen/common/`：配置、结构读写、可视化及共享函数。
+- `unifiedgroupgen/group_constraints/`：群—轨道编译器、独立参数编码、展开及投影。
+- `unifiedgroupgen/conditional/`：性质、组成与部分结构约束。
+- `unifiedgroupgen/pl_data/`：数据编码、准备、批处理与Lightning数据接口。
+- `unifiedgroupgen/pl_modules/`：描述Transformer、OrbitFlow、主干网络和损失。
+- `unifiedgroupgen/generation/`：结构生成算法；配置和运行入口为`generate.py`。
+- `unifiedgroupgen/evaluation/`：通用、CSP、DNG及性质条件指标；运行入口为`evaluate.py`。
+- `unifiedgroupgen/run.py`：Lightning训练、恢复与预训练权重加载。
+- `unifiedgroupgen/tests/`：测试与数据检查；必要参考代码仅用于兼容和回归比较。
+- `configs/`：Hydra功能分组与实验选择器。
+- `scripts/`、`assets/datasets/source/`：多模型评估、数据恢复及绘图源码。
+
+用法见[实验配置](docs/EXPERIMENT_CONFIGURATION.md)和[生成与评估任务](docs/EVALUATION_TASKS.md)。
+
+## 数据与实验配置
+
+`data/dataset/full_verified_v1/`保存MP-20、MPTS-52和C2DB当前修复版的训练、验证和测试划分，以及转换清单与审计元数据。原始输入在`data/scr/`；C2DB必要恢复数据和来源资料在`data/scr/source_recovery/`。历史编码版本、重复划分和数据修复过程日志不随仓库发布，见[模型输入数据](data/dataset/README.md)。
+
+现有15套配置为MP-20、C2DB及两者联合，各含基础模型、三个单性质模型及多性质模型。原选择器保留检查点兼容，其中联合配置含`source_domain`；新`new_*`选择器移除来源条件并统一性质可见掩码。配置存在不代表新方案已经训练或验证，主干、先验和条件任务的实现边界见[模型与消融配置](docs/MODEL_ABLATIONS_V2.md)。
+
+C2DB编码使用0.1 Å识别容差，允许对称性理想化，不是逐原子严格无损编码。8,219条带隙标签缺失，缺失未填成0；性质训练按标签可见性处理。
+
+## 测试与结果存放
+
+```bash
 python -m pytest -q
-mkdir -p artifacts/runs
-CUDA_VISIBLE_DEVICES=0 nohup python -u scripts/train_remote.py --stage all > artifacts/runs/remote_driver.log 2>&1 &
 ```
 
-优先训练二维/三维共享主模型可改为`--stage main`；主模型不依赖两个参考模型的权重。
+结果统一写入`outputs/<实验>/<日期>/`，训练文件与`generate/<任务>/`、`evaluate/<任务>/`按[结果目录规则](docs/OUTPUT_LAYOUT.md)组织。W&B记录配置与训练监督信息；临时检查、缓存放在`intermediate/`。这些目录均不纳入代码提交。
 
-PyXtal固定为`1.1.3`；训练、模型构建及数据验证会先执行完整层群单轨道目录检查。复用已有环境时先运行`python -m pip install --no-deps "pyxtal==1.1.3"`。已有模型和数据的兼容验证见[PyXtal运行前验证](docs/PYXTAL_RUNTIME.md)。
-
-## 目录
-
-```text
-UnifiedGroupGen/
-  configs/                  MP20、MPTS52、C2DB、联合空间群/层群配置
-  docs/                     研究方案、理论、实现说明、验证、文献
-  examples/                 固定描述与固定晶格示例
-  src/unifiedgroupgen/
-    symmetry.py             群表、真实轨道自由度、相容 SPD 晶格、Φ_a
-    constraints.py          共同约束零空间投影、仿射观测纤维
-    conditioning.py         性质编码、缺失值、训练集缩放、CFG 空条件
-    proposal.py             性质条件群/轨道/元素 Transformer、可完成前缀掩码
-    flow.py                 CSPNet 风格消息网络、合法路径、FM、Heun 采样
-    data.py                 原 CSV 转换、层群匹配、失败与坐标来源记录
-    evaluation.py           群闭合、晶格残差、重数、距离、CIF 导出
-    native_identifier.py    子进程隔离 SG/LG 识别，崩溃/超时记为未知
-    spin.py                 共线单位磁矩的表示约束扩展
-    training.py             图批处理、分项损失、AMP、last/best 与完整续训
-    preflight.py            数据划分、有限性、来源、覆盖率与训练门槛
-    joint.py                跨库材料分组划分、全部记录守恒与来源追溯
-    cli.py                  prepare / preflight / train / sample / audit / parameters / summarize
-  scripts/                  全量准备、容量比较与训练步成本测量
-  tests/                    数学、模型和真实数据接口测试
-  artifacts/                本地缓存、检查点和样本，默认不提交 Git
-```
-
-## 使用
-
-在兼容的 Python/PyTorch 环境中，从本目录执行：
-
-```powershell
-python -m pip install -e ".[test]"
-python -m pytest -q
-python scripts/prepare_training.py --config configs/mp20_large.yaml --workers 4 --resume
-python -m unifiedgroupgen.cli train --config configs/mp20_large.yaml --device cuda --output artifacts/runs/mp20_large_seed42/model.pt
-python -m unifiedgroupgen.cli sample --checkpoint artifacts/runs/mp20_large_seed42/model.best.pt --kind space --count 100
-```
-
-性质条件逆向设计：
-
-```powershell
-python -m unifiedgroupgen.cli sample --checkpoint artifacts/runs/mp20_large_seed42/model.best.pt --properties '{"formation_energy": -1.0, "band_gap": 1.5}' --guidance 2 --count 100
-```
-
-固定组成：增加 `--composition Si2O4`。计数按模型采用的**常规晶胞**解释；不能直接把化学简式当成任意空间群下的常规晶胞组成。
-
-固定描述及晶格补全：
-
-```powershell
-python -m unifiedgroupgen.cli sample --checkpoint artifacts/runs/mp20_large_seed42/model.best.pt --descriptor examples/descriptor.json --observations examples/observations.json --count 10
-```
-
-示例中的六个零值是相对于参考不变度量的六个对数晶格参数，生成三轴长度 3 Å 的 P-1 晶胞；不是把物理晶格长度设为零。
-
-C2DB 的正式来源恢复配置为 `configs/c2db_official_local.yaml`，需要全部原始记录恢复成功后才能准备和训练。旧 `c2db_large.yaml` 保留用于未确认来源的诊断，会阻断正式训练。MPTS52 使用 `configs/mpts52_large.yaml`，正式识别容差为 0.01 Å，缓存独立保存。原 `mp20.yaml/mpts52.yaml/c2db.yaml` 为小模型诊断配置。所有缓存输出位于本目录，原数据不改写。
-
-正式共享模型：先通过三个完整来源审计，再按材料分组重划分，最后从头训练。原 MP20/MPTS52 划分存在交叉重合，不能直接拼接。
-
-```powershell
-python scripts/prepare_joint.py --config configs/joint_space_layer_large.yaml
-python -m unifiedgroupgen.cli train --config configs/joint_space_layer_large.yaml --device cuda --output artifacts/runs/joint_space_layer_large_seed42/model.pt
-```
-
-断点续训使用 `train ... --resume artifacts/runs/mp20_large_seed42/model.pt`，数据哈希、配置和缩放参数必须一致。`--epochs` 是总轮数。完整流程和状态见 [正式训练前准备](docs/PRETRAINING_READINESS.md)。
-
-本机正式训练已使用 large + batch64 的 `mp20_local.yaml` / `mpts52_local.yaml` 顺序运行，入口是 `scripts/train_local.py`；实时状态在 `artifacts/runs/local_large_seed42/runner.json`。现有 cgdit 环境的 OpenMP 修复由 runner 在 Python 导入前设置。最新独立目录验证 **88 项测试通过**（含4项迁移测试）。共享主模型约 **18,030,806** 参数，保留计算来源条件并让 CFG 只移除性质条件。
-
-已补充PyTorch 2.2旧AMP接口兼容：当前CUDA环境91项测试通过，实际PyTorch 2.2.1 CPU环境80项通过、11项CUDA测试跳过。服务器现有cgdit环境的安装、校验与完整训练命令见[复用cgdit说明](docs/REMOTE_TRAINING.md#复用已部署的cgdit环境)。
-
-`scripts/complete_pipeline.py` 编排完整来源恢复、二维准备、共享划分、等待已有三维作业、共享训练及测试/生成评价；只在数据审计通过后启动共享 GPU 训练。C2DB 全部16905条来源恢复、v7全量转换与审计已通过，零拒绝；官网缺失的 `4Nb2S3-2` 已从公开原始ASE归档精确恢复。联合划分保留全部102610条输入，修复后的完整联合审计及实际训练入口核查均已通过。`recover_c2db.py --ase-db <原数据库路径>` 按确切 UID/ASE unique_id 恢复并验证来源，不删除缺失记录。
-
-## 已实现与边界
-
-论文补充实验及图表路线见 [论文证据计划](docs/PAPER_EVIDENCE_PLAN.md) 与 [服务器执行流程](docs/PAPER_WORKFLOW.md)。支持按TRAIN性质分位数准备CFG扫描、同描述的先验/学习流/固定晶格对照、同分组划分的分来源重训配置、外部基线完整尝试导入，以及独立ASE计算器评估和PNG汇总。程序可执行不代表相应的正式采样、对照训练或物理计算结果已经取得。
-
-| 项目 | 状态 |
-|---|---|
-| 230 SG / 80 LG / 17 PG 的共同编译接口 | 已实现，群表来源 PyXtal |
-| 真实 0/1/2/3 维轨道参数与相容正定晶格 | 已实现 |
-| 学习群、轨道实例、元素，不从经验群分布采样 | 已实现 |
-| 组成、原子数上限、零维位置不可重复、可完成前缀 | 已实现；保证符号合法性 |
-| 多性质编码、缺失标记、训练集统计、两阶段 CFG | 已实现 |
-| 合法先验、周期自由坐标路径、非周期层高度、流匹配 | 已实现 |
-| 固定晶格 / 部分自由坐标 / 一般仿射观测 | 已实现于固定描述和固定提升坐标图 |
-| 共线单位磁矩 | 已实现约束构造与采样工具；未训练磁性生成模型 |
-| 任意非线性性质的严格等值面生成 | 理论接口；未实现曲面训练/积分算法 |
-| 真实结构的层群重新识别 | 已接入 spglib.get_layergroup；与指定操作闭合分别报告；80 个双轨道合法测试均精确回收目标 LG |
-| 化学合理、低能量、凸包稳定、动力学稳定、性质命中 | 需要正式训练及外部计算验证 |
-
-生成器保证包含指定群操作；结构可能具有更高对称性。轨道退化与原子碰撞单独报告。合法性掩码没有价态判定器，不能替代 CrysVCD 式化学验证。
-
-## 数据注意事项
-
-MP20/MPTS52 使用 PyXtal 的常规晶胞表示，因此展开后原子数可能超过原数据的 20/52。配置上限对应展开计数；评价时必须转回同一计数约定，不能直接与原始胞的统计混比。
-
-本地 `c2db_51` 的 CIF 把笛卡尔坐标写入分数坐标字段，同时丢失完整晶胞朝向。正式流程恢复原始 cell/positions 并与 CSV 核对，再由 spglib 识别/标准化层群；缺失 lgnum 不会被直接设为 LG1。全部16905条已转换并审计通过。统一0.1 Å识别容差下，仅1条非理想standard positions需要额外轨道拟合，其编译结果通过严格闭合检查。25条已知层群标签发生重识别变化，94条缺失标签成功识别；原始标签、识别标签、坐标理想化和度量变化均记录。识别容差不是最终坐标位移或晶格应变的严格上界，各数据库能量定义以 source_domain 区分。
-
-## 基础来源
-
-统一的原始结构评价见 [CSP／从头生成与性质协议](docs/UNIFIED_EVALUATION.md) 和
-[15套模型的服务器计划、执行与恢复命令](docs/REMOTE_UNIFIED_EVALUATION.md)。
-新增入口 `scripts/evaluate_structures.py` 输出逐样本CSV、汇总JSON和PNG；
-`scripts/evaluate_main15_unified.py` 默认只写计划，显式 `--run` 才执行。
-当前[v2术语和失败处理](docs/EVALUATION_PROTOCOL_V2.md)区分生成成功率与结构有效率，CSP默认完整测试集每例20候选并报告Match@1/5/20。
-优先评价联合基础与三性质模型时，使用[两个联合模型的分阶段方案](docs/JOINT_PAIR_EVALUATION.md)：
-新原生评估把CIF字符串和内容哈希集中保存到每任务的 `samples.jsonl`，不再逐结构创建CIF；需要时用 `scripts/export_sample_cif.py` 按编号导出。旧独立CIF输入继续兼容。
-`scripts/evaluate_joint_pair.py` 默认只生成计划，支持先生成、哈希核验、再计算指标，评价阶段不重新生成材料。
-旧指标入口与协议保留，性质代理、精确群符合性、结构有效性和物理稳定性分别标记。
-
-本实现参考 [CGDiT/newton](https://github.com/Serein-Ss/test_CGDiT/tree/newton) 的性质编码、CFG、周期消息传递和轨道处理，以及 [CrystalFlow](https://github.com/ixsluo/CrystalFlow) 的晶格/坐标联合流匹配。代码采用独立小模块实现，无需导入父目录 CGDiT，也不依赖 torch-scatter 或 PyG。原检查点不能直接载入本模型；这是结构约束和参数维度改变后的新模型。
+[代码组织](docs/CODE_ORGANIZATION.md) · [文件存放规则](docs/FILE_STORAGE.md) · [统一评估协议](docs/EVALUATION_PROTOCOL_V2.md) · [公开性质预测接口](docs/PUBLIC_PRETRAINED_PREDICTORS.md)

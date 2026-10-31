@@ -1,0 +1,6 @@
+batch_size: 256
+edge_budget: 400000
+checkpoint: false
+edge_chunk_size: 32768
+validation_interval: 5
+coordinate_length_scale: 3.0

@@ -1,0 +1,8 @@
+defaults:
+- default
+- _self_
+candidate_backbone:
+  _target_: unifiedgroupgen.pl_modules.backbones.mattergen.MatterGenBackbone
+  blocks: 3
+  cutoff: 6.0
+  max_neighbors: 50

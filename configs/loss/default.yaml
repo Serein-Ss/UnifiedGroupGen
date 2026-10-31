@@ -1,0 +1,4 @@
+loss_weights:
+  descriptor: 1.0
+  flow: 1.0
+coordinate_length_scale: 3.0

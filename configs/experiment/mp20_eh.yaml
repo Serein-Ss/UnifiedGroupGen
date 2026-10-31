@@ -1,0 +1,6 @@
+# @package _global_
+defaults:
+- override /data: mp20
+- override /conditioning: energy_above_hull
+- override /runtime: rtx4090_crystal
+experiment_name: mp20_eh

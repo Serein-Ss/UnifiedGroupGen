@@ -1,0 +1,5 @@
+input_contract: source_free_v2
+numerical_policy: amp_geometry_fp32_v1
+condition_mask_policy: shared
+composition_probability: 0.0
+observation_probability: 0.0

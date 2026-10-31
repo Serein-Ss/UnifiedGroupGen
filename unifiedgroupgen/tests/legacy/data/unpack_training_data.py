@@ -1,0 +1,106 @@
+"""Verify bundled bytes, extract full data, and rebind audited paths to this checkout."""
+
+from unifiedgroupgen.tests.legacy.paths import project_root, resolve_path
+import argparse
+import hashlib
+import json
+from pathlib import Path
+import tarfile
+import tempfile
+
+ROOT = project_root()
+
+
+def sha256(path):
+    digest = hashlib.sha256()
+    with path.open('rb') as stream:
+        for block in iter(lambda: stream.read(1024 * 1024), b''):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def rebind(value, mappings):
+    if isinstance(value, dict):
+        return {rebind(key, mappings): rebind(item, mappings) for key, item in value.items()}
+    if isinstance(value, list):
+        return [rebind(item, mappings) for item in value]
+    if isinstance(value, str):
+        normalized = value.replace('\\', '/')
+        for previous, current in mappings:
+            if normalized == previous or normalized.startswith(previous + '/'):
+                return str(current / normalized[len(previous):].lstrip('/'))
+    return value
+
+
+def unpack(bundle, root):
+    root = root.resolve()
+    bundle = resolve_path(bundle, root)
+    manifest = json.loads((bundle / 'manifest.json').read_text(encoding='utf-8'))
+    expected = {item['path']: item for item in manifest['files']}
+    mappings = [(manifest['original_root'].replace('\\', '/'), root),
+                (manifest['original_data_root'].replace('\\', '/'), resolve_path(root / 'raw_data',root))]
+    # Repeat imports are idempotent; refuse to overwrite changed training data.
+    for name, item in expected.items():
+        path = resolve_path(root / name,root)
+        if not path.resolve().is_relative_to(root):
+            raise ValueError(f'Unsafe inventory path: {name}')
+        if path.exists() and path.suffix not in ('.json',):
+            if sha256(path) != item['sha256']:
+                raise ValueError(f'Existing data differ from the published bundle: {name}')
+    root.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryFile() as archive:
+        digest = hashlib.sha256()
+        for item in manifest['parts']:
+            part = bundle / item['name']
+            if part.stat().st_size != item['bytes'] or sha256(part) != item['sha256']:
+                raise ValueError(f'Corrupt or incomplete dataset part: {part.name}')
+            with part.open('rb') as stream:
+                for block in iter(lambda: stream.read(1024 * 1024), b''):
+                    archive.write(block)
+                    digest.update(block)
+        if digest.hexdigest() != manifest['archive_sha256']:
+            raise ValueError('Combined dataset archive hash differs')
+        archive.seek(0)
+        with tarfile.open(fileobj=archive, mode='r:gz') as data:
+            members = data.getmembers()
+            names = [member.name for member in members]
+            if len(names) != len(expected) or set(names) != set(expected):
+                raise ValueError('Archive inventory differs from the manifest')
+            for member in members:
+                target = (resolve_path(root / member.name,root)).resolve()
+                if not target.is_relative_to(root) or not member.isfile():
+                    raise ValueError(f'Unsafe archive member: {member.name}')
+                target.parent.mkdir(parents=True, exist_ok=True)
+                with data.extractfile(member) as source, target.open('wb') as output:
+                    digest = hashlib.sha256()
+                    for block in iter(lambda: source.read(1024 * 1024), b''):
+                        output.write(block)
+                        digest.update(block)
+                if digest.hexdigest() != expected[member.name]['sha256']:
+                    raise ValueError(f'Extracted file hash differs: {member.name}')
+    for name in expected:
+        if name.endswith('.json'):
+            path = resolve_path(root / name,root)
+            original = json.loads(path.read_text(encoding='utf-8'))
+            current = rebind(original, mappings)
+            if current != original:
+                path.write_text(json.dumps(current, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    receipt = {'passed': True, 'archive_sha256': manifest['archive_sha256'], 'files_verified': len(expected),
+               'total_source_records': manifest['total_source_records'], 'root': str(root),
+               'scope': 'Published bytes verified; metadata paths rebound; training gates must also pass.'}
+    path = resolve_path(root / 'artifacts/dataset_import.json',root)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(receipt, indent=2) + '\n', encoding='utf-8')
+    return receipt
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--root', type=Path, default=ROOT)
+    parser.add_argument('--bundle', type=Path, default=resolve_path(ROOT/'datasets',ROOT))
+    args = parser.parse_args()
+    print(json.dumps(unpack(args.bundle, args.root)))
+
+
+if __name__ == '__main__':
+    main()

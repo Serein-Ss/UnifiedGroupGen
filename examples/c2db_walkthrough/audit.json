@@ -1,0 +1,405 @@
+{
+  "scope": "Real local C2DB encoding and shared random-weight forward audit; not trained generation or stability evidence.",
+  "id": "1MoS2-1",
+  "split": "val",
+  "prepared_line_one_based": 64,
+  "source_row_zero_based": 63,
+  "provenance": {
+    "source_csv": "E:\\WORKSPACE\\CodePlace\\test_CGDiT\\UnifiedGroupGen\\artifacts\\source_recovery\\c2db_official\\val.csv",
+    "source_row": 63,
+    "source_cif_sha256": "d4e8132c5e5c6e895c1912b675dfa4c7e85f09546143e0a6bc65d36114dadfc9",
+    "official_structure_url": "ase-db:E:\\WORKSPACE\\CodePlace\\test_CGDiT\\UnifiedGroupGen\\artifacts\\source_recovery\\c2db_alternatives\\mlip_arena_c2db.db#row=3",
+    "official_structure_sha256": "21c8354f14bb677da5f2b2efd2ac7047b539f9c49b93b4c075d935e2a6efa7cb",
+    "original_csv_sha256": "dfb02ba5becab042e1f1d5aa97cdb6d783476de858f961852e9019193c550973",
+    "source_verification": "UID + species + Cartesian positions + cell shape + energy",
+    "orbit_order": "coordinate_dof,letter,element,source_index",
+    "coordinate_mode": "fractional",
+    "origin_xy": [
+      0.0,
+      0.0
+    ],
+    "axis_transform": [
+      [
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0
+      ]
+    ],
+    "operation_residual_angstrom": 1.414009558331486e-15,
+    "coordinate_tolerance_angstrom": 1e-05,
+    "chart_fit_rms_angstrom": 3.679369525623472e-16,
+    "chart_fit_max_angstrom": 6.372854958200451e-16,
+    "cell": "spglib_layer_conventional",
+    "source_atoms": 3,
+    "expanded_atoms": 3,
+    "declared_layer_group": 78,
+    "identified_layer_group": 78,
+    "layer_group_policy": "identify",
+    "symmetry_tolerance_angstrom": 0.1,
+    "source_operation_residual_angstrom": 3.184066440648929e-08,
+    "std_position_rms_angstrom": 1.5009833042057502e-08,
+    "std_position_max_angstrom": 1.8383216115239447e-08,
+    "native_std_chart_idealized": false,
+    "std_position_total_max_upper_bound_angstrom": 1.8383216752524944e-08,
+    "std_metric_relative_change": 4.766304939083923e-16,
+    "displacement_metric": "Nearest same-species standard position at fixed ideal cell; excludes lattice strain",
+    "source_idealization": "spglib layer standardization and bounded orbit fit; not raw-coordinate identity",
+    "transformation_matrix": [
+      [
+        0.9999999999999999,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.9999999999999998,
+        0.0
+      ],
+      [
+        1.5407439555097887e-33,
+        -1.5407439555097887e-33,
+        1.0
+      ]
+    ],
+    "origin_shift": [
+      0.0,
+      0.0,
+      -0.5
+    ],
+    "std_rotation_matrix": [
+      [
+        1.0,
+        0.0,
+        6.123233995736766e-17
+      ],
+      [
+        -6.494150356796986e-33,
+        1.0,
+        1.0605752387249068e-16
+      ],
+      [
+        -6.123233995736766e-17,
+        -1.0605752387249068e-16,
+        1.0
+      ]
+    ],
+    "cell_orientation_inferred": false,
+    "cif_fractional_rounding_disabled": true
+  },
+  "layer_group": {
+    "number": 78,
+    "symbol": "p-6m2"
+  },
+  "operations": [
+    "x, y, z",
+    "-y, x-y, z",
+    "-x+y, -x, z",
+    "x, y, -z",
+    "-y, x-y, -z",
+    "-x+y, -x, -z",
+    "-y, -x, z",
+    "-x+y, y, z",
+    "x, x-y, z",
+    "-y, -x, -z",
+    "-x+y, y, -z",
+    "x, x-y, -z"
+  ],
+  "orbits": [
+    {
+      "atomic_number": 42,
+      "wyckoff": "1a",
+      "maps": [
+        "0, 0, 0"
+      ],
+      "stabilizer": [
+        "x, y, z",
+        "-y, x-y, z",
+        "-x+y, -x, z",
+        "x, y, -z",
+        "-y, x-y, -z",
+        "-x+y, -x, -z",
+        "-y, -x, z",
+        "-x+y, y, z",
+        "x, x-y, z",
+        "-y, -x, -z",
+        "-x+y, y, -z",
+        "x, x-y, -z"
+      ],
+      "dof": 0
+    },
+    {
+      "atomic_number": 16,
+      "wyckoff": "2f",
+      "maps": [
+        "2/3, 1/3, z",
+        "2/3, 1/3, -z"
+      ],
+      "stabilizer": [
+        "x, y, z",
+        "-y, x-y, z",
+        "-x+y, -x, z",
+        "-y, -x, z",
+        "-x+y, y, z",
+        "x, x-y, z"
+      ],
+      "dof": 1
+    }
+  ],
+  "raw_lattice_rows": [
+    [
+      3.18406646,
+      0.0,
+      1.949678399255722e-16
+    ],
+    [
+      -1.5920332299999995,
+      2.7574824416979884,
+      1.949678399255722e-16
+    ],
+    [
+      0.0,
+      0.0,
+      18.12711265
+    ]
+  ],
+  "raw_fractional_coordinates": [
+    [
+      0.0,
+      0.0,
+      0.5
+    ],
+    [
+      0.66666667,
+      0.33333334,
+      0.58625512
+    ],
+    [
+      0.66666667,
+      0.33333334,
+      0.41374488
+    ]
+  ],
+  "coordinates_xy_fractional_z_angstrom": [
+    [
+      0.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.6666666666666666,
+      0.3333333333333333,
+      1.5635562768792681
+    ],
+    [
+      0.6666666666666666,
+      0.3333333333333333,
+      -1.5635562768792681
+    ]
+  ],
+  "physical_conversion_matrix": [
+    [
+      3.1840664600121995,
+      -1.5920332300061002,
+      0.0
+    ],
+    [
+      0.0,
+      2.7574824417085533,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "inplane_metric": [
+    [
+      10.138279221774619,
+      -5.069139610887311
+    ],
+    [
+      -5.069139610887311,
+      10.13827922177462
+    ]
+  ],
+  "metric_reference": [
+    [
+      10.39230484541326,
+      -5.196152422706631
+    ],
+    [
+      -5.196152422706631,
+      10.39230484541326
+    ]
+  ],
+  "metric_basis": [
+    [
+      [
+        0.7071067811865477,
+        7.850462293418875e-17
+      ],
+      [
+        7.850462293418875e-17,
+        0.7071067811865474
+      ]
+    ]
+  ],
+  "coordinate_basis": [
+    [
+      [
+        0.0
+      ],
+      [
+        0.0
+      ],
+      [
+        0.0
+      ]
+    ],
+    [
+      [
+        0.0
+      ],
+      [
+        0.0
+      ],
+      [
+        1.0
+      ]
+    ],
+    [
+      [
+        0.0
+      ],
+      [
+        0.0
+      ],
+      [
+        -1.0
+      ]
+    ]
+  ],
+  "coordinate_offsets": [
+    [
+      0.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.6666666666666666,
+      0.3333333333333333,
+      0.0
+    ],
+    [
+      0.6666666666666666,
+      0.3333333333333333,
+      0.0
+    ]
+  ],
+  "lattice_dof": 1,
+  "coordinate_dof": 1,
+  "state": [
+    -0.03499801226744825,
+    1.5635562768792681
+  ],
+  "coordinate_periodic_mask": [
+    true,
+    true,
+    false
+  ],
+  "state_periodic_mask": [
+    false,
+    false
+  ],
+  "thickness_angstrom": 3.1271125537585363,
+  "constraint_shape": [
+    108,
+    9
+  ],
+  "constraint_rank": 8,
+  "constraint_nullity": 1,
+  "constraint_times_basis_max": 0.0,
+  "nullspace_projector_difference": 2.220446049250313e-16,
+  "closure_residual_angstrom": 0.0,
+  "reidentified_layer_group": 78,
+  "reconversion_state_max_difference": 4.85722573273506e-16,
+  "h_plus_0p2": {
+    "coordinates": [
+      [
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.6666666666666666,
+        0.3333333333333333,
+        1.763556276879268
+      ],
+      [
+        0.6666666666666666,
+        0.3333333333333333,
+        -1.763556276879268
+      ]
+    ],
+    "closure_residual_angstrom": 0.0,
+    "layer_group": 78
+  },
+  "one_sulfur_up_0p2": {
+    "closure_residual_angstrom": 0.19999999999999996,
+    "layer_group": 69
+  },
+  "vacuum_invariance": [
+    {
+      "box_height_angstrom": 20.0,
+      "state_max_difference": 1.0837518382711409e-11
+    },
+    {
+      "box_height_angstrom": 30.0,
+      "state_max_difference": 1.0837518382711409e-11
+    }
+  ],
+  "path_at_t0p4_seed42": {
+    "state": [
+      0.18801500772333601,
+      0.702708153833661
+    ],
+    "target_velocity": [
+      -0.3716883666513071,
+      1.4347468717426783
+    ]
+  },
+  "joint_network": {
+    "trained": false,
+    "parameters": 14312460,
+    "hidden": 512,
+    "layers": 6,
+    "checks": [
+      {
+        "kind": "space",
+        "group": 136,
+        "input_dimension": 3,
+        "output_dimension": 3,
+        "group_embedding_id": 136,
+        "nodes": 6,
+        "edges": 30,
+        "candidate_residual": 1.4447405914366027,
+        "projected_residual": 0.0
+      },
+      {
+        "kind": "layer",
+        "group": 78,
+        "input_dimension": 2,
+        "output_dimension": 2,
+        "group_embedding_id": 308,
+        "nodes": 3,
+        "edges": 6,
+        "candidate_residual": 2.5477101574600622,
+        "projected_residual": 0.0
+      }
+    ]
+  }
+}

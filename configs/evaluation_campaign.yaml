@@ -1,0 +1,13 @@
+defaults:
+  - evaluation_suite: default
+  - _self_
+  - override hydra/job_logging: disabled
+device: auto
+seed: 142
+threads: 2
+hydra:
+  job:
+    chdir: false
+  run:
+    dir: .
+  output_subdir: null

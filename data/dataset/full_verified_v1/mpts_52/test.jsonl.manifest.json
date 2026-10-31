@@ -1,0 +1,18 @@
+{
+  "source_sha256": "4d6e76c4726fb12fb2a7e5bb23594f9b82dbd9bf67b7bfd4866e9c74a8f49038",
+  "rows_requested": 8096,
+  "conversion_config": {
+    "dataset": "mpts_52",
+    "kind": "space",
+    "coordinate_mode": "fractional",
+    "symmetry_tolerance": 0.01,
+    "group_column": null,
+    "property_columns": {
+      "formation_energy": "formation_energy_per_atom",
+      "energy_above_hull": "energy_above_hull"
+    },
+    "max_atoms": 416,
+    "max_orbits": 52
+  },
+  "converter_version": 3
+}

@@ -1,0 +1,29 @@
+# Planning is the default. Explicit action=run is needed to execute the catalog.
+action: plan
+experiments: configs/experiments.yaml
+models: null
+tasks: [components, dng, csp, fixed_descriptor, group]
+conditional_tasks: []
+target_properties: null
+stage: all
+checkpoint_root: null
+output: intermediate/evaluation_campaigns/unified_seed142
+count: 1024
+csp_cases: 0
+csp_k: 20
+conditional_count: 1024
+per_group: 0
+steps: 64
+guidance: 2.0
+test_batch_size: 8
+cgdit_root: null
+predictor_root: null
+predictor_seed: 123
+allow_proxy_transfer: false
+no_fingerprints: false
+conditional_enabled: false
+skip_completed: true
+split_domain_budget: false
+fixed_descriptor_k: 1
+reuse_manifest: null
+predictor_backend: null

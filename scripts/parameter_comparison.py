@@ -5,6 +5,7 @@ Reference Python files must first be obtained from the author repositories into
 code runs. This is a parameter audit, not reproduction of the reference models.
 """
 
+from unifiedgroupgen.common.configuration import project_root, resolve_path
 import argparse
 import ast
 import hashlib
@@ -14,7 +15,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 import torch
 from torch import nn
-from unifiedgroupgen.cli import artifact_path
+from unifiedgroupgen.common.configuration import artifact_path
 
 
 def constructors(path):

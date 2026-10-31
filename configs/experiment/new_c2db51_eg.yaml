@@ -1,0 +1,9 @@
+# @package _global_
+defaults:
+- override /data: c2db51_unified
+- override /conditioning: band_gap
+- override /learning: unified
+- override /runtime: rtx4090_layer
+experiment_name: c2db51_eg_v2
+experiment:
+  experiment_family: source_free_v2

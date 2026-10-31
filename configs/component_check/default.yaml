@@ -1,0 +1,7 @@
+# Teacher-forced descriptor and ground-truth-description flow errors, not CSP performance.
+checkpoint: null
+output: intermediate/checks/components
+batch_size: 8
+steps: 64
+guidance: 0.0
+precision: fp32
