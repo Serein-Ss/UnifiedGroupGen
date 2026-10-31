@@ -148,7 +148,7 @@ def test_cli_control_requests_use_real_sampler_and_persist_checks(tmp_path, monk
     import json
     import sys
     from unifiedgroupgen.tests.legacy import cli as cli
-    from unifiedgroupgen.generation import pipeline
+    from unifiedgroupgen.tests.legacy.generation_before_entry import pipeline
     monkeypatch.setattr(cli, 'ROOT', tmp_path)
     original_validate = pipeline.validate
     monkeypatch.setattr(pipeline, 'validate', lambda c, x, **kw: original_validate(c, x, isolate_identifier=False))
