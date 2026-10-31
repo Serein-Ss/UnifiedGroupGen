@@ -116,9 +116,7 @@ def test_audit_gate_detects_data_changes(tmp_path):
 
 def test_preparation_resume_and_joint_orbit_reordering(tmp_path):
     from pathlib import Path
-    source = Path(__file__).resolve().parents[4]/'data/mp_20/train.csv'
-    if not source.exists():
-        source = Path(__file__).resolve().parents[3]/'raw_data/mp_20/train.csv'
+    source = Path(__file__).resolve().parents[3]/'data/scr/mp_20/train.csv'
     config = {'dataset': 'mp_20', 'kind': 'space', 'properties': {}, 'max_atoms': 192, 'max_orbits': 32}
     output = tmp_path/'prepared.jsonl'
     first = prepare_csv(source, output, config, limit=2)
