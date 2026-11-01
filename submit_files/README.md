@@ -189,6 +189,17 @@ yhq
 
 本人仍在等待的本批次作业通过 `yhcontrol` 或 `scontrol` 增加节点排除，保留已有排除列表；不会改变运行中的作业或其他用户的节点设置。如果存在待更新的等待作业，但两个控制命令均不可用，脚本在提交前停止。原作业号备份到 `submitted.before_recovery.json`，新旧作业号对应关系保存到 `recovery.json`，`submitted.json` 更新为最新作业号，因此原 `status` 命令仍可使用。同一恢复记录中的作业不会因重复执行而再次提交；重试再次失败时先检查新日志。
 
+### 评估重试出现 KeyError: 'state'
+
+原控制器在首次组件检查或生成失败时，可能留下没有 `state` 字段的子任务记录；再次运行会在读取记录时退出。新版控制器兼容这种记录。正在运行的批次仍使用原冻结源码，因此通过以下入口修复该批次的运行记录，无需更换源码或结果身份：
+
+```bash
+python submit_files/recover_hpc5090.py --campaign intermediate/hpc_runs/hpc5090_comp_v1/campaign.json --exclude node-5090-2 --repair-state
+python submit_files/recover_hpc5090.py --campaign intermediate/hpc_runs/hpc5090_comp_v1/campaign.json --exclude node-5090-2 --repair-state --submit
+```
+
+仅选择不在队列中、阶段为 `failed` 且错误为 `'state'` 的评估任务。提交前持有对应工作进程的阶段锁，将 `evaluation/<model>/pipeline.json` 原样备份为 `pipeline.before_state_repair.json`，只给缺失状态的子任务补上 `state: pending`。保留全部结果身份、哈希及已完成子任务，使用原冻结源码恢复执行；训练与等待中的作业不变。新旧作业号保留在 `recovery.json`，作业映射另备份到 `submitted.before_state_repair.json`。重复执行不会再次提交已记录的修复作业；后续若再失败，先检查新日志。
+
 ### 指定组成设计
 
 `design_composition.sbatch` 接受精确原子数 JSON、结构类型和独立输出目录；不提供性质条件，不固定真实群/描述符。优先使用去来源标签的三个新模型；source control 因需要来源上下文，不适用于这个简化模板。只有训练完成后才能提交。以下 Si2O4 是调用示例，不是已执行的实验：

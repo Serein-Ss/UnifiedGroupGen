@@ -214,13 +214,13 @@ def evaluate_model(campaign, model, phase):
             reap(active, state, pipeline)
             key = model+'/'+job['name']; target = suite.job_directory(job)
             entry = next((r for r in state['jobs'] if r['name'] == key), None)
-            if entry and entry['state'] == 'complete':
+            if entry and entry.get('state') == 'complete':
                 suite.verify_files(target, entry.get('generation', {}).get('outputs', entry.get('outputs', {})))
                 if entry.get('metrics'):
                     suite.verify_files(Path(entry['metrics']['metric_directory']), entry['metrics']['outputs'])
                 continue
             if entry is None:
-                entry = {'name': key}; state['jobs'].append(entry)
+                entry = {'name': key, 'state': 'pending'}; state['jobs'].append(entry)
             entry.update(directory=str(target), started=time.time())
             target.mkdir(parents=True, exist_ok=True)
             write(target/'job.json', job)

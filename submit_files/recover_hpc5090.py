@@ -44,7 +44,25 @@ def pending_exclusion(control, job, exclude):
         print('LEFT UNCHANGED: job started or left the queue:', job, flush=True)
 
 
-def recover(manifest, exclude, submit=False):
+def repair_pipeline(folder, model):
+    """Complete only missing job-state metadata; keep original result identity and receipts."""
+    pipeline = folder/'evaluation'/model/'pipeline.json'
+    state = read(pipeline)
+    backup = pipeline.with_name('pipeline.before_state_repair.json')
+    missing = [entry for entry in state['jobs'] if 'state' not in entry]
+    if not missing:
+        if not backup.exists():
+            raise ValueError('No missing job state to repair: '+str(pipeline))
+        return
+    if not backup.exists():
+        backup.write_bytes(pipeline.read_bytes())
+    for entry in missing:
+        entry['state'] = 'pending'
+    write(pipeline, state)
+    print('REPAIRED:', model, 'entries='+str(len(missing)), 'backup='+str(backup), flush=True)
+
+
+def recover(manifest, exclude, submit=False, repair_state=False):
     campaign = read(manifest)
     folder = Path(campaign['folder'])
     source = Path(campaign['source'])
@@ -60,33 +78,41 @@ def recover(manifest, exclude, submit=False):
         for key, previous in receipt['jobs'].items():
             submitted[key] = previous['job_id']
         live = active_jobs()
-        pending = [job for job in submitted.values() if live.get(job) in ('PENDING', 'PD')]
+        pending = [] if repair_state else [job for job in submitted.values() if live.get(job) in ('PENDING', 'PD')]
         plan = []
         for key, phase, model, _, hours in job_plan(campaign['legacy_models']):
-            if (phase in ('train', 'legacy', 'new') and key not in receipt['jobs']
+            previous = receipt['jobs'].get(key, {})
+            eligible = key not in receipt['jobs']
+            if repair_state:
+                path = folder/'state'/(phase+'_'+model+'.json')
+                eligible = (phase in ('legacy', 'new') and not previous.get('state_repair')
+                            and path.exists() and read(path).get('error') == "'state'")
+            if (phase in ('train', 'legacy', 'new') and eligible
                     and submitted.get(key) not in live and phase_state(folder, phase, model) == 'failed'):
                 plan.append((key, phase, model, hours))
         retried_trains = {r[2] for r in plan if r[1] == 'train'} | {
             key.split(':', 1)[1] for key in receipt['jobs'] if key.startswith('train:')}
-        for model in sorted(retried_trains):
+        for model in ([] if repair_state else sorted(retried_trains)):
             key = 'new:'+model
             if (key not in receipt['jobs'] and submitted.get(key) not in live
                     and phase_state(folder, 'new', model) != 'complete' and key not in {r[0] for r in plan}):
                 plan.append((key, 'new', model, 24))
         print('Frozen source:', campaign['revision'])
         print('Exclude:', exclude)
+        if repair_state:
+            print('Mode: repair missing evaluation states; no training or pending-job changes')
         print('Own pending jobs to update:', ', '.join(pending) or 'none')
         for key, _, _, hours in plan:
             print('RETRY:', key, 'limit='+str(hours)+'h')
         if not submit:
-            print('PLAN ONLY. Add --submit to update pending exclusions and queue these retries.')
+            print('PLAN ONLY. Add --submit to apply this recovery plan.')
             return
         control = shutil.which('yhcontrol') or shutil.which('scontrol')
         if pending and not control:
             raise RuntimeError('Neither yhcontrol nor scontrol is available; no jobs were submitted')
         for job in pending:
             pending_exclusion(control, job, exclude)
-        backup = folder/'submitted.before_recovery.json'
+        backup = folder/('submitted.before_state_repair.json' if repair_state else 'submitted.before_recovery.json')
         if not backup.exists():
             write(backup, submitted)
         write(folder/'submitted.json', submitted)
@@ -96,6 +122,9 @@ def recover(manifest, exclude, submit=False):
             if submitted.get(key) in live or phase_state(folder, phase, model) in ('running', 'complete'):
                 print('SKIP ACTIVE/COMPLETE:', key, flush=True)
                 continue
+            if repair_state:
+                with FileLock(str(folder/'state'/(phase+'_'+model+'.json'))+'.lock', timeout=0):
+                    repair_pipeline(folder, model)
             dependency = None
             train_key = 'train:'+model
             if phase == 'new' and model in retried_trains:
@@ -115,7 +144,10 @@ def recover(manifest, exclude, submit=False):
                 env={**os.environ, 'UGG_GIT_COMMIT': campaign['revision']}).strip().split(';')[0]
             if not new.isdigit():
                 raise RuntimeError('Unexpected yhbatch reply: '+new)
+            previous = receipt['jobs'].get(key)
             receipt['jobs'][key] = {'previous_job': submitted.get(key), 'job_id': new}
+            if repair_state:
+                receipt['jobs'][key].update(state_repair=True, previous_recovery=previous)
             write(receipt_path, receipt)
             submitted[key] = new
             write(folder/'submitted.json', submitted)
@@ -128,5 +160,6 @@ if __name__ == '__main__':
     parser.add_argument('--campaign', required=True, type=Path)
     parser.add_argument('--exclude', required=True)
     parser.add_argument('--submit', action='store_true')
+    parser.add_argument('--repair-state', action='store_true', help='Back up and repair failed evaluation receipts missing state; retry once')
     args = parser.parse_args()
-    recover(args.campaign.resolve(), args.exclude, args.submit)
+    recover(args.campaign.resolve(), args.exclude, args.submit, args.repair_state)

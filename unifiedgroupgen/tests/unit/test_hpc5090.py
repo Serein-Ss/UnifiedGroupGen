@@ -325,3 +325,57 @@ def test_streaming_real_cpu_generation_metrics_and_resume(tmp_path, monkeypatch)
     assert len(ledgers) == 3
     controller.evaluate_model(campaign, 'fixture', 'legacy')
     assert all(sha256(p) == digest for p, digest in ledgers.items())
+
+
+@pytest.mark.parametrize('frozen_controller', [False, True])
+def test_streaming_retries_interrupted_component_entry_without_state(tmp_path, monkeypatch, frozen_controller):
+    from submit_files import hpc5090_eval as controller
+    output = tmp_path/'evaluation/fixture'
+    target = tmp_path/'components'
+    job = {'name': 'components', 'task': 'components', 'model': 'fixture',
+           'checkpoint': 'fixture.pt', 'checkpoint_sha256': 'fixture'}
+    args = SimpleNamespace(output=output, threads=3, steps=64, test_batch_size=32)
+    monkeypatch.setattr(controller, 'arguments', lambda *a: args)
+    monkeypatch.setattr(controller.suite, 'build_plan', lambda *a: ([job], 0, {'fixture': True}))
+    monkeypatch.setattr(controller.suite, 'job_directory', lambda j: target)
+    monkeypatch.setattr('unifiedgroupgen.common.reports.campaign_summary', lambda *a: None)
+    attempts = []
+    def worker(*a):
+        attempts.append(True)
+        if len(attempts) == 1:
+            raise RuntimeError('CUDA initialization failed')
+        (target/'components.json').write_text('{}')
+    monkeypatch.setattr(controller.suite, 'run_worker', worker)
+    campaign = {'name': 'fixture', 'metric_workers': 3}
+    evaluate = controller.evaluate_model
+    if frozen_controller:
+        import inspect
+        # Reproduce the original frozen controller without changing files or its identity.
+        source = inspect.getsource(evaluate).replace("entry.get('state')", "entry['state']")
+        source = source.replace("{'name': key, 'state': 'pending'}", "{'name': key}")
+        namespace = dict(controller.__dict__)
+        exec(source, namespace)
+        evaluate = namespace['evaluate_model']
+    with pytest.raises(RuntimeError, match='CUDA initialization failed'):
+        evaluate(campaign, 'fixture', 'legacy')
+    pipeline = output/'pipeline.json'
+    state = controller.read(pipeline)
+    assert state['jobs'][0].get('state') == (None if frozen_controller else 'pending')
+    # Simulate the incomplete receipt produced by the original frozen controller.
+    state['jobs'][0].pop('state', None)
+    identity = state['identity']
+    controller.write(pipeline, state)
+    if frozen_controller:
+        with pytest.raises(KeyError, match='state'):
+            evaluate(campaign, 'fixture', 'legacy')
+        from submit_files.recover_hpc5090 import repair_pipeline
+        repair_pipeline(tmp_path, 'fixture')
+    evaluate(campaign, 'fixture', 'legacy')
+    assert len(attempts) == 2
+    state = controller.read(pipeline)
+    assert state['state'] == 'complete' and state['identity'] == identity
+    evaluate(campaign, 'fixture', 'legacy')
+    assert len(attempts) == 2
+    (target/'components.json').write_text('{"changed": true}')
+    with pytest.raises(ValueError, match='missing or modified'):
+        evaluate(campaign, 'fixture', 'legacy')
