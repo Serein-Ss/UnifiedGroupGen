@@ -18,5 +18,5 @@ conda activate unifiedgroupgen
 
 export OMP_NUM_THREADS=1
 hostname
-git rev-parse HEAD
+printf 'Git commit at submission: %s\n' "${UGG_GIT_COMMIT:-not recorded}"
 yhrun python -u submit_files/gpu_smoke.py
