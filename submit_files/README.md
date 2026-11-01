@@ -215,3 +215,37 @@ yhbatch --parsable --export=ALL --chdir="$ugg_run/source" \
 ```
 
 模板生成 256 次尝试、batch=16、64 步 Heun、FP32、guidance=0；不自动启动弛豫或物性计算。精确原子数与约化化学式不同：`{"Si":2,"O":4}` 必须是 6 原子；经验式模式另通过现有 `generation.formula` 和 `formula_units` 使用。元素必须在训练词表内、所选群轨道必须允许该组成，不保证每次采样都成功。
+
+
+### 下载已完成模型的结构和指标
+
+`export_hpc5090.py` 默认选择 `mp20_u`、`c2db51_u`、`joint_u`、`mp20_all`、`c2db51_all`、`joint_all`。先核对各模型阶段、评估流水线和全部子任务完成，再验证生成及指标文件的原始 SHA256，读取记录内的精确 CIF。没有训练、重新生成、指标重算或环境安装；无需申请 GPU，原结果目录只读。
+
+```bash
+(
+set -e
+cd /fs6/home/zhongrsh/workspace/UnifiedGroupGen
+module load proxy2/proxy2
+git pull --ff-only origin main
+ugg_export="/fs6/home/zhongrsh/workspace/UnifiedGroupGen_exports/hpc5090_comp_v1_main6_$(date +%Y%m%d_%H%M%S).zip"
+python submit_files/export_hpc5090.py \
+  --campaign intermediate/hpc_runs/hpc5090_comp_v1/campaign.json \
+  --output "$ugg_export"
+)
+```
+
+入口仅使用 Python 标准库，可从 base 或 unifiedgroupgen 环境执行。成功时打印 ZIP 完整路径、大小、SHA256，另写同名 `.zip.sha256`。同名 ZIP 不覆盖；失败不会产生正式 ZIP，可能保留 `.partial` 供检查。
+
+完整包包括：
+
+- `summary.csv`：所选模型各任务的汇总指标，包括各性质条件任务，保留原分母与缺失值。
+- `models/<model>/tasks/<task>/generation/samples.jsonl`：全部尝试记录、失败原因和成功结构的内嵌 CIF。
+- 同任务下 `metrics/`：逐结构 `samples.csv`、`summary.json`、CSP 的 `cases.csv`/`csp_metrics.csv`、指标图、预测结果和原配置/日志。
+- `models/<model>/campaign_evaluation/`：该模型完整流水线记录和原汇总报告；组件检查报告在对应任务的 `generation/` 中。
+- `cifs/`：每项生成任务按记录顺序的前 5 个成功结构，仅便于快速打开，不代表质量排序。全部结构始终保留在 JSONL 内。
+- `cif_index.csv`：独立 CIF 与模型、任务、样本 index、case_id/candidate、逐结构指标表的对应关系。
+- `manifest.json`：原实验代码版本、相对路径映射、任务计数及包内文件 SHA256。原报告内绝对路径保留作为历史证据，本地用此清单定位。
+
+`--cifs-per-task -1` 可额外将全部成功结构导出为独立 CIF；`--cifs-per-task 0` 只保留完整原记录。`--models mp20_u joint_u` 可只导出指定模型。本包不复制权重、训练数据、Conda 或 `.env`。
+
+使用上传项目 ZIP 时相同的 Xftp/WinSCP/SFTP 连接，打开 `/fs6/home/zhongrsh/workspace/UnifiedGroupGen_exports/`，下载刚生成的 ZIP 和 `.sha256` 到本地 `intermediate/server_exports/`。本地校验 ZIP 的 SHA256 与服务器打印值一致后解压，按 `(model, task, index)` 对应结构和逐结构指标；CSP 同时保留 `(case_id, candidate)`。
