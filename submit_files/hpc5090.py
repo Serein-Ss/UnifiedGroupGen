@@ -124,7 +124,7 @@ def prepare(campaign):
     predictor = MatGLPredictor(cache)
     from pymatgen.core import Lattice, Structure
     probes = {
-        'space': Structure(Lattice.cubic(5.64), ['Na', 'Cl'], [[0, 0, 0], [.5, .5, .5]]),
+        'space': Structure.from_spacegroup(225, Lattice.cubic(5.64), ['Na', 'Cl'], [[0, 0, 0], [.5, .5, .5]]),
         'layer': Structure(Lattice.hexagonal(3.16, 20), ['Mo', 'S', 'S'],
                            [[0, 0, .5], [1/3, 2/3, .578], [1/3, 2/3, .422]]),
     }
