@@ -187,7 +187,8 @@ def verified_prior_records(specification):
             row['cif_sha256']=hashlib.sha256(content).hexdigest()
         elif row.get('status')!='failed':
             raise ValueError('Previous ledger contains an unsupported status')
-        row['source_wall_seconds']=row.pop('wall_seconds',None)
+        seconds=row.pop('wall_seconds',None)
+        row['source_wall_seconds']=seconds if seconds is not None else row.get('source_wall_seconds')
         row['reused_from']={'samples':str(path),'samples_sha256':specification['samples_sha256'],'index':record['index']}
         result.append(row)
     return result

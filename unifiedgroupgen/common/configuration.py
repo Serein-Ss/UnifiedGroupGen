@@ -68,7 +68,10 @@ def source_key(path, root=None):
 def artifact_path(value, root=None):
     root = Path(root).resolve() if root is not None else project_root()
     path = resolve_path(value, root)
-    if not path.is_relative_to(root):
+    # Frozen HPC sources deliberately mount the live data/result directories.
+    roots = [root, *((root/name).resolve() for name in ('data', 'outputs', 'intermediate', 'wandb')
+                     if (root/name).is_symlink())]
+    if not any(path.is_relative_to(base) for base in roots):
         raise ValueError('Generated artifacts must be inside UnifiedGroupGen')
     path.parent.mkdir(parents=True, exist_ok=True)
     return path

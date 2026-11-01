@@ -1,0 +1,31 @@
+# No target-property conditions. Composition is a separate training task.
+experiments:
+  mp20_u_comp_v2:
+    experiment: new_mp20_u
+    overrides:
+      - learning=composition
+      - experiment_name=mp20_u_comp_v2
+      - experiment.experiment_family=hpc5090_composition_v2
+      - data.data_audit=data/dataset/audits/hpc5090/mp20_u_comp_v2.json
+  c2db51_u_comp_v2:
+    experiment: new_c2db51_u
+    overrides:
+      - learning=composition
+      - experiment_name=c2db51_u_comp_v2
+      - experiment.experiment_family=hpc5090_composition_v2
+      - data.data_audit=data/dataset/audits/hpc5090/c2db51_u_comp_v2.json
+  joint_u_comp_v2:
+    experiment: new_joint_u
+    overrides:
+      - learning=composition
+      - experiment_name=joint_u_comp_v2
+      - experiment.experiment_family=hpc5090_composition_v2
+      - data.data_audit=data/dataset/audits/hpc5090/joint_u_comp_v2.json
+  joint_u_comp_source_control_v2:
+    experiment: joint_u
+    overrides:
+      - learning=composition
+      - learning.input_contract=source_context_control_v2
+      - experiment_name=joint_u_comp_source_control_v2
+      - experiment.experiment_family=hpc5090_composition_v2
+      - data.data_audit=data/dataset/audits/hpc5090/joint_u_comp_source_control_v2.json

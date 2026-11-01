@@ -1,0 +1,80 @@
+{
+  "scope": "Audited historical main15 best checkpoints; directory names are import timestamps, not training dates.",
+  "models": [
+    {
+      "name": "mp20_u",
+      "directory": "outputs/mp20_u/26-10-30-12-50-31",
+      "best_checkpoint_sha256": "2ed5e0e80aaaa706157e5077450d0cd9400712c8ba8dce8085c7f6f16430f3d6"
+    },
+    {
+      "name": "c2db51_u",
+      "directory": "outputs/c2db51_u/26-10-30-12-50-31",
+      "best_checkpoint_sha256": "c8ed50a17d04602e279cd695047b013c8b62066342652d33f8766d8e813baf04"
+    },
+    {
+      "name": "joint_u",
+      "directory": "outputs/joint_u/26-10-30-12-50-31",
+      "best_checkpoint_sha256": "34aa22cc3aca6d735d8b272dded0ff706700cd3187723ca1c35ea51e7f91b94b"
+    },
+    {
+      "name": "mp20_all",
+      "directory": "outputs/mp20_all/26-10-30-12-50-31",
+      "best_checkpoint_sha256": "bfa55f3f4059b9fb6f47d282ba64da220754dcfc60fdada23eb12972bfc8fd5c"
+    },
+    {
+      "name": "c2db51_all",
+      "directory": "outputs/c2db51_all/26-10-30-12-50-31",
+      "best_checkpoint_sha256": "edfa5f0a77fea30a2b0d5bd4f81e047023d5c15607357f2c8b5f844ede0231fa"
+    },
+    {
+      "name": "joint_all",
+      "directory": "outputs/joint_all/26-10-30-12-50-31",
+      "best_checkpoint_sha256": "09a6654823d10e6d529e68b5787c54fbde4b9106d4e142b06f1f77feb7778aa0"
+    },
+    {
+      "name": "mp20_ef",
+      "directory": "outputs/mp20_ef/26-10-30-12-50-31",
+      "best_checkpoint_sha256": "322d6f24c4018d2b84d85a479712d0b1a080c299cd49f5c286ef0c455885589a"
+    },
+    {
+      "name": "mp20_eg",
+      "directory": "outputs/mp20_eg/26-10-30-12-50-31",
+      "best_checkpoint_sha256": "f1358ff42b90cf0086112a343ec8f12835c4606aa5398f4b8d191c9dddfc576f"
+    },
+    {
+      "name": "mp20_eh",
+      "directory": "outputs/mp20_eh/26-10-30-12-50-31",
+      "best_checkpoint_sha256": "a465c28cb63072f40d2716a758b80a089e05a4b1b6c09a5b732088c8513d91f5"
+    },
+    {
+      "name": "c2db51_ef",
+      "directory": "outputs/c2db51_ef/26-10-30-12-50-31",
+      "best_checkpoint_sha256": "edd3d03b1cc6c9ab12d08165f0b1f5f8881439633488066f4ea2c391040a0408"
+    },
+    {
+      "name": "c2db51_eg",
+      "directory": "outputs/c2db51_eg/26-10-30-12-50-31",
+      "best_checkpoint_sha256": "fa951bfd96861887e587a615587179f274d6ec76a41c866b80687c374f0a4ec0"
+    },
+    {
+      "name": "c2db51_eh",
+      "directory": "outputs/c2db51_eh/26-10-30-12-50-31",
+      "best_checkpoint_sha256": "20a7a8b64a3cf241e8313dd1e66ed2a6d22efe5bd89adc4b9b5a6e9f87bb1081"
+    },
+    {
+      "name": "joint_ef",
+      "directory": "outputs/joint_ef/26-10-30-12-50-31",
+      "best_checkpoint_sha256": "5ab43d27dbc49e65089374a55b227e43102dc03fdfd112cc5739b198137d8569"
+    },
+    {
+      "name": "joint_eg",
+      "directory": "outputs/joint_eg/26-10-30-12-50-31",
+      "best_checkpoint_sha256": "fb67118e92ffc9c7e2e2fc5553b29b9ea5eedb7c89cb11784a83037c8718fb19"
+    },
+    {
+      "name": "joint_eh",
+      "directory": "outputs/joint_eh/26-10-30-12-50-31",
+      "best_checkpoint_sha256": "7b95212c53b11ff7293720dc7408a082424d79e84edf0200a433ee139fa124dd"
+    }
+  ]
+}

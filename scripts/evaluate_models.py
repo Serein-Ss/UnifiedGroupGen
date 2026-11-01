@@ -109,6 +109,7 @@ def build_plan(args, root):
                               args.tasks,args.conditional_tasks,args.target_properties,root=root,
                               split_domain_budget=getattr(args,'split_domain_budget',False),
                               fixed_descriptor_k=getattr(args,'fixed_descriptor_k',1)):
+            job['name'] = getattr(args, 'task_prefix', '') + job['name']
             plan.append({'model':name,'checkpoint':str(checkpoint),'checkpoint_sha256':checkpoint_hash,'data_sha256':data_hashes,**job})
     if getattr(args,'reuse_manifest',None):
         prior=json.loads(args.reuse_manifest.read_text(encoding='utf-8'))
@@ -119,11 +120,15 @@ def build_plan(args, root):
                 if job['task']=='components': job['prior_components']=source
                 else:
                     spec=source['prior_samples']
-                    if job.get('groups') and spec['records']!=len(job['groups'])*job['per_group']: continue
+                    if job.get('groups'):
+                        rows=read_records(spec['samples'])
+                        if len(rows)>job['count'] or any(r.get('requested_group')!=job['groups'][i//job['per_group']]
+                                                         for i,r in enumerate(rows)): continue
                     job['prior_samples']=spec
                     if job['task']=='csp':
-                        ids={str(r.get('case_id',r.get('reference_id'))) for r in read_records(spec['samples'])}
-                        job['planned_reused']=len(ids & set(job['case_ids']))
+                        slots={(str(r.get('case_id',r.get('reference_id'))),int(r.get('candidate',0)))
+                               for r in read_records(spec['samples'])}
+                        job['planned_reused']=sum((case,k) in slots for case in job['case_ids'] for k in range(job['k']))
                     else: job['planned_reused']=min(job['count'],spec['records'])
     total=sum((len(j['case_ids'])*j['k'] if j['task']=='csp' else j.get('count',0)) for j in plan if j['task']!='components')
     options={k:str(v) if isinstance(v,Path) else v for k,v in vars(args).items() if k not in ('action','run','skip_completed','plan','status','stage','verify_generated')}
@@ -325,7 +330,8 @@ def evaluate_metrics(job, args, target, state, pipeline, env):
     spec = OmegaConf.to_container(OmegaConf.load(ROOT/'configs/evaluation/default.yaml'),resolve=True)
     spec.update(samples=str(generated/'samples.jsonl'), task=job['task'], kind=job['kind'], dataset=job['dataset'],
                 reference_files=config['test_files'], novelty_files=config['train_files'],
-                request=str(target/'request.json'), output=str(target), cache=str(args.output/'reference_cache'),
+                request=str(target/'request.json'), output=str(target),
+                cache=str(getattr(args,'reference_cache',args.output/'reference_cache')),
                 expected_attempts=len(job['case_ids'])*job['k'] if job['task']=='csp' else job['count'],
                 no_fingerprints=args.no_fingerprints, **property_args)
     spec['conditional']['enabled']=args.conditional_enabled
@@ -345,15 +351,18 @@ def evaluate_metrics(job, args, target, state, pipeline, env):
     predictor.update(enabled=args.conditional_enabled and getattr(args,'predictor_backend',None)=='matgl',
                      backend=getattr(args,'predictor_backend',None) or 'matgl',
                      allow_proxy_transfer=args.allow_proxy_transfer,batch_size=8,
-                     reference_cache=str(args.output/'proxy_reference_cache'))
+                     reference_cache=str(getattr(args,'property_reference_cache',args.output/'proxy_reference_cache')))
     run_worker(args,'evaluate',{'evaluation':spec,'property_predictor':predictor},target,target/'metrics.log',env)
 
 
 def run_job(job, args, target, entry, state, pipeline, env):
     spec = {'checkpoint':job['checkpoint'], 'job':job, 'output':str(target),
             'steps':args.steps, 'guidance':args.guidance if job.get('conditional') else 0.,
-            'batch_size':args.test_batch_size}
+            'batch_size':getattr(args,'generation_batch_size',args.test_batch_size),
+            'precision':getattr(args,'generation_precision','fp32'),
+            'solver':getattr(args,'generation_solver','heun')}
     if job['task']=='components':
+        spec['batch_size'] = args.test_batch_size
         state['phase']='components'; write_json(pipeline,state)
         if job.get('prior_components'):
             import shutil

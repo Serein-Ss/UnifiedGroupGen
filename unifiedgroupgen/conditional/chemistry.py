@@ -1,6 +1,7 @@
 """Inference-time chemical rules; these do not estimate a conditional density."""
 
 from functools import lru_cache
+import json
 from pymatgen.core import Composition, Element
 
 
@@ -12,6 +13,8 @@ def element_numbers(values):
 
 
 def integer_composition(formula, empirical=False):
+    if isinstance(formula, str) and formula.lstrip().startswith('{'):
+        formula = json.loads(formula)
     composition = Composition(formula)
     if empirical:
         composition = composition.reduced_composition

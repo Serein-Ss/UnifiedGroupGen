@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import sys
 import torch
+from filelock import FileLock
 
 from unifiedgroupgen.common.structures import load_structure, read_records, sha256, write_json, ReferenceBank
 
@@ -84,14 +85,15 @@ def public_predictions(args):
     args.reference_cache.mkdir(parents=True, exist_ok=True)
     reference_csv = args.reference_cache/(cache_key+'.csv')
     receipt = args.reference_cache/(cache_key+'.json')
-    if receipt.exists():
-        cached = json.loads(receipt.read_text(encoding='utf-8'))
-        if cached['identity'] != ref_identity or sha256(reference_csv) != cached['sha256']:
-            raise ValueError('Public predictor reference cache identity mismatch')
-    else:
-        reference = public_rows(references, predictor, args.kind, args.batch_size, 'id')
-        write_predictions(reference_csv, reference, 'id', properties)
-        write_json(receipt, {'identity': ref_identity, 'sha256': sha256(reference_csv)})
+    with FileLock(str(receipt)+'.lock'):
+        if receipt.exists():
+            cached = json.loads(receipt.read_text(encoding='utf-8'))
+            if cached['identity'] != ref_identity or sha256(reference_csv) != cached['sha256']:
+                raise ValueError('Public predictor reference cache identity mismatch')
+        else:
+            reference = public_rows(references, predictor, args.kind, args.batch_size, 'id')
+            write_predictions(reference_csv, reference, 'id', properties)
+            write_json(receipt, {'identity': ref_identity, 'sha256': sha256(reference_csv)})
     rows = public_rows(samples, predictor, args.kind, args.batch_size, 'index')
     args.output.mkdir(parents=True, exist_ok=True)
     write_predictions(args.output/'predictions.csv', rows, 'index', properties)

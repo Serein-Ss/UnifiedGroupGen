@@ -222,8 +222,21 @@ def check_record_precision(records, flow):
         raise ValueError('Existing samples use a different inference precision; preserve them and choose a new output')
 
 
+def prior_candidates(job, flow):
+    prior = verified_prior_records(job['prior_samples']) if job.get('prior_samples') else []
+    check_record_precision(prior, flow)
+    slots = {}
+    if job['task'] == 'csp':
+        for row in prior:
+            key = (str(row.get('case_id', row.get('reference_id'))), int(row.get('candidate', 0)))
+            if key in slots:
+                raise ValueError('Previous CSP candidates contain duplicate case/candidate slots')
+            slots[key] = row
+    return prior, slots
+
+
 def generate_records(proposal,flow,config,job,output,device,seed,steps,guidance,batch_size=1,solver='heun'):
-    if batch_size > 1 and not job.get('prior_samples'):
+    if batch_size > 1:
         return generate_records_batched(proposal,flow,config,job,output,device,seed,steps,guidance,batch_size,solver)
     refs=({str(r['id']):r for p in config['test_files'] for r in read_records(resolve_path(ROOT/p,ROOT)) if r['dataset']==job['dataset']}
           if job['task']=='csp' else {})
@@ -232,10 +245,8 @@ def generate_records(proposal,flow,config,job,output,device,seed,steps,guidance,
     else:
         attempts=[(None,i) for i in range(job['count'])]
     ledger=output/'samples.jsonl'
-    prior=verified_prior_records(job['prior_samples']) if job.get('prior_samples') else []
-    by_case={str(r.get('case_id',r.get('reference_id'))):r for r in prior} if job['task']=='csp' else {}
+    prior, by_case = prior_candidates(job, flow)
     previous=read_records(ledger) if ledger.exists() else []
-    check_record_precision(prior, flow)
     check_record_precision(previous, flow)
     sampling_seconds=sum(r.get('wall_seconds',0.) or 0. for r in previous)
     reused_count=sum(bool(r.get('reused_from')) for r in previous)
@@ -258,7 +269,7 @@ def generate_records(proposal,flow,config,job,output,device,seed,steps,guidance,
             requested_group=(job['groups'][index//job['per_group']] if job.get('groups') else job.get('group'))
             row={'index':index,'case_id':case,'candidate':candidate,'properties_requested':job['properties'],
                  'requested_group':requested_group,'seed':attempt_seed,'precision':getattr(flow,'inference_precision','fp32')}
-            reused=(by_case.get(str(case)) if candidate==0 else None) if case is not None else (prior[index] if index<len(prior) else None)
+            reused=by_case.get((str(case),candidate)) if case is not None else (prior[index] if index<len(prior) else None)
             if reused is not None:
                 reused_count+=1
                 generated_count+=reused['status']=='generated'
@@ -368,14 +379,16 @@ def generate_records_batched(proposal,flow,config,job,output,device,seed,steps,g
     attempts = ([(key,k) for key in job['case_ids'] for k in range(job['k'])] if refs else
                 [(None,i) for i in range(job['count'])])
     ledger = output/'samples.jsonl'
+    prior, prior_slots = prior_candidates(job, flow)
     previous = read_records(ledger) if ledger.exists() else []
     check_record_precision(previous, flow)
     if [r['index'] for r in previous]!=list(range(len(previous))) or len(previous)>len(attempts):
         raise ValueError('Incomplete/corrupt ledger; existing results preserved')
     for row in previous:
         if row['status']=='generated': inline_cif_bytes(row)
-    elapsed = sum(r.get('wall_seconds',0.) for r in previous)
+    elapsed = sum(r.get('wall_seconds',0.) or 0. for r in previous)
     success = sum(r['status']=='generated' for r in previous)
+    reused_count = sum(bool(r.get('reused_from')) for r in previous)
     for start in range(len(previous),len(attempts),batch_size):
         started = time.perf_counter(); rows,candidates,positions = [],[],[]
         for index in range(start,min(start+batch_size,len(attempts))):
@@ -387,6 +400,13 @@ def generate_records_batched(proposal,flow,config,job,output,device,seed,steps,g
                  'requested_group':group,'seed':attempt_seed,'sampling_backend':'packed','solver':solver,
                  'precision':getattr(flow,'inference_precision','fp32')}
             rows.append(row)
+            reused = (prior_slots.get((str(case), k)) if case is not None else
+                      (prior[index] if index < len(prior) else None))
+            if reused is not None:
+                rows[-1] = {**reused, 'index':index, 'case_id':case, 'candidate':k,
+                            'requested_group':group, 'properties_requested':job['properties']}
+                reused_count += 1
+                continue
             try:
                 reference=refs[case] if case is not None else None
                 counts=record_counts(reference,ROOT) if reference else None
@@ -412,15 +432,18 @@ def generate_records_batched(proposal,flow,config,job,output,device,seed,steps,g
                     if isinstance(error,torch.cuda.OutOfMemoryError): raise
                     rows[position].update(status='failed',failure_stage='flow_or_cif',error_type=type(error).__name__,reason=str(error))
         duration=time.perf_counter()-started;elapsed+=duration
+        fresh_count = sum(not row.get('reused_from') for row in rows)
         with ledger.open('a',encoding='utf-8') as stream:
             for row in rows:
-                row.update(wall_seconds=duration/len(rows),batch_wall_seconds=duration,
-                           timing_definition='Batch elapsed divided by attempts; not individual latency')
+                row.update(wall_seconds=None if row.get('reused_from') else duration/max(1,fresh_count),
+                           batch_wall_seconds=duration,
+                           timing_definition='New batch elapsed divided by fresh attempts; reused timing is source_wall_seconds')
                 success+=row['status']=='generated';stream.write(json.dumps(row,allow_nan=False)+'\n')
         completed=start+len(rows)
         write_json(output/'sampling.status.json',{'state':'complete' if completed==len(attempts) else 'running',
             'attempted':completed,'requested':len(attempts),'generated':success,'failed':completed-success,
-            'sampling_seconds':elapsed,'sampling_backend':'packed','batch_size':batch_size})
+            'sampling_seconds':elapsed,'sampling_backend':'packed','batch_size':batch_size,
+            'reused':reused_count,'new_attempts':completed-reused_count})
         print(json.dumps({'event':'sampling_progress','attempted':completed,'requested':len(attempts),
                           'sampling_seconds':elapsed,'batch_size':batch_size}),flush=True)
 

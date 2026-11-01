@@ -11,6 +11,7 @@ import time
 import hydra
 import torch
 import numpy as np
+from filelock import FileLock
 from omegaconf import OmegaConf
 from unifiedgroupgen.common.configuration import project_root, resolve_path, source_key, task_options, evaluation_directory
 from unifiedgroupgen.common.structures import ReferenceBank, counts_of, load_structure, read_records, sha256, write_json
@@ -43,6 +44,12 @@ def reference_metrics(bank, kind, use_fingerprints, cache):
             Path(__file__).parent/'tests/representation.py')}}
     key = __import__('hashlib').sha256(json.dumps(identity, sort_keys=True).encode()).hexdigest()
     path = Path(cache)/(key+'.json')
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with FileLock(str(path)+'.lock'):
+        return _reference_metrics_locked(bank, kind, use_fingerprints, path, identity)
+
+
+def _reference_metrics_locked(bank, kind, use_fingerprints, path, identity):
     if path.exists():
         saved = json.loads(path.read_text(encoding='utf-8'))
         if saved['identity'] != identity:
