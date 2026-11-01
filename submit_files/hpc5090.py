@@ -178,6 +178,7 @@ def train(campaign, model):
 def run(campaign_path, phase, model):
     from filelock import FileLock
     campaign = read(campaign_path)
+    os.environ['UGG_CAMPAIGN_NAME'] = campaign['name']
     if phase in ('train', 'new') and model not in TRAIN_MODELS:
         raise ValueError('Unknown training model')
     if phase == 'legacy' and model not in campaign['legacy_models']:

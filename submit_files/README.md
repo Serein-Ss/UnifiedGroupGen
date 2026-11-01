@@ -121,6 +121,8 @@ git merge --ff-only origin/main
 
 提交器用 `git archive` 固定本次提交的代码、配置和脚本；快照位于 `intermediate/hpc_runs/hpc5090_comp_v1/source/`。快照通过符号链接访问服务器的 `data/`、`outputs/`、`assets/`、`intermediate/`、`wandb/` 和 `.env`。后续代码更新可供下一个任务批次使用，不改变已排队任务的代码。共享的数据、环境和 `.env` 仍是服务器当前版本，运行期间保持不变。计算节点不调用 Git。
 
+四个训练审计证书分别保存在本批次的 `audits/`；作业通过进程环境变量 `UGG_CAMPAIGN_NAME` 解析证书路径。新批次不会覆盖旧批次的证书或源码配置路径。
+
 ### 参数校准与预估
 
 | 数据 | 待测 batch_size | 对应 edge_budget |

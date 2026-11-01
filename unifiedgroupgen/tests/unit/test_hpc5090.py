@@ -36,6 +36,16 @@ def test_exact_composition_accepts_hydra_json_without_reducing_counts():
         integer_composition('{"Si":1.5,"O":3}')
 
 
+def test_campaigns_keep_independent_training_audit_certificates(monkeypatch):
+    monkeypatch.setenv('UGG_CAMPAIGN_NAME', 'campaign_a')
+    first = load_experiments('configs/experiments_hpc5090.yaml')
+    monkeypatch.setenv('UGG_CAMPAIGN_NAME', 'campaign_b')
+    second = load_experiments('configs/experiments_hpc5090.yaml')
+    for name in TRAIN_MODELS:
+        assert first[name]['config']['data_audit'] == f'intermediate/hpc_runs/campaign_a/audits/{name}.json'
+        assert second[name]['config']['data_audit'] == f'intermediate/hpc_runs/campaign_b/audits/{name}.json'
+
+
 def test_design_script_composition_argument_passes_hydra_parser():
     import re
     from hydra import compose, initialize_config_dir
