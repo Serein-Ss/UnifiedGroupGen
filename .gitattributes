@@ -1,6 +1,7 @@
 * text=auto
 configs/*.yaml -text
 *.sh text eol=lf
+submit_files/* text eol=lf
 unifiedgroupgen/pl_modules/backbones/official/**/*.py text eol=lf
 unifiedgroupgen/pl_modules/backbones/official/**/*.json text eol=lf
 unifiedgroupgen/pl_modules/backbones/official/**/*.pt -text
