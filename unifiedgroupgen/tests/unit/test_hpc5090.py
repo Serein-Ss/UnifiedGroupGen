@@ -36,6 +36,20 @@ def test_exact_composition_accepts_hydra_json_without_reducing_counts():
         integer_composition('{"Si":1.5,"O":3}')
 
 
+def test_design_script_composition_argument_passes_hydra_parser():
+    import re
+    from hydra import compose, initialize_config_dir
+    from unifiedgroupgen.common.configuration import project_root
+    from unifiedgroupgen.conditional.chemistry import integer_composition
+    root = project_root()
+    script = (root/'submit_files/design_composition.sbatch').read_text()
+    template = re.search(r'"(generation\.composition=[^"]+)"', script).group(1)
+    override = template.replace('$2', '{"Si":2,"O":4}')
+    with initialize_config_dir(config_dir=str(root/'configs'), version_base='1.3'):
+        cfg = compose(config_name='generate', overrides=[override])
+    assert integer_composition(cfg.generation.composition) == {14: 2, 8: 4}
+
+
 def test_frozen_sources_only_write_to_declared_data_and_result_mounts(tmp_path):
     from unifiedgroupgen.common.configuration import artifact_path
     frozen = tmp_path/'frozen'; frozen.mkdir()

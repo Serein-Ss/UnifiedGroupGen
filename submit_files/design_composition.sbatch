@@ -28,7 +28,7 @@ export NUMEXPR_NUM_THREADS=1
 export MPLBACKEND=Agg
 printf 'Git commit at submission: %s\n' "${UGG_GIT_COMMIT:-not recorded}"
 yhrun python -u -m unifiedgroupgen.generate device=cuda threads=4 seed=142 \
-    "generation.checkpoint=$1" "generation.composition=$2" "generation.kind=$3" \
+    "generation.checkpoint=$1" "generation.composition='$2'" "generation.kind=$3" \
     "generation.output=$4" 'generation.properties={}' generation.guidance=0 \
     generation.count=256 generation.steps=64 generation.solver=heun \
     generation.precision=fp32 generation.batch_size=16
