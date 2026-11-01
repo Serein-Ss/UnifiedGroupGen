@@ -174,6 +174,21 @@ yhbatch --parsable --export=ALL --chdir="$ugg_run/source" --time=72:00:00 \
 
 仅在单独 Windows 测试进程中将该邻居输入转为 int64 后，岩盐 NaCl（SG225，8 原子）和 MoS2 的两种预测器均得到有限输出；这只是接口/数值检查，不是预测准确度或稳定性证据。
 
+### CUDA 初始化失败后的恢复
+
+若失败集中在某个节点，可临时排除该节点恢复本批次。以下 `node-5090-2` 是本次日志中四个 CUDA 初始化失败作业所在节点；这是作业级绕过措施，不修改节点或驱动配置。
+
+```bash
+cd /fs6/home/zhongrsh/workspace/UnifiedGroupGen
+python submit_files/recover_hpc5090.py --campaign intermediate/hpc_runs/hpc5090_comp_v1/campaign.json --exclude node-5090-2
+python submit_files/recover_hpc5090.py --campaign intermediate/hpc_runs/hpc5090_comp_v1/campaign.json --exclude node-5090-2 --submit
+yhq
+```
+
+第一条预览恢复计划；第二条实际提交。入口核对本人队列，跳过仍在队列中的作业和成功/运行阶段，只重交已有 `failed` 标记的阶段。重交训练的后续评估会依赖新训练作业号。作业继续使用原 `campaign.json` 的源码快照、参数和输出目录，不重新训练已完成的 C2DB，也不修改运行中的 MP-20/联合训练。
+
+本人仍在等待的本批次作业通过 `yhcontrol` 或 `scontrol` 增加节点排除，保留已有排除列表；不会改变运行中的作业或其他用户的节点设置。如果存在待更新的等待作业，但两个控制命令均不可用，脚本在提交前停止。原作业号备份到 `submitted.before_recovery.json`，新旧作业号对应关系保存到 `recovery.json`，`submitted.json` 更新为最新作业号，因此原 `status` 命令仍可使用。同一恢复记录中的作业不会因重复执行而再次提交；重试再次失败时先检查新日志。
+
 ### 指定组成设计
 
 `design_composition.sbatch` 接受精确原子数 JSON、结构类型和独立输出目录；不提供性质条件，不固定真实群/描述符。优先使用去来源标签的三个新模型；source control 因需要来源上下文，不适用于这个简化模板。只有训练完成后才能提交。以下 Si2O4 是调用示例，不是已执行的实验：
