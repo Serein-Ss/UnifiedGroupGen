@@ -67,6 +67,30 @@ git pull --ff-only origin main
 
 本目录的检查不替代完整模型前后向、数据审计或正式训练验证。
 
+## 获取服务器代码和结果更新记录
+
+Git 已记录提交历史；`git log` 显示已提交的代码更新，`git status` 显示尚未提交的受跟踪文件改动。`.env`、Conda、权重及运行结果继续保留在服务器；结果更新由 `server_update_report.py` 生成单独的轻量快照。
+
+从登录节点执行，无需 GPU 或额外安装，可使用 base Python：
+
+```bash
+cd /fs6/home/zhongrsh/workspace/UnifiedGroupGen
+python submit_files/server_update_report.py \
+  --campaign intermediate/hpc_runs/hpc5090_comp_v1/campaign.json \
+  --output intermediate/server_reports/hpc5090_comp_v1
+```
+
+入口每次执行一次，不启动后台监控。输出目录保留 `latest.json` 供下次比较，并生成带北京时间的 ZIP、快照 JSON 和 `.zip.sha256`。使用既有 SFTP/Xftp 下载打印的 ZIP 和校验文件到本地，即可读取：
+
+- `report.md`：代码版本、冻结实验版本、状态计数、本人队列及相较上次变化的结果文件路径。
+- `git_log.txt`：最近20个代码提交及变动路径。
+- `metrics.csv`：已存在的各模型指标总表合并，保留任务、分母和缺失值。
+- `snapshot.json`：状态记录、流水线子任务数量、选定文件的大小/修改时间、小型汇总文件 SHA256，以及读取异常。
+
+首次执行建立基线；后续执行才能判断变化。快照只覆盖指定批次的状态、评估摘要、账本/检查点/日志元信息，不是整个文件系统的递归清单。大型文件仅检查大小和修改时间；要校验和下载完整结构、逐结构指标，仍使用 `export_hpc5090.py`。
+
+脚本只读取 Git、原实验目录和本人队列；仅向指定报告目录写文件，不 fetch/pull、提交代码、提交作业或重算指标。Git 的 ahead/behind 数字基于本地缓存的 upstream 引用；若需确认 GitHub 最新提交，可先按“后续更新”流程获取远程引用。阶段 `complete` 是已有状态记录，不能替代完整结果导出的哈希校验。
+
 ## 15 个旧模型评估和 4 个组成训练任务
 
 入口为 `hpc5090.py`，调度脚本为 `hpc5090.sbatch`。所有作业仅申请 **5090 分区、1 GPU、8 CPU、64 GiB 内存**，不使用 CPU 分区，不安装或升级环境包。依据服务器手册的 `yhbatch`、`yhrun` 和 `--gres=gpu:1` 接口编写。
