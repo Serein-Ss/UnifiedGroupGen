@@ -1,0 +1,1433 @@
+{
+  "state": "verified",
+  "models": 15,
+  "checkpoints": [
+    {
+      "path": "outputs\\mp20_u\\26-10-30-12-50-31\\model.best.pt",
+      "sha256": "2ed5e0e80aaaa706157e5077450d0cd9400712c8ba8dce8085c7f6f16430f3d6",
+      "bytes": 204125250,
+      "mtime_ns": 1793335978000000000
+    },
+    {
+      "path": "outputs\\mp20_u\\26-10-30-12-50-31\\model.pt",
+      "sha256": "0e2826165fd4a3c34059390622fd220e6e4d2f16674573e79784b981aff2bff8",
+      "bytes": 204122424,
+      "mtime_ns": 1793335980000000000
+    },
+    {
+      "path": "outputs\\c2db51_u\\26-10-30-12-50-31\\model.best.pt",
+      "sha256": "c8ed50a17d04602e279cd695047b013c8b62066342652d33f8766d8e813baf04",
+      "bytes": 203146562,
+      "mtime_ns": 1793335984000000000
+    },
+    {
+      "path": "outputs\\c2db51_u\\26-10-30-12-50-31\\model.pt",
+      "sha256": "4ab485d42bcbcfe81d1cc72cc63e188aa8c57d106435aa40c40786ad027aaead",
+      "bytes": 203143736,
+      "mtime_ns": 1793335988000000000
+    },
+    {
+      "path": "outputs\\joint_u\\26-10-30-12-50-31\\model.best.pt",
+      "sha256": "34aa22cc3aca6d735d8b272dded0ff706700cd3187723ca1c35ea51e7f91b94b",
+      "bytes": 204650754,
+      "mtime_ns": 1793335994000000000
+    },
+    {
+      "path": "outputs\\joint_u\\26-10-30-12-50-31\\model.pt",
+      "sha256": "b543b20b91b4a3357841d3180203254b27af05fe951dd18cdc34dc06f7ccb332",
+      "bytes": 204647784,
+      "mtime_ns": 1793335998000000000
+    },
+    {
+      "path": "outputs\\mp20_all\\26-10-30-12-50-31\\model.best.pt",
+      "sha256": "bfa55f3f4059b9fb6f47d282ba64da220754dcfc60fdada23eb12972bfc8fd5c",
+      "bytes": 216069986,
+      "mtime_ns": 1793336002000000000
+    },
+    {
+      "path": "outputs\\mp20_all\\26-10-30-12-50-31\\model.pt",
+      "sha256": "05ff8030883d360ae081853cc1b3f95fcc7416bc115cd55ccdf49421b697fef1",
+      "bytes": 216066496,
+      "mtime_ns": 1793336004000000000
+    },
+    {
+      "path": "outputs\\c2db51_all\\26-10-30-12-50-31\\model.best.pt",
+      "sha256": "edfa5f0a77fea30a2b0d5bd4f81e047023d5c15607357f2c8b5f844ede0231fa",
+      "bytes": 215091298,
+      "mtime_ns": 1793336008000000000
+    },
+    {
+      "path": "outputs\\c2db51_all\\26-10-30-12-50-31\\model.pt",
+      "sha256": "2356042616e3b100257567cd0d22a71611e1a42de45063a7e32368068429b74f",
+      "bytes": 215087808,
+      "mtime_ns": 1793336010000000000
+    },
+    {
+      "path": "outputs\\joint_all\\26-10-30-12-50-31\\model.best.pt",
+      "sha256": "09a6654823d10e6d529e68b5787c54fbde4b9106d4e142b06f1f77feb7778aa0",
+      "bytes": 216595810,
+      "mtime_ns": 1793336014000000000
+    },
+    {
+      "path": "outputs\\joint_all\\26-10-30-12-50-31\\model.pt",
+      "sha256": "bb9323dbbd1ac5955809b0c5fab16912c4594874354d6334ccbea2fc171cfcc7",
+      "bytes": 216592304,
+      "mtime_ns": 1793336020000000000
+    },
+    {
+      "path": "outputs\\mp20_ef\\26-10-30-12-50-31\\model.best.pt",
+      "sha256": "322d6f24c4018d2b84d85a479712d0b1a080c299cd49f5c286ef0c455885589a",
+      "bytes": 208106914,
+      "mtime_ns": 1793336024000000000
+    },
+    {
+      "path": "outputs\\mp20_ef\\26-10-30-12-50-31\\model.pt",
+      "sha256": "e6dfd7442748c052ed33ac3f5291d0f16fe07c587b61c29fd13011d2d8fd26d2",
+      "bytes": 208103824,
+      "mtime_ns": 1793336030000000000
+    },
+    {
+      "path": "outputs\\mp20_eg\\26-10-30-12-50-31\\model.best.pt",
+      "sha256": "f1358ff42b90cf0086112a343ec8f12835c4606aa5398f4b8d191c9dddfc576f",
+      "bytes": 208106786,
+      "mtime_ns": 1793336036000000000
+    },
+    {
+      "path": "outputs\\mp20_eg\\26-10-30-12-50-31\\model.pt",
+      "sha256": "7e959a34e384c5538001086006564d15566d80e6178802191ec6739d8a397d0d",
+      "bytes": 208103696,
+      "mtime_ns": 1793336040000000000
+    },
+    {
+      "path": "outputs\\mp20_eh\\26-10-30-12-50-31\\model.best.pt",
+      "sha256": "a465c28cb63072f40d2716a758b80a089e05a4b1b6c09a5b732088c8513d91f5",
+      "bytes": 208106914,
+      "mtime_ns": 1793336048000000000
+    },
+    {
+      "path": "outputs\\mp20_eh\\26-10-30-12-50-31\\model.pt",
+      "sha256": "e1c52ccc9f6cb93dc3bcc85fa5ce9f1854bffda110596a30ec236246acf16550",
+      "bytes": 208103824,
+      "mtime_ns": 1793336052000000000
+    },
+    {
+      "path": "outputs\\c2db51_ef\\26-10-30-12-50-31\\model.best.pt",
+      "sha256": "edd3d03b1cc6c9ab12d08165f0b1f5f8881439633488066f4ea2c391040a0408",
+      "bytes": 207128226,
+      "mtime_ns": 1793336058000000000
+    },
+    {
+      "path": "outputs\\c2db51_ef\\26-10-30-12-50-31\\model.pt",
+      "sha256": "fb83b42a91501fa04a12a007843407b6c48f8490cec9e3ab66eb215c67452ad4",
+      "bytes": 207125136,
+      "mtime_ns": 1793336064000000000
+    },
+    {
+      "path": "outputs\\c2db51_eg\\26-10-30-12-50-31\\model.best.pt",
+      "sha256": "fa951bfd96861887e587a615587179f274d6ec76a41c866b80687c374f0a4ec0",
+      "bytes": 207128034,
+      "mtime_ns": 1793336070000000000
+    },
+    {
+      "path": "outputs\\c2db51_eg\\26-10-30-12-50-31\\model.pt",
+      "sha256": "cbdd830b41dc8ced093a377093b1a94b55039c009569919137fceab9b8399f97",
+      "bytes": 207125008,
+      "mtime_ns": 1793336074000000000
+    },
+    {
+      "path": "outputs\\c2db51_eh\\26-10-30-12-50-31\\model.best.pt",
+      "sha256": "20a7a8b64a3cf241e8313dd1e66ed2a6d22efe5bd89adc4b9b5a6e9f87bb1081",
+      "bytes": 207128226,
+      "mtime_ns": 1793336080000000000
+    },
+    {
+      "path": "outputs\\c2db51_eh\\26-10-30-12-50-31\\model.pt",
+      "sha256": "7978eafdce19d5c5333cfa6f235a8ea6c6c9d0145d75136c9615a222b18de543",
+      "bytes": 207125136,
+      "mtime_ns": 1793336084000000000
+    },
+    {
+      "path": "outputs\\joint_ef\\26-10-30-12-50-31\\model.best.pt",
+      "sha256": "5ab43d27dbc49e65089374a55b227e43102dc03fdfd112cc5739b198137d8569",
+      "bytes": 208632546,
+      "mtime_ns": 1793336090000000000
+    },
+    {
+      "path": "outputs\\joint_ef\\26-10-30-12-50-31\\model.pt",
+      "sha256": "b173b1f680e2077f4f6623a90db78e9d176ad876cc73388cf39dd76fee2f4e81",
+      "bytes": 208629440,
+      "mtime_ns": 1793336096000000000
+    },
+    {
+      "path": "outputs\\joint_eg\\26-10-30-12-50-31\\model.best.pt",
+      "sha256": "fb67118e92ffc9c7e2e2fc5553b29b9ea5eedb7c89cb11784a83037c8718fb19",
+      "bytes": 208632354,
+      "mtime_ns": 1793336102000000000
+    },
+    {
+      "path": "outputs\\joint_eg\\26-10-30-12-50-31\\model.pt",
+      "sha256": "89642cb49eeb9e0126b551cb2cc9ed8b8eab52fa44df9078ac9ac9cc2525aa8c",
+      "bytes": 208629248,
+      "mtime_ns": 1793336106000000000
+    },
+    {
+      "path": "outputs\\joint_eh\\26-10-30-12-50-31\\model.best.pt",
+      "sha256": "7b95212c53b11ff7293720dc7408a082424d79e84edf0200a433ee139fa124dd",
+      "bytes": 208632610,
+      "mtime_ns": 1793336112000000000
+    },
+    {
+      "path": "outputs\\joint_eh\\26-10-30-12-50-31\\model.pt",
+      "sha256": "2db342de8f85904eab4865fe4b73d1754190373bc072b6b3a21003bb55c9bc29",
+      "bytes": 208629440,
+      "mtime_ns": 1793336118000000000
+    }
+  ],
+  "retained_output_files": {
+    "outputs\\mp20_u\\26-10-30-12-50-31\\model.best.pt": {
+      "bytes": 204125250,
+      "mtime_ns": 1793335978000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\model.history.jsonl": {
+      "bytes": 275841,
+      "mtime_ns": 1793335978000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\model.pt": {
+      "bytes": 204122424,
+      "mtime_ns": 1793335980000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\model.status.json": {
+      "bytes": 268,
+      "mtime_ns": 1793335982000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\train.log": {
+      "bytes": 35175,
+      "mtime_ns": 1793335982000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\generate\\baseline256_mp_20_de_novo_seed142\\samples.jsonl": {
+      "bytes": 755492,
+      "mtime_ns": 1793445296000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\generate\\baseline256_mp_20_de_novo_seed142\\summary.json": {
+      "bytes": 2937,
+      "mtime_ns": 1792947556000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\generate\\baseline256_mp_20_de_novo_seed142\\sampling.status.json": {
+      "bytes": 123,
+      "mtime_ns": 1792947556000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\generate\\baseline256_mp_20_composition_seed142\\samples.jsonl": {
+      "bytes": 888969,
+      "mtime_ns": 1793445300000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\generate\\baseline256_mp_20_composition_seed142\\summary.json": {
+      "bytes": 3491,
+      "mtime_ns": 1792947926000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\generate\\baseline256_mp_20_composition_seed142\\sampling.status.json": {
+      "bytes": 124,
+      "mtime_ns": 1792947926000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\generate\\baseline256_mp_20_fixed_description_seed142\\samples.jsonl": {
+      "bytes": 851343,
+      "mtime_ns": 1793445306000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\generate\\baseline256_mp_20_fixed_description_seed142\\summary.json": {
+      "bytes": 3492,
+      "mtime_ns": 1792948454000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\generate\\baseline256_mp_20_fixed_description_seed142\\sampling.status.json": {
+      "bytes": 123,
+      "mtime_ns": 1792948454000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\generate\\baseline256_mp_20_fixed_group_seed142\\samples.jsonl": {
+      "bytes": 3847460,
+      "mtime_ns": 1793445330000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\generate\\baseline256_mp_20_fixed_group_seed142\\summary.json": {
+      "bytes": 2978,
+      "mtime_ns": 1792950926000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\generate\\baseline256_mp_20_fixed_group_seed142\\sampling.status.json": {
+      "bytes": 126,
+      "mtime_ns": 1792950926000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_dng_seed142\\samples.jsonl": {
+      "bytes": 837960,
+      "mtime_ns": 1793445428000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_dng_seed142\\sampling.status.json": {
+      "bytes": 174,
+      "mtime_ns": 1793388000000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_csp_seed142\\samples.jsonl": {
+      "bytes": 13360063,
+      "mtime_ns": 1793445434000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_csp_seed142\\sampling.status.json": {
+      "bytes": 198,
+      "mtime_ns": 1793391922000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_fixed_descriptor_seed142\\samples.jsonl": {
+      "bytes": 937761,
+      "mtime_ns": 1793445434000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_fixed_descriptor_seed142\\sampling.status.json": {
+      "bytes": 174,
+      "mtime_ns": 1793391948000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_group_sweep_seed142\\samples.jsonl": {
+      "bytes": 4223590,
+      "mtime_ns": 1793445436000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_group_sweep_seed142\\sampling.status.json": {
+      "bytes": 178,
+      "mtime_ns": 1793392014000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\evaluate\\baseline256_mp_20_de_novo_seed142\\records.csv": {
+      "bytes": 64637,
+      "mtime_ns": 1792967634000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\evaluate\\baseline256_mp_20_de_novo_seed142\\quality.png": {
+      "bytes": 116384,
+      "mtime_ns": 1792967636000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\evaluate\\baseline256_mp_20_de_novo_seed142\\summary.json": {
+      "bytes": 5531,
+      "mtime_ns": 1792967636000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\evaluate\\baseline256_mp_20_de_novo_seed142\\storage_migration.json": {
+      "bytes": 467,
+      "mtime_ns": 1793445296000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\evaluate\\baseline256_mp_20_composition_seed142\\records.csv": {
+      "bytes": 68252,
+      "mtime_ns": 1792968012000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\evaluate\\baseline256_mp_20_composition_seed142\\quality.png": {
+      "bytes": 118213,
+      "mtime_ns": 1792968012000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\evaluate\\baseline256_mp_20_composition_seed142\\summary.json": {
+      "bytes": 5544,
+      "mtime_ns": 1792968012000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\evaluate\\baseline256_mp_20_composition_seed142\\storage_migration.json": {
+      "bytes": 467,
+      "mtime_ns": 1793445300000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\evaluate\\baseline256_mp_20_fixed_description_seed142\\records.csv": {
+      "bytes": 70326,
+      "mtime_ns": 1792968408000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\evaluate\\baseline256_mp_20_fixed_description_seed142\\quality.png": {
+      "bytes": 118440,
+      "mtime_ns": 1792968410000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\evaluate\\baseline256_mp_20_fixed_description_seed142\\summary.json": {
+      "bytes": 5542,
+      "mtime_ns": 1792968410000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\evaluate\\baseline256_mp_20_fixed_description_seed142\\storage_migration.json": {
+      "bytes": 467,
+      "mtime_ns": 1793445306000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\evaluate\\baseline256_mp_20_fixed_group_seed142\\records.csv": {
+      "bytes": 315173,
+      "mtime_ns": 1792971200000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\evaluate\\baseline256_mp_20_fixed_group_seed142\\groups.csv": {
+      "bytes": 10769,
+      "mtime_ns": 1792971200000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\evaluate\\baseline256_mp_20_fixed_group_seed142\\quality.png": {
+      "bytes": 123452,
+      "mtime_ns": 1792971200000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\evaluate\\baseline256_mp_20_fixed_group_seed142\\summary.json": {
+      "bytes": 5743,
+      "mtime_ns": 1792971200000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\evaluate\\baseline256_mp_20_fixed_group_seed142\\storage_migration.json": {
+      "bytes": 470,
+      "mtime_ns": 1793445332000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\evaluate\\baseline256_components_seed142\\summary.json": {
+      "bytes": 2242,
+      "mtime_ns": 1792947096000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\evaluate\\baseline256_components_seed142\\records.jsonl": {
+      "bytes": 6178525,
+      "mtime_ns": 1792947096000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\evaluate\\baseline256_components_seed142\\status.json": {
+      "bytes": 70,
+      "mtime_ns": 1792947096000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\evaluate\\diagnostic256_components_seed142\\summary.json": {
+      "bytes": 2242,
+      "mtime_ns": 1793387974000000000
+    },
+    "outputs\\mp20_u\\26-10-30-12-50-31\\evaluate\\diagnostic256_components_seed142\\records.jsonl": {
+      "bytes": 6178525,
+      "mtime_ns": 1793387976000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\model.best.pt": {
+      "bytes": 203146562,
+      "mtime_ns": 1793335984000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\model.history.jsonl": {
+      "bytes": 179010,
+      "mtime_ns": 1793335984000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\model.pt": {
+      "bytes": 203143736,
+      "mtime_ns": 1793335988000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\model.status.json": {
+      "bytes": 267,
+      "mtime_ns": 1793335988000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\train.log": {
+      "bytes": 22574,
+      "mtime_ns": 1793335988000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\generate\\baseline256_c2db_51_de_novo_seed142\\samples.jsonl": {
+      "bytes": 664781,
+      "mtime_ns": 1793445338000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\generate\\baseline256_c2db_51_de_novo_seed142\\summary.json": {
+      "bytes": 1939,
+      "mtime_ns": 1792951504000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\generate\\baseline256_c2db_51_de_novo_seed142\\sampling.status.json": {
+      "bytes": 123,
+      "mtime_ns": 1792951504000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\generate\\baseline256_c2db_51_composition_seed142\\samples.jsonl": {
+      "bytes": 732415,
+      "mtime_ns": 1793445346000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\generate\\baseline256_c2db_51_composition_seed142\\summary.json": {
+      "bytes": 2459,
+      "mtime_ns": 1792952210000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\generate\\baseline256_c2db_51_composition_seed142\\sampling.status.json": {
+      "bytes": 123,
+      "mtime_ns": 1792952210000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\generate\\baseline256_c2db_51_fixed_description_seed142\\samples.jsonl": {
+      "bytes": 730955,
+      "mtime_ns": 1793445352000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\generate\\baseline256_c2db_51_fixed_description_seed142\\summary.json": {
+      "bytes": 2474,
+      "mtime_ns": 1792952724000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\generate\\baseline256_c2db_51_fixed_description_seed142\\sampling.status.json": {
+      "bytes": 123,
+      "mtime_ns": 1792952724000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\generate\\baseline256_c2db_51_fixed_group_seed142\\samples.jsonl": {
+      "bytes": 1084728,
+      "mtime_ns": 1793445360000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\generate\\baseline256_c2db_51_fixed_group_seed142\\summary.json": {
+      "bytes": 1932,
+      "mtime_ns": 1792953400000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\generate\\baseline256_c2db_51_fixed_group_seed142\\sampling.status.json": {
+      "bytes": 123,
+      "mtime_ns": 1792953400000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_dng_seed142\\samples.jsonl": {
+      "bytes": 748273,
+      "mtime_ns": 1793445436000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_dng_seed142\\sampling.status.json": {
+      "bytes": 174,
+      "mtime_ns": 1793392042000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_csp_seed142\\samples.jsonl": {
+      "bytes": 10361812,
+      "mtime_ns": 1793445438000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_csp_seed142\\sampling.status.json": {
+      "bytes": 198,
+      "mtime_ns": 1793395650000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_fixed_descriptor_seed142\\samples.jsonl": {
+      "bytes": 818545,
+      "mtime_ns": 1793445438000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_fixed_descriptor_seed142\\sampling.status.json": {
+      "bytes": 174,
+      "mtime_ns": 1793395674000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_group_sweep_seed142\\samples.jsonl": {
+      "bytes": 1216908,
+      "mtime_ns": 1793445438000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_group_sweep_seed142\\sampling.status.json": {
+      "bytes": 174,
+      "mtime_ns": 1793395704000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\evaluate\\baseline256_c2db_51_de_novo_seed142\\records.csv": {
+      "bytes": 62146,
+      "mtime_ns": 1792971614000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\evaluate\\baseline256_c2db_51_de_novo_seed142\\quality.png": {
+      "bytes": 125217,
+      "mtime_ns": 1792971616000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\evaluate\\baseline256_c2db_51_de_novo_seed142\\summary.json": {
+      "bytes": 5508,
+      "mtime_ns": 1792971616000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\evaluate\\baseline256_c2db_51_de_novo_seed142\\storage_migration.json": {
+      "bytes": 467,
+      "mtime_ns": 1793445340000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\evaluate\\baseline256_c2db_51_composition_seed142\\records.csv": {
+      "bytes": 68263,
+      "mtime_ns": 1792971930000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\evaluate\\baseline256_c2db_51_composition_seed142\\quality.png": {
+      "bytes": 125519,
+      "mtime_ns": 1792971930000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\evaluate\\baseline256_c2db_51_composition_seed142\\summary.json": {
+      "bytes": 5548,
+      "mtime_ns": 1792971930000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\evaluate\\baseline256_c2db_51_composition_seed142\\storage_migration.json": {
+      "bytes": 467,
+      "mtime_ns": 1793445346000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\evaluate\\baseline256_c2db_51_fixed_description_seed142\\records.csv": {
+      "bytes": 68637,
+      "mtime_ns": 1792972288000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\evaluate\\baseline256_c2db_51_fixed_description_seed142\\quality.png": {
+      "bytes": 126528,
+      "mtime_ns": 1792972288000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\evaluate\\baseline256_c2db_51_fixed_description_seed142\\summary.json": {
+      "bytes": 5537,
+      "mtime_ns": 1792972288000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\evaluate\\baseline256_c2db_51_fixed_description_seed142\\storage_migration.json": {
+      "bytes": 467,
+      "mtime_ns": 1793445352000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\evaluate\\baseline256_c2db_51_fixed_group_seed142\\records.csv": {
+      "bytes": 107778,
+      "mtime_ns": 1792973004000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\evaluate\\baseline256_c2db_51_fixed_group_seed142\\groups.csv": {
+      "bytes": 3839,
+      "mtime_ns": 1792973004000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\evaluate\\baseline256_c2db_51_fixed_group_seed142\\quality.png": {
+      "bytes": 127301,
+      "mtime_ns": 1792973004000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\evaluate\\baseline256_c2db_51_fixed_group_seed142\\summary.json": {
+      "bytes": 5617,
+      "mtime_ns": 1792973004000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\evaluate\\baseline256_c2db_51_fixed_group_seed142\\storage_migration.json": {
+      "bytes": 467,
+      "mtime_ns": 1793445360000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\evaluate\\baseline256_components_seed142\\summary.json": {
+      "bytes": 2010,
+      "mtime_ns": 1792950970000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\evaluate\\baseline256_components_seed142\\records.jsonl": {
+      "bytes": 2351869,
+      "mtime_ns": 1792950970000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\evaluate\\baseline256_components_seed142\\status.json": {
+      "bytes": 70,
+      "mtime_ns": 1792950970000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\evaluate\\diagnostic256_components_seed142\\summary.json": {
+      "bytes": 2010,
+      "mtime_ns": 1793392014000000000
+    },
+    "outputs\\c2db51_u\\26-10-30-12-50-31\\evaluate\\diagnostic256_components_seed142\\records.jsonl": {
+      "bytes": 2351869,
+      "mtime_ns": 1793392016000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\model.best.pt": {
+      "bytes": 204650754,
+      "mtime_ns": 1793335994000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\model.history.jsonl": {
+      "bytes": 264540,
+      "mtime_ns": 1793335994000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\model.pt": {
+      "bytes": 204647784,
+      "mtime_ns": 1793335998000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\model.status.json": {
+      "bytes": 267,
+      "mtime_ns": 1793335998000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\train.log": {
+      "bytes": 33676,
+      "mtime_ns": 1793335998000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\baseline256_mp_20_de_novo_seed142\\samples.jsonl": {
+      "bytes": 362626,
+      "mtime_ns": 1793445364000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\baseline256_mp_20_de_novo_seed142\\summary.json": {
+      "bytes": 2957,
+      "mtime_ns": 1792954046000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\baseline256_mp_20_de_novo_seed142\\sampling.status.json": {
+      "bytes": 124,
+      "mtime_ns": 1792954046000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\baseline256_mp_20_composition_seed142\\samples.jsonl": {
+      "bytes": 435627,
+      "mtime_ns": 1793445370000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\baseline256_mp_20_composition_seed142\\summary.json": {
+      "bytes": 3497,
+      "mtime_ns": 1792954304000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\baseline256_mp_20_composition_seed142\\sampling.status.json": {
+      "bytes": 124,
+      "mtime_ns": 1792954304000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\baseline256_mp_20_fixed_description_seed142\\samples.jsonl": {
+      "bytes": 424617,
+      "mtime_ns": 1793445374000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\baseline256_mp_20_fixed_description_seed142\\summary.json": {
+      "bytes": 3496,
+      "mtime_ns": 1792954640000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\baseline256_mp_20_fixed_description_seed142\\sampling.status.json": {
+      "bytes": 123,
+      "mtime_ns": 1792954640000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\baseline256_mp_20_fixed_group_seed142\\samples.jsonl": {
+      "bytes": 3975172,
+      "mtime_ns": 1793445408000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\baseline256_mp_20_fixed_group_seed142\\summary.json": {
+      "bytes": 3019,
+      "mtime_ns": 1792957792000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\baseline256_mp_20_fixed_group_seed142\\sampling.status.json": {
+      "bytes": 127,
+      "mtime_ns": 1792957792000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\baseline256_c2db_51_de_novo_seed142\\samples.jsonl": {
+      "bytes": 331817,
+      "mtime_ns": 1793445410000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\baseline256_c2db_51_de_novo_seed142\\summary.json": {
+      "bytes": 1960,
+      "mtime_ns": 1792957960000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\baseline256_c2db_51_de_novo_seed142\\sampling.status.json": {
+      "bytes": 124,
+      "mtime_ns": 1792957960000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\baseline256_c2db_51_composition_seed142\\samples.jsonl": {
+      "bytes": 367915,
+      "mtime_ns": 1793445414000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\baseline256_c2db_51_composition_seed142\\summary.json": {
+      "bytes": 2482,
+      "mtime_ns": 1792958156000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\baseline256_c2db_51_composition_seed142\\sampling.status.json": {
+      "bytes": 123,
+      "mtime_ns": 1792958156000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\baseline256_c2db_51_fixed_description_seed142\\samples.jsonl": {
+      "bytes": 370369,
+      "mtime_ns": 1793445416000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\baseline256_c2db_51_fixed_description_seed142\\summary.json": {
+      "bytes": 2481,
+      "mtime_ns": 1792958362000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\baseline256_c2db_51_fixed_description_seed142\\sampling.status.json": {
+      "bytes": 124,
+      "mtime_ns": 1792958362000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\baseline256_c2db_51_fixed_group_seed142\\samples.jsonl": {
+      "bytes": 1093938,
+      "mtime_ns": 1793445428000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\baseline256_c2db_51_fixed_group_seed142\\summary.json": {
+      "bytes": 1957,
+      "mtime_ns": 1792958954000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\baseline256_c2db_51_fixed_group_seed142\\sampling.status.json": {
+      "bytes": 123,
+      "mtime_ns": 1792958954000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_dng_seed142\\samples.jsonl": {
+      "bytes": 403878,
+      "mtime_ns": 1793445440000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_dng_seed142\\sampling.status.json": {
+      "bytes": 174,
+      "mtime_ns": 1793395728000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_csp_seed142\\samples.jsonl": {
+      "bytes": 6693727,
+      "mtime_ns": 1793445440000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_csp_seed142\\sampling.status.json": {
+      "bytes": 197,
+      "mtime_ns": 1793397752000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_fixed_descriptor_seed142\\samples.jsonl": {
+      "bytes": 467885,
+      "mtime_ns": 1793445440000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_fixed_descriptor_seed142\\sampling.status.json": {
+      "bytes": 174,
+      "mtime_ns": 1793397772000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_group_sweep_seed142\\samples.jsonl": {
+      "bytes": 4352452,
+      "mtime_ns": 1793445442000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_group_sweep_seed142\\sampling.status.json": {
+      "bytes": 178,
+      "mtime_ns": 1793397842000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_dng_seed142\\samples.jsonl": {
+      "bytes": 373325,
+      "mtime_ns": 1793445442000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_dng_seed142\\sampling.status.json": {
+      "bytes": 174,
+      "mtime_ns": 1793397862000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_csp_seed142\\samples.jsonl": {
+      "bytes": 5266471,
+      "mtime_ns": 1793445444000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_csp_seed142\\sampling.status.json": {
+      "bytes": 196,
+      "mtime_ns": 1793399750000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_fixed_descriptor_seed142\\samples.jsonl": {
+      "bytes": 413966,
+      "mtime_ns": 1793445444000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_fixed_descriptor_seed142\\sampling.status.json": {
+      "bytes": 174,
+      "mtime_ns": 1793399770000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_group_sweep_seed142\\samples.jsonl": {
+      "bytes": 1225718,
+      "mtime_ns": 1793445444000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_group_sweep_seed142\\sampling.status.json": {
+      "bytes": 174,
+      "mtime_ns": 1793399802000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\baseline256_mp_20_de_novo_seed142\\records.csv": {
+      "bytes": 31593,
+      "mtime_ns": 1792979508000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\baseline256_mp_20_de_novo_seed142\\quality.png": {
+      "bytes": 116046,
+      "mtime_ns": 1792979510000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\baseline256_mp_20_de_novo_seed142\\summary.json": {
+      "bytes": 6026,
+      "mtime_ns": 1792979510000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\baseline256_mp_20_de_novo_seed142\\storage_migration.json": {
+      "bytes": 467,
+      "mtime_ns": 1793445366000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\baseline256_mp_20_composition_seed142\\records.csv": {
+      "bytes": 33814,
+      "mtime_ns": 1792979596000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\baseline256_mp_20_composition_seed142\\quality.png": {
+      "bytes": 117414,
+      "mtime_ns": 1792979596000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\baseline256_mp_20_composition_seed142\\summary.json": {
+      "bytes": 6021,
+      "mtime_ns": 1792979596000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\baseline256_mp_20_composition_seed142\\storage_migration.json": {
+      "bytes": 467,
+      "mtime_ns": 1793445370000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\baseline256_mp_20_fixed_description_seed142\\records.csv": {
+      "bytes": 34355,
+      "mtime_ns": 1792979688000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\baseline256_mp_20_fixed_description_seed142\\quality.png": {
+      "bytes": 115657,
+      "mtime_ns": 1792979688000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\baseline256_mp_20_fixed_description_seed142\\summary.json": {
+      "bytes": 6038,
+      "mtime_ns": 1792979688000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\baseline256_mp_20_fixed_description_seed142\\storage_migration.json": {
+      "bytes": 467,
+      "mtime_ns": 1793445374000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\baseline256_mp_20_fixed_group_seed142\\records.csv": {
+      "bytes": 315532,
+      "mtime_ns": 1792981098000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\baseline256_mp_20_fixed_group_seed142\\groups.csv": {
+      "bytes": 10769,
+      "mtime_ns": 1792981098000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\baseline256_mp_20_fixed_group_seed142\\quality.png": {
+      "bytes": 124423,
+      "mtime_ns": 1792981098000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\baseline256_mp_20_fixed_group_seed142\\summary.json": {
+      "bytes": 6303,
+      "mtime_ns": 1792981098000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\baseline256_mp_20_fixed_group_seed142\\storage_migration.json": {
+      "bytes": 470,
+      "mtime_ns": 1793445408000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\baseline256_c2db_51_de_novo_seed142\\records.csv": {
+      "bytes": 31507,
+      "mtime_ns": 1792982596000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\baseline256_c2db_51_de_novo_seed142\\quality.png": {
+      "bytes": 118382,
+      "mtime_ns": 1792982596000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\baseline256_c2db_51_de_novo_seed142\\summary.json": {
+      "bytes": 6002,
+      "mtime_ns": 1792982596000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\baseline256_c2db_51_de_novo_seed142\\storage_migration.json": {
+      "bytes": 467,
+      "mtime_ns": 1793445412000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\baseline256_c2db_51_composition_seed142\\records.csv": {
+      "bytes": 33623,
+      "mtime_ns": 1792982702000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\baseline256_c2db_51_composition_seed142\\quality.png": {
+      "bytes": 121018,
+      "mtime_ns": 1792982702000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\baseline256_c2db_51_composition_seed142\\summary.json": {
+      "bytes": 6008,
+      "mtime_ns": 1792982702000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\baseline256_c2db_51_composition_seed142\\storage_migration.json": {
+      "bytes": 467,
+      "mtime_ns": 1793445414000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\baseline256_c2db_51_fixed_description_seed142\\records.csv": {
+      "bytes": 34257,
+      "mtime_ns": 1792982810000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\baseline256_c2db_51_fixed_description_seed142\\quality.png": {
+      "bytes": 121413,
+      "mtime_ns": 1792982810000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\baseline256_c2db_51_fixed_description_seed142\\summary.json": {
+      "bytes": 6016,
+      "mtime_ns": 1792982810000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\baseline256_c2db_51_fixed_description_seed142\\storage_migration.json": {
+      "bytes": 467,
+      "mtime_ns": 1793445416000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\baseline256_c2db_51_fixed_group_seed142\\records.csv": {
+      "bytes": 105035,
+      "mtime_ns": 1792983316000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\baseline256_c2db_51_fixed_group_seed142\\groups.csv": {
+      "bytes": 3839,
+      "mtime_ns": 1792983316000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\baseline256_c2db_51_fixed_group_seed142\\quality.png": {
+      "bytes": 124999,
+      "mtime_ns": 1792983316000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\baseline256_c2db_51_fixed_group_seed142\\summary.json": {
+      "bytes": 6090,
+      "mtime_ns": 1792983316000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\baseline256_c2db_51_fixed_group_seed142\\storage_migration.json": {
+      "bytes": 467,
+      "mtime_ns": 1793445428000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\baseline256_components_seed142\\summary.json": {
+      "bytes": 3120,
+      "mtime_ns": 1792953796000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\baseline256_components_seed142\\records.jsonl": {
+      "bytes": 8474995,
+      "mtime_ns": 1792953796000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\baseline256_components_seed142\\status.json": {
+      "bytes": 72,
+      "mtime_ns": 1792953794000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\diagnostic256_components_seed142\\summary.json": {
+      "bytes": 3120,
+      "mtime_ns": 1793395706000000000
+    },
+    "outputs\\joint_u\\26-10-30-12-50-31\\evaluate\\diagnostic256_components_seed142\\records.jsonl": {
+      "bytes": 8474995,
+      "mtime_ns": 1793395706000000000
+    },
+    "outputs\\mp20_all\\26-10-30-12-50-31\\model.best.pt": {
+      "bytes": 216069986,
+      "mtime_ns": 1793336002000000000
+    },
+    "outputs\\mp20_all\\26-10-30-12-50-31\\model.history.jsonl": {
+      "bytes": 229087,
+      "mtime_ns": 1793336002000000000
+    },
+    "outputs\\mp20_all\\26-10-30-12-50-31\\model.pt": {
+      "bytes": 216066496,
+      "mtime_ns": 1793336004000000000
+    },
+    "outputs\\mp20_all\\26-10-30-12-50-31\\model.status.json": {
+      "bytes": 268,
+      "mtime_ns": 1793336004000000000
+    },
+    "outputs\\mp20_all\\26-10-30-12-50-31\\train.log": {
+      "bytes": 29298,
+      "mtime_ns": 1793336004000000000
+    },
+    "outputs\\mp20_all\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_dng_seed142\\samples.jsonl": {
+      "bytes": 533000,
+      "mtime_ns": 1793445444000000000
+    },
+    "outputs\\mp20_all\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_dng_seed142\\sampling.status.json": {
+      "bytes": 190,
+      "mtime_ns": 1793400176000000000
+    },
+    "outputs\\mp20_all\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_csp_seed142\\samples.jsonl": {
+      "bytes": 13054739,
+      "mtime_ns": 1793445448000000000
+    },
+    "outputs\\mp20_all\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_csp_seed142\\sampling.status.json": {
+      "bytes": 196,
+      "mtime_ns": 1793404314000000000
+    },
+    "outputs\\mp20_all\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_fixed_descriptor_seed142\\samples.jsonl": {
+      "bytes": 626809,
+      "mtime_ns": 1793445448000000000
+    },
+    "outputs\\mp20_all\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_fixed_descriptor_seed142\\sampling.status.json": {
+      "bytes": 191,
+      "mtime_ns": 1793404522000000000
+    },
+    "outputs\\mp20_all\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_group_sweep_seed142\\samples.jsonl": {
+      "bytes": 2992232,
+      "mtime_ns": 1793445448000000000
+    },
+    "outputs\\mp20_all\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_group_sweep_seed142\\sampling.status.json": {
+      "bytes": 194,
+      "mtime_ns": 1793405658000000000
+    },
+    "outputs\\mp20_all\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_dng_formation_energy_q0_seed142\\samples.jsonl": {
+      "bytes": 352610,
+      "mtime_ns": 1793445448000000000
+    },
+    "outputs\\mp20_all\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_dng_formation_energy_q0_seed142\\sampling.status.json": {
+      "bytes": 188,
+      "mtime_ns": 1793405882000000000
+    },
+    "outputs\\mp20_all\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_dng_formation_energy_q1_seed142\\samples.jsonl": {
+      "bytes": 268180,
+      "mtime_ns": 1793445450000000000
+    },
+    "outputs\\mp20_all\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_dng_formation_energy_q1_seed142\\sampling.status.json": {
+      "bytes": 191,
+      "mtime_ns": 1793406096000000000
+    },
+    "outputs\\mp20_all\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_dng_formation_energy_q2_seed142\\samples.jsonl": {
+      "bytes": 247562,
+      "mtime_ns": 1793445450000000000
+    },
+    "outputs\\mp20_all\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_dng_formation_energy_q2_seed142\\sampling.status.json": {
+      "bytes": 191,
+      "mtime_ns": 1793406300000000000
+    },
+    "outputs\\mp20_all\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_dng_band_gap_q0_seed142\\samples.jsonl": {
+      "bytes": 246583,
+      "mtime_ns": 1793445450000000000
+    },
+    "outputs\\mp20_all\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_dng_band_gap_q0_seed142\\sampling.status.json": {
+      "bytes": 190,
+      "mtime_ns": 1793406508000000000
+    },
+    "outputs\\mp20_all\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_dng_band_gap_q1_seed142\\samples.jsonl": {
+      "bytes": 331309,
+      "mtime_ns": 1793445450000000000
+    },
+    "outputs\\mp20_all\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_dng_band_gap_q1_seed142\\sampling.status.json": {
+      "bytes": 190,
+      "mtime_ns": 1793406728000000000
+    },
+    "outputs\\mp20_all\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_dng_energy_above_hull_q0_seed142\\samples.jsonl": {
+      "bytes": 256554,
+      "mtime_ns": 1793445450000000000
+    },
+    "outputs\\mp20_all\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_dng_energy_above_hull_q0_seed142\\sampling.status.json": {
+      "bytes": 191,
+      "mtime_ns": 1793406940000000000
+    },
+    "outputs\\mp20_all\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_dng_energy_above_hull_q1_seed142\\samples.jsonl": {
+      "bytes": 284586,
+      "mtime_ns": 1793445450000000000
+    },
+    "outputs\\mp20_all\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_dng_energy_above_hull_q1_seed142\\sampling.status.json": {
+      "bytes": 190,
+      "mtime_ns": 1793407158000000000
+    },
+    "outputs\\mp20_all\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_dng_energy_above_hull_q2_seed142\\samples.jsonl": {
+      "bytes": 309023,
+      "mtime_ns": 1793445450000000000
+    },
+    "outputs\\mp20_all\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_dng_energy_above_hull_q2_seed142\\sampling.status.json": {
+      "bytes": 190,
+      "mtime_ns": 1793407382000000000
+    },
+    "outputs\\mp20_all\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_dng_joint_q0_seed142\\samples.jsonl": {
+      "bytes": 376686,
+      "mtime_ns": 1793445452000000000
+    },
+    "outputs\\mp20_all\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_dng_joint_q0_seed142\\sampling.status.json": {
+      "bytes": 190,
+      "mtime_ns": 1793407634000000000
+    },
+    "outputs\\mp20_all\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_dng_joint_q1_seed142\\samples.jsonl": {
+      "bytes": 262268,
+      "mtime_ns": 1793445452000000000
+    },
+    "outputs\\mp20_all\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_dng_joint_q1_seed142\\sampling.status.json": {
+      "bytes": 191,
+      "mtime_ns": 1793407854000000000
+    },
+    "outputs\\mp20_all\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_dng_joint_q2_seed142\\samples.jsonl": {
+      "bytes": 281977,
+      "mtime_ns": 1793445452000000000
+    },
+    "outputs\\mp20_all\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_dng_joint_q2_seed142\\sampling.status.json": {
+      "bytes": 191,
+      "mtime_ns": 1793408082000000000
+    },
+    "outputs\\mp20_all\\26-10-30-12-50-31\\evaluate\\diagnostic256_components_seed142\\summary.json": {
+      "bytes": 2991,
+      "mtime_ns": 1793399960000000000
+    },
+    "outputs\\c2db51_all\\26-10-30-12-50-31\\model.best.pt": {
+      "bytes": 215091298,
+      "mtime_ns": 1793336008000000000
+    },
+    "outputs\\c2db51_all\\26-10-30-12-50-31\\model.history.jsonl": {
+      "bytes": 324525,
+      "mtime_ns": 1793336008000000000
+    },
+    "outputs\\c2db51_all\\26-10-30-12-50-31\\model.pt": {
+      "bytes": 215087808,
+      "mtime_ns": 1793336010000000000
+    },
+    "outputs\\c2db51_all\\26-10-30-12-50-31\\model.status.json": {
+      "bytes": 268,
+      "mtime_ns": 1793336010000000000
+    },
+    "outputs\\c2db51_all\\26-10-30-12-50-31\\train.log": {
+      "bytes": 40301,
+      "mtime_ns": 1793336010000000000
+    },
+    "outputs\\c2db51_all\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_dng_seed142\\samples.jsonl": {
+      "bytes": 492698,
+      "mtime_ns": 1793445452000000000
+    },
+    "outputs\\c2db51_all\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_dng_seed142\\sampling.status.json": {
+      "bytes": 191,
+      "mtime_ns": 1793408338000000000
+    },
+    "outputs\\c2db51_all\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_csp_seed142\\samples.jsonl": {
+      "bytes": 10096787,
+      "mtime_ns": 1793445454000000000
+    },
+    "outputs\\c2db51_all\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_csp_seed142\\sampling.status.json": {
+      "bytes": 194,
+      "mtime_ns": 1793412148000000000
+    },
+    "outputs\\c2db51_all\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_fixed_descriptor_seed142\\samples.jsonl": {
+      "bytes": 505614,
+      "mtime_ns": 1793445454000000000
+    },
+    "outputs\\c2db51_all\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_fixed_descriptor_seed142\\sampling.status.json": {
+      "bytes": 190,
+      "mtime_ns": 1793412342000000000
+    },
+    "outputs\\c2db51_all\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_group_sweep_seed142\\samples.jsonl": {
+      "bytes": 792156,
+      "mtime_ns": 1793445456000000000
+    },
+    "outputs\\c2db51_all\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_group_sweep_seed142\\sampling.status.json": {
+      "bytes": 191,
+      "mtime_ns": 1793412658000000000
+    },
+    "outputs\\c2db51_all\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_dng_formation_energy_q0_seed142\\samples.jsonl": {
+      "bytes": 251115,
+      "mtime_ns": 1793445456000000000
+    },
+    "outputs\\c2db51_all\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_dng_formation_energy_q0_seed142\\sampling.status.json": {
+      "bytes": 191,
+      "mtime_ns": 1793412858000000000
+    },
+    "outputs\\c2db51_all\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_dng_formation_energy_q1_seed142\\samples.jsonl": {
+      "bytes": 273467,
+      "mtime_ns": 1793445458000000000
+    },
+    "outputs\\c2db51_all\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_dng_formation_energy_q1_seed142\\sampling.status.json": {
+      "bytes": 190,
+      "mtime_ns": 1793413068000000000
+    },
+    "outputs\\c2db51_all\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_dng_formation_energy_q2_seed142\\samples.jsonl": {
+      "bytes": 219685,
+      "mtime_ns": 1793445458000000000
+    },
+    "outputs\\c2db51_all\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_dng_formation_energy_q2_seed142\\sampling.status.json": {
+      "bytes": 191,
+      "mtime_ns": 1793413268000000000
+    },
+    "outputs\\c2db51_all\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_dng_band_gap_q0_seed142\\samples.jsonl": {
+      "bytes": 216201,
+      "mtime_ns": 1793445458000000000
+    },
+    "outputs\\c2db51_all\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_dng_band_gap_q0_seed142\\sampling.status.json": {
+      "bytes": 191,
+      "mtime_ns": 1793413474000000000
+    },
+    "outputs\\c2db51_all\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_dng_band_gap_q1_seed142\\samples.jsonl": {
+      "bytes": 220853,
+      "mtime_ns": 1793445460000000000
+    },
+    "outputs\\c2db51_all\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_dng_band_gap_q1_seed142\\sampling.status.json": {
+      "bytes": 191,
+      "mtime_ns": 1793413680000000000
+    },
+    "outputs\\c2db51_all\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_dng_band_gap_q2_seed142\\samples.jsonl": {
+      "bytes": 255311,
+      "mtime_ns": 1793445460000000000
+    },
+    "outputs\\c2db51_all\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_dng_band_gap_q2_seed142\\sampling.status.json": {
+      "bytes": 191,
+      "mtime_ns": 1793413882000000000
+    },
+    "outputs\\c2db51_all\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_dng_energy_above_hull_q0_seed142\\samples.jsonl": {
+      "bytes": 244866,
+      "mtime_ns": 1793445460000000000
+    },
+    "outputs\\c2db51_all\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_dng_energy_above_hull_q0_seed142\\sampling.status.json": {
+      "bytes": 191,
+      "mtime_ns": 1793414088000000000
+    },
+    "outputs\\c2db51_all\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_dng_energy_above_hull_q1_seed142\\samples.jsonl": {
+      "bytes": 259689,
+      "mtime_ns": 1793445460000000000
+    },
+    "outputs\\c2db51_all\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_dng_energy_above_hull_q1_seed142\\sampling.status.json": {
+      "bytes": 191,
+      "mtime_ns": 1793414294000000000
+    },
+    "outputs\\c2db51_all\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_dng_energy_above_hull_q2_seed142\\samples.jsonl": {
+      "bytes": 213364,
+      "mtime_ns": 1793445460000000000
+    },
+    "outputs\\c2db51_all\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_dng_energy_above_hull_q2_seed142\\sampling.status.json": {
+      "bytes": 190,
+      "mtime_ns": 1793414494000000000
+    },
+    "outputs\\c2db51_all\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_dng_joint_q0_seed142\\samples.jsonl": {
+      "bytes": 226794,
+      "mtime_ns": 1793445460000000000
+    },
+    "outputs\\c2db51_all\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_dng_joint_q0_seed142\\sampling.status.json": {
+      "bytes": 191,
+      "mtime_ns": 1793414704000000000
+    },
+    "outputs\\c2db51_all\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_dng_joint_q1_seed142\\samples.jsonl": {
+      "bytes": 262303,
+      "mtime_ns": 1793445462000000000
+    },
+    "outputs\\c2db51_all\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_dng_joint_q1_seed142\\sampling.status.json": {
+      "bytes": 191,
+      "mtime_ns": 1793414918000000000
+    },
+    "outputs\\c2db51_all\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_dng_joint_q2_seed142\\samples.jsonl": {
+      "bytes": 190171,
+      "mtime_ns": 1793445462000000000
+    },
+    "outputs\\c2db51_all\\26-10-30-12-50-31\\generate\\diagnostic256_c2db_51_dng_joint_q2_seed142\\sampling.status.json": {
+      "bytes": 191,
+      "mtime_ns": 1793415124000000000
+    },
+    "outputs\\c2db51_all\\26-10-30-12-50-31\\evaluate\\diagnostic256_components_seed142\\summary.json": {
+      "bytes": 2983,
+      "mtime_ns": 1793408128000000000
+    },
+    "outputs\\joint_all\\26-10-30-12-50-31\\model.best.pt": {
+      "bytes": 216595810,
+      "mtime_ns": 1793336014000000000
+    },
+    "outputs\\joint_all\\26-10-30-12-50-31\\model.history.jsonl": {
+      "bytes": 170477,
+      "mtime_ns": 1793336014000000000
+    },
+    "outputs\\joint_all\\26-10-30-12-50-31\\model.pt": {
+      "bytes": 216592304,
+      "mtime_ns": 1793336020000000000
+    },
+    "outputs\\joint_all\\26-10-30-12-50-31\\model.status.json": {
+      "bytes": 268,
+      "mtime_ns": 1793336020000000000
+    },
+    "outputs\\joint_all\\26-10-30-12-50-31\\train.log": {
+      "bytes": 21935,
+      "mtime_ns": 1793336020000000000
+    },
+    "outputs\\joint_all\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_dng_seed142\\samples.jsonl": {
+      "bytes": 270319,
+      "mtime_ns": 1793445464000000000
+    },
+    "outputs\\joint_all\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_dng_seed142\\sampling.status.json": {
+      "bytes": 190,
+      "mtime_ns": 1793415454000000000
+    },
+    "outputs\\joint_all\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_csp_seed142\\samples.jsonl": {
+      "bytes": 6498856,
+      "mtime_ns": 1793445464000000000
+    },
+    "outputs\\joint_all\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_csp_seed142\\sampling.status.json": {
+      "bytes": 196,
+      "mtime_ns": 1793417628000000000
+    },
+    "outputs\\joint_all\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_fixed_descriptor_seed142\\samples.jsonl": {
+      "bytes": 312025,
+      "mtime_ns": 1793445464000000000
+    },
+    "outputs\\joint_all\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_fixed_descriptor_seed142\\sampling.status.json": {
+      "bytes": 191,
+      "mtime_ns": 1793417746000000000
+    },
+    "outputs\\joint_all\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_group_sweep_seed142\\samples.jsonl": {
+      "bytes": 993479,
+      "mtime_ns": 1793445464000000000
+    },
+    "outputs\\joint_all\\26-10-30-12-50-31\\generate\\diagnostic256_mp_20_group_sweep_seed142\\sampling.status.json": {
+      "bytes": 355,
+      "mtime_ns": 1793445738000000000
+    },
+    "outputs\\joint_all\\26-10-30-12-50-31\\evaluate\\diagnostic256_components_seed142\\summary.json": {
+      "bytes": 4292,
+      "mtime_ns": 1793415328000000000
+    },
+    "outputs\\mp20_ef\\26-10-30-12-50-31\\model.best.pt": {
+      "bytes": 208106914,
+      "mtime_ns": 1793336024000000000
+    },
+    "outputs\\mp20_ef\\26-10-30-12-50-31\\model.history.jsonl": {
+      "bytes": 158356,
+      "mtime_ns": 1793336026000000000
+    },
+    "outputs\\mp20_ef\\26-10-30-12-50-31\\model.pt": {
+      "bytes": 208103824,
+      "mtime_ns": 1793336030000000000
+    },
+    "outputs\\mp20_ef\\26-10-30-12-50-31\\model.status.json": {
+      "bytes": 268,
+      "mtime_ns": 1793336030000000000
+    },
+    "outputs\\mp20_ef\\26-10-30-12-50-31\\train.log": {
+      "bytes": 20471,
+      "mtime_ns": 1793336030000000000
+    },
+    "outputs\\mp20_eg\\26-10-30-12-50-31\\model.best.pt": {
+      "bytes": 208106786,
+      "mtime_ns": 1793336036000000000
+    },
+    "outputs\\mp20_eg\\26-10-30-12-50-31\\model.history.jsonl": {
+      "bytes": 158250,
+      "mtime_ns": 1793336036000000000
+    },
+    "outputs\\mp20_eg\\26-10-30-12-50-31\\model.pt": {
+      "bytes": 208103696,
+      "mtime_ns": 1793336040000000000
+    },
+    "outputs\\mp20_eg\\26-10-30-12-50-31\\model.status.json": {
+      "bytes": 266,
+      "mtime_ns": 1793336042000000000
+    },
+    "outputs\\mp20_eg\\26-10-30-12-50-31\\train.log": {
+      "bytes": 20470,
+      "mtime_ns": 1793336042000000000
+    },
+    "outputs\\mp20_eh\\26-10-30-12-50-31\\model.best.pt": {
+      "bytes": 208106914,
+      "mtime_ns": 1793336048000000000
+    },
+    "outputs\\mp20_eh\\26-10-30-12-50-31\\model.history.jsonl": {
+      "bytes": 158362,
+      "mtime_ns": 1793336048000000000
+    },
+    "outputs\\mp20_eh\\26-10-30-12-50-31\\model.pt": {
+      "bytes": 208103824,
+      "mtime_ns": 1793336052000000000
+    },
+    "outputs\\mp20_eh\\26-10-30-12-50-31\\model.status.json": {
+      "bytes": 268,
+      "mtime_ns": 1793336052000000000
+    },
+    "outputs\\mp20_eh\\26-10-30-12-50-31\\train.log": {
+      "bytes": 20482,
+      "mtime_ns": 1793336054000000000
+    },
+    "outputs\\c2db51_ef\\26-10-30-12-50-31\\model.best.pt": {
+      "bytes": 207128226,
+      "mtime_ns": 1793336058000000000
+    },
+    "outputs\\c2db51_ef\\26-10-30-12-50-31\\model.history.jsonl": {
+      "bytes": 208168,
+      "mtime_ns": 1793336058000000000
+    },
+    "outputs\\c2db51_ef\\26-10-30-12-50-31\\model.pt": {
+      "bytes": 207125136,
+      "mtime_ns": 1793336064000000000
+    },
+    "outputs\\c2db51_ef\\26-10-30-12-50-31\\model.status.json": {
+      "bytes": 268,
+      "mtime_ns": 1793336064000000000
+    },
+    "outputs\\c2db51_ef\\26-10-30-12-50-31\\train.log": {
+      "bytes": 26136,
+      "mtime_ns": 1793336064000000000
+    },
+    "outputs\\c2db51_eg\\26-10-30-12-50-31\\model.best.pt": {
+      "bytes": 207128034,
+      "mtime_ns": 1793336070000000000
+    },
+    "outputs\\c2db51_eg\\26-10-30-12-50-31\\model.history.jsonl": {
+      "bytes": 179168,
+      "mtime_ns": 1793336070000000000
+    },
+    "outputs\\c2db51_eg\\26-10-30-12-50-31\\model.pt": {
+      "bytes": 207125008,
+      "mtime_ns": 1793336074000000000
+    },
+    "outputs\\c2db51_eg\\26-10-30-12-50-31\\model.status.json": {
+      "bytes": 268,
+      "mtime_ns": 1793336074000000000
+    },
+    "outputs\\c2db51_eg\\26-10-30-12-50-31\\train.log": {
+      "bytes": 22576,
+      "mtime_ns": 1793336074000000000
+    },
+    "outputs\\c2db51_eh\\26-10-30-12-50-31\\model.best.pt": {
+      "bytes": 207128226,
+      "mtime_ns": 1793336080000000000
+    },
+    "outputs\\c2db51_eh\\26-10-30-12-50-31\\model.history.jsonl": {
+      "bytes": 179098,
+      "mtime_ns": 1793336080000000000
+    },
+    "outputs\\c2db51_eh\\26-10-30-12-50-31\\model.pt": {
+      "bytes": 207125136,
+      "mtime_ns": 1793336084000000000
+    },
+    "outputs\\c2db51_eh\\26-10-30-12-50-31\\model.status.json": {
+      "bytes": 268,
+      "mtime_ns": 1793336086000000000
+    },
+    "outputs\\c2db51_eh\\26-10-30-12-50-31\\train.log": {
+      "bytes": 22575,
+      "mtime_ns": 1793336086000000000
+    },
+    "outputs\\joint_ef\\26-10-30-12-50-31\\model.best.pt": {
+      "bytes": 208632546,
+      "mtime_ns": 1793336090000000000
+    },
+    "outputs\\joint_ef\\26-10-30-12-50-31\\model.history.jsonl": {
+      "bytes": 135110,
+      "mtime_ns": 1793336090000000000
+    },
+    "outputs\\joint_ef\\26-10-30-12-50-31\\model.pt": {
+      "bytes": 208629440,
+      "mtime_ns": 1793336096000000000
+    },
+    "outputs\\joint_ef\\26-10-30-12-50-31\\model.status.json": {
+      "bytes": 268,
+      "mtime_ns": 1793336096000000000
+    },
+    "outputs\\joint_ef\\26-10-30-12-50-31\\train.log": {
+      "bytes": 17559,
+      "mtime_ns": 1793336096000000000
+    },
+    "outputs\\joint_eg\\26-10-30-12-50-31\\model.best.pt": {
+      "bytes": 208632354,
+      "mtime_ns": 1793336102000000000
+    },
+    "outputs\\joint_eg\\26-10-30-12-50-31\\model.history.jsonl": {
+      "bytes": 170376,
+      "mtime_ns": 1793336102000000000
+    },
+    "outputs\\joint_eg\\26-10-30-12-50-31\\model.pt": {
+      "bytes": 208629248,
+      "mtime_ns": 1793336106000000000
+    },
+    "outputs\\joint_eg\\26-10-30-12-50-31\\model.status.json": {
+      "bytes": 269,
+      "mtime_ns": 1793336106000000000
+    },
+    "outputs\\joint_eg\\26-10-30-12-50-31\\train.log": {
+      "bytes": 21937,
+      "mtime_ns": 1793336106000000000
+    },
+    "outputs\\joint_eh\\26-10-30-12-50-31\\model.best.pt": {
+      "bytes": 208632610,
+      "mtime_ns": 1793336112000000000
+    },
+    "outputs\\joint_eh\\26-10-30-12-50-31\\model.history.jsonl": {
+      "bytes": 152696,
+      "mtime_ns": 1793336112000000000
+    },
+    "outputs\\joint_eh\\26-10-30-12-50-31\\model.pt": {
+      "bytes": 208629440,
+      "mtime_ns": 1793336118000000000
+    },
+    "outputs\\joint_eh\\26-10-30-12-50-31\\model.status.json": {
+      "bytes": 269,
+      "mtime_ns": 1793336118000000000
+    },
+    "outputs\\joint_eh\\26-10-30-12-50-31\\train.log": {
+      "bytes": 19739,
+      "mtime_ns": 1793336118000000000
+    }
+  },
+  "checked_at": 1793448244.8681056
+}

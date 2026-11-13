@@ -1,0 +1,11 @@
+family: joint_flow_v2
+backbone: joint_atom_graph
+hidden: 128
+layers: 4
+heads: 4
+max_atoms: 192
+max_orbits: 52
+task_controls: true
+operation_compiler: true
+edge_chunk_size: 8192
+checkpoint_layers: false

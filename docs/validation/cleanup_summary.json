@@ -1,0 +1,33 @@
+{
+  "state": "complete",
+  "checked_at": 1793448491.4100447,
+  "planned_deleted_gib": 22.28,
+  "scanned_obsolete_files": 67198,
+  "current_models": 15,
+  "checkpoint_hashes_verified": 30,
+  "retained_output_files_unchanged": 311,
+  "old_results_removed": true,
+  "old_install_metadata_removed": true,
+  "old_checks_caches_and_web_qa_removed": true,
+  "current_baseline_sources_independent_of_deleted_archives": true,
+  "local_web_export": {
+    "models": 15,
+    "materials": 2,
+    "figures": 24,
+    "baseline_attempts": 5404
+  },
+  "tests": {
+    "passed": 15,
+    "scope": "Result paths, data gates, current baseline dependencies and safe migration checks"
+  },
+  "preserved": [
+    "current model results",
+    "source and encoded datasets",
+    "model source code and configurations",
+    "current figures and manuscript",
+    "local website and mathematical derivations",
+    ".git",
+    ".env"
+  ],
+  "scope": "Local project cleanup only; no training, formal generation, server changes, GitHub push or website publication"
+}

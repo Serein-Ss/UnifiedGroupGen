@@ -1,0 +1,449 @@
+{
+  "schema": "ugg_engineering_release_v1",
+  "date": "2026-11-13",
+  "scope": "Implementation, bounded training/sampling, compatibility and compute-only efficiency; not complete scientific validation",
+  "environment": {
+    "python": "3.10.18",
+    "torch": "2.7.1+cu118",
+    "lightning": "2.5.5",
+    "device": "NVIDIA GeForce RTX 3060"
+  },
+  "tests": [
+    {
+      "tests": 564,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 3,
+      "report": "release_related_tests.xml",
+      "seconds": 170.061,
+      "sha256": "905eec7e960466e67dc957b0eff4e06e27ccc6521d2e41578de9694de3935a30",
+      "skip_reasons": [
+        {
+          "test": "unifiedgroupgen.tests.unit.test_periodic_backbones.test_backbone_forward_backward_and_tangent_constraints[cspnet-options0-bf16-cpu]",
+          "reason": "Training uses CUDA mixed precision"
+        },
+        {
+          "test": "unifiedgroupgen.tests.unit.test_periodic_backbones.test_backbone_forward_backward_and_tangent_constraints[mattergen-options1-bf16-cpu]",
+          "reason": "Training uses CUDA mixed precision"
+        },
+        {
+          "test": "unifiedgroupgen.tests.unit.test_periodic_backbones.test_backbone_forward_backward_and_tangent_constraints[equiformer_v2-options2-bf16-cpu]",
+          "reason": "Training uses CUDA mixed precision"
+        }
+      ]
+    },
+    {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "report": "archive_optimized_tests.xml",
+      "seconds": 75.603,
+      "sha256": "e9b0fdb5b528335c760015ef8cd68ade777a129d54df06ee860a6def95d911cd",
+      "skip_reasons": []
+    },
+    {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "report": "legacy_final_frozen.xml",
+      "seconds": 1750.016,
+      "sha256": "7b26c83725bb4289926d48b0c2ebb80bf02eb00ef31bf2d7deeb3ce39c84044d",
+      "skip_reasons": []
+    }
+  ],
+  "passed": 565,
+  "skipped": 3,
+  "data_audits": [
+    {
+      "selector": "flow_mp20_dng",
+      "chemical_set_probability": 0.0,
+      "passed": true,
+      "training_gate_passed": true,
+      "seconds": 101.43649899994489,
+      "errors": [],
+      "warnings": 3,
+      "records": {
+        "train": 27136,
+        "val": 9047,
+        "test": 9046
+      }
+    },
+    {
+      "selector": "flow_mp20_csp",
+      "passed": true,
+      "seconds": 71.11518590000924,
+      "errors": [],
+      "warnings": 3,
+      "records": {
+        "train": 27136,
+        "val": 9047,
+        "test": 9046
+      },
+      "training_gate_passed": true
+    },
+    {
+      "selector": "flow_mp20_property",
+      "passed": true,
+      "seconds": 73.54308809997747,
+      "errors": [],
+      "warnings": 3,
+      "records": {
+        "train": 27136,
+        "val": 9047,
+        "test": 9046
+      },
+      "training_gate_passed": true
+    },
+    {
+      "selector": "flow_c2db51_dng",
+      "chemical_set_probability": 0.0,
+      "passed": true,
+      "training_gate_passed": true,
+      "seconds": 83.32327110000188,
+      "errors": [],
+      "warnings": 1,
+      "records": {
+        "train": 10143,
+        "val": 3381,
+        "test": 3381
+      }
+    },
+    {
+      "selector": "flow_c2db51_csp",
+      "passed": true,
+      "seconds": 35.46727219998138,
+      "errors": [],
+      "warnings": 1,
+      "records": {
+        "train": 10143,
+        "val": 3381,
+        "test": 3381
+      },
+      "training_gate_passed": true
+    },
+    {
+      "selector": "flow_c2db51_property",
+      "passed": true,
+      "seconds": 40.02317040000344,
+      "errors": [],
+      "warnings": 1,
+      "records": {
+        "train": 10143,
+        "val": 3381,
+        "test": 3381
+      },
+      "training_gate_passed": true
+    }
+  ],
+  "compute_benchmark": {
+    "device": "NVIDIA GeForce RTX 3060",
+    "scope": "Synchronized compute only; excludes CPU teacher construction, validation and I/O; no full training",
+    "rows": [
+      {
+        "dataset": "mp_20",
+        "mode": "fp32",
+        "architecture": {
+          "family": "joint_flow_v2",
+          "backbone": "equiformer_v2",
+          "hidden": 128,
+          "layers": 4,
+          "channels": 128,
+          "heads": 4,
+          "lmax": 4,
+          "mmax": 2,
+          "use_gate_act": true,
+          "cutoff": 6.0,
+          "max_neighbors": 64,
+          "max_images": 16,
+          "task_controls": true,
+          "operation_compiler": true,
+          "edge_chunk_size": 8192,
+          "checkpoint_layers": false
+        },
+        "batch": 4,
+        "record_ids": [
+          "mp-1221227",
+          "mp-1185360",
+          "mp-1188861",
+          "mp-561310"
+        ],
+        "current_atoms": [
+          22,
+          16,
+          16,
+          6
+        ],
+        "median_seconds": 0.6045930999680422,
+        "samples_per_second": 6.6160199317713575,
+        "peak_allocated_MiB": 3048.1064453125,
+        "loss_finite": true,
+        "effective_native_heads": 8,
+        "timed_operations": [
+          "zero_grad",
+          "forward_loss",
+          "backward",
+          "clip_grad_norm",
+          "optimizer_step"
+        ]
+      },
+      {
+        "dataset": "mp_20",
+        "mode": "bf16_fused",
+        "architecture": {
+          "family": "joint_flow_v2",
+          "backbone": "equiformer_v2",
+          "hidden": 128,
+          "layers": 4,
+          "channels": 128,
+          "heads": 4,
+          "lmax": 4,
+          "mmax": 2,
+          "use_gate_act": true,
+          "cutoff": 6.0,
+          "max_neighbors": 64,
+          "max_images": 16,
+          "task_controls": true,
+          "operation_compiler": true,
+          "edge_chunk_size": 8192,
+          "checkpoint_layers": false
+        },
+        "batch": 4,
+        "record_ids": [
+          "mp-1221227",
+          "mp-1185360",
+          "mp-1188861",
+          "mp-561310"
+        ],
+        "current_atoms": [
+          22,
+          16,
+          16,
+          6
+        ],
+        "median_seconds": 0.5276374999666587,
+        "samples_per_second": 7.580962308882063,
+        "peak_allocated_MiB": 1974.7333984375,
+        "loss_finite": true,
+        "effective_native_heads": 8,
+        "timed_operations": [
+          "zero_grad",
+          "forward_loss",
+          "backward",
+          "clip_grad_norm",
+          "optimizer_step"
+        ]
+      },
+      {
+        "dataset": "mp_20",
+        "mode": "bf16_fused_checkpoint",
+        "architecture": {
+          "family": "joint_flow_v2",
+          "backbone": "equiformer_v2",
+          "hidden": 128,
+          "layers": 4,
+          "channels": 128,
+          "heads": 4,
+          "lmax": 4,
+          "mmax": 2,
+          "use_gate_act": true,
+          "cutoff": 6.0,
+          "max_neighbors": 64,
+          "max_images": 16,
+          "task_controls": true,
+          "operation_compiler": true,
+          "edge_chunk_size": 8192,
+          "checkpoint_layers": true
+        },
+        "batch": 4,
+        "record_ids": [
+          "mp-1221227",
+          "mp-1185360",
+          "mp-1188861",
+          "mp-561310"
+        ],
+        "current_atoms": [
+          22,
+          16,
+          16,
+          6
+        ],
+        "median_seconds": 0.7415691999485716,
+        "samples_per_second": 5.393967279489767,
+        "peak_allocated_MiB": 1970.3251953125,
+        "loss_finite": true,
+        "effective_native_heads": 8,
+        "timed_operations": [
+          "zero_grad",
+          "forward_loss",
+          "backward",
+          "clip_grad_norm",
+          "optimizer_step"
+        ]
+      },
+      {
+        "dataset": "c2db_51",
+        "mode": "fp32",
+        "architecture": {
+          "family": "joint_flow_v2",
+          "backbone": "equiformer_v2",
+          "hidden": 128,
+          "layers": 4,
+          "channels": 128,
+          "heads": 4,
+          "lmax": 4,
+          "mmax": 2,
+          "use_gate_act": true,
+          "cutoff": 6.0,
+          "max_neighbors": 64,
+          "max_images": 16,
+          "task_controls": true,
+          "operation_compiler": true,
+          "edge_chunk_size": 8192,
+          "checkpoint_layers": false
+        },
+        "batch": 4,
+        "record_ids": [
+          "1OVF2-2",
+          "1Br2Zr2S3-1",
+          "2HKTe-1",
+          "1BrOI2In2-1"
+        ],
+        "current_atoms": [
+          4,
+          8,
+          6,
+          3
+        ],
+        "median_seconds": 0.294978899997659,
+        "samples_per_second": 13.560291939632782,
+        "peak_allocated_MiB": 794.439453125,
+        "loss_finite": true,
+        "effective_native_heads": 8,
+        "timed_operations": [
+          "zero_grad",
+          "forward_loss",
+          "backward",
+          "clip_grad_norm",
+          "optimizer_step"
+        ]
+      },
+      {
+        "dataset": "c2db_51",
+        "mode": "bf16_fused",
+        "architecture": {
+          "family": "joint_flow_v2",
+          "backbone": "equiformer_v2",
+          "hidden": 128,
+          "layers": 4,
+          "channels": 128,
+          "heads": 4,
+          "lmax": 4,
+          "mmax": 2,
+          "use_gate_act": true,
+          "cutoff": 6.0,
+          "max_neighbors": 64,
+          "max_images": 16,
+          "task_controls": true,
+          "operation_compiler": true,
+          "edge_chunk_size": 8192,
+          "checkpoint_layers": false
+        },
+        "batch": 4,
+        "record_ids": [
+          "1OVF2-2",
+          "1Br2Zr2S3-1",
+          "2HKTe-1",
+          "1BrOI2In2-1"
+        ],
+        "current_atoms": [
+          4,
+          8,
+          6,
+          3
+        ],
+        "median_seconds": 0.2939679999835789,
+        "samples_per_second": 13.606923203285529,
+        "peak_allocated_MiB": 671.841796875,
+        "loss_finite": true,
+        "effective_native_heads": 8,
+        "timed_operations": [
+          "zero_grad",
+          "forward_loss",
+          "backward",
+          "clip_grad_norm",
+          "optimizer_step"
+        ]
+      },
+      {
+        "dataset": "c2db_51",
+        "mode": "bf16_fused_checkpoint",
+        "architecture": {
+          "family": "joint_flow_v2",
+          "backbone": "equiformer_v2",
+          "hidden": 128,
+          "layers": 4,
+          "channels": 128,
+          "heads": 4,
+          "lmax": 4,
+          "mmax": 2,
+          "use_gate_act": true,
+          "cutoff": 6.0,
+          "max_neighbors": 64,
+          "max_images": 16,
+          "task_controls": true,
+          "operation_compiler": true,
+          "edge_chunk_size": 8192,
+          "checkpoint_layers": true
+        },
+        "batch": 4,
+        "record_ids": [
+          "1OVF2-2",
+          "1Br2Zr2S3-1",
+          "2HKTe-1",
+          "1BrOI2In2-1"
+        ],
+        "current_atoms": [
+          4,
+          8,
+          6,
+          3
+        ],
+        "median_seconds": 0.3955530000384897,
+        "samples_per_second": 10.11242488265991,
+        "peak_allocated_MiB": 726.7529296875,
+        "loss_finite": true,
+        "effective_native_heads": 8,
+        "timed_operations": [
+          "zero_grad",
+          "forward_loss",
+          "backward",
+          "clip_grad_norm",
+          "optimizer_step"
+        ]
+      }
+    ]
+  },
+  "wheel": {
+    "build_passed": true,
+    "crc_passed": true,
+    "files": 413,
+    "bytes": 916186,
+    "sha256": "488b4c29573bffc32adbd7a1cb70cb4e0bdb3344a63b16d202a60d05ac195671",
+    "scope": "Built from actual Git index in an isolated copy; dependencies not reinstalled"
+  },
+  "historical_full_regression": {
+    "status": "not_completed",
+    "reason": "Stopped broad rerun in unchanged historical HPC source-hash workflow; not counted as passed",
+    "earlier_detected_issues": "Stale evaluation module-list assertion and fused optimizer clipping integration corrected and retested"
+  },
+  "not_verified": [
+    "Full training convergence",
+    "Long-run BF16 stability",
+    "Full-epoch end-to-end acceleration",
+    "Complete historical HPC suite",
+    "Full material generation quality and DFT",
+    "Magnetic generation"
+  ]
+}

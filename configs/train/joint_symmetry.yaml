@@ -1,0 +1,12 @@
+batch_size: 4
+edge_budget: 200000
+epochs: 200
+precision: fp32
+gradient_clip: 10
+validation_interval: 1
+event_budget: 256
+birth_scale: 0.2
+jump_weight: 1.0
+joint_train_limit: null
+joint_val_limit: null
+joint_max_steps: -1

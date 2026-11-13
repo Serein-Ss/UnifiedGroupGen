@@ -1,0 +1,13 @@
+# @package _global_
+defaults:
+- override /data: c2db51_unified
+- override /model: joint_symmetry
+- override /train: joint_symmetry
+- override /conditioning: none
+- override /learning: unified
+- override /runtime: joint_symmetry
+experiment_name: joint_symmetry_c2db51
+data:
+  data_audit: data/dataset/audits/joint_symmetry_v1/${experiment_name}.json
+experiment:
+  experiment_family: joint_symmetry_v1

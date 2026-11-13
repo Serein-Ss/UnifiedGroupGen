@@ -1,0 +1,29 @@
+{
+  "passed": true,
+  "examples": [
+    {
+      "model": "mp20_u",
+      "dataset": "mp_20",
+      "atoms": 16,
+      "index": 0
+    },
+    {
+      "model": "c2db51_u",
+      "dataset": "c2db_51",
+      "atoms": 6,
+      "index": 0
+    },
+    {
+      "model": "joint_u",
+      "dataset": "mp_20",
+      "atoms": 16,
+      "index": 0
+    },
+    {
+      "model": "joint_u",
+      "dataset": "c2db_51",
+      "atoms": 4,
+      "index": 0
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "passed": true,
+  "records": 16905,
+  "splits": {
+    "train": 10143,
+    "val": 3381,
+    "test": 3381
+  },
+  "properties_unchanged": true,
+  "missing_property_labels": {
+    "band_gap": 8219
+  },
+  "layer_groups": 71,
+  "historical_full_geometry_report_bound_to_current_records": true,
+  "integrity_journal_sha256": "173b92b9d2a741904d2cc3dc2e22c22ec41103830fc730278006bab638310c64",
+  "seconds": 4.0780000002123415,
+  "scope": "All-record label and cryptographic binding of current CIF/encoding to the original full geometry audit; fresh geometry recomputation reported separately.",
+  "checked_at": "2026-10-31T20:40:05.141084+08:00",
+  "historical_geometry_tolerance_angstrom": 0.1,
+  "fresh_recomputation_status": "intermediate/checks/c2db_accuracy_stratified_20261031/status.json",
+  "fresh_recomputation_scope": "451-record completed stratified audit; previous all-record run stopped at 2700, preserved separately"
+}

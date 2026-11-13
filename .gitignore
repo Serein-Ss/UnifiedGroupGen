@@ -1,6 +1,10 @@
 __pycache__/
 .pytest_cache/
+.idea/
+.jbeval/
 *.egg-info/
+build/
+dist/
 artifacts/
 .venv/
 raw_data/

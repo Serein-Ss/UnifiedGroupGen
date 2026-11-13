@@ -1,0 +1,7 @@
+defaults:
+- joint_symmetry
+- _self_
+# Opt-in CUDA execution settings; architecture and probability path unchanged.
+precision: bf16
+fused_adamw: true
+log_every_n_steps: 25

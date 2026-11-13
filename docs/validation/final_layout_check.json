@@ -1,0 +1,13 @@
+{
+  "state": "verified",
+  "models": 15,
+  "unchanged_checkpoints": 30,
+  "training_files_per_run": 5,
+  "generation_tasks": 67,
+  "component_reports": 9,
+  "candidate_records": 44373,
+  "generated": 44130,
+  "failed_retained": 243,
+  "individual_cif_files": 0,
+  "scope": "Storage migration; unchanged trained weights, states, candidate denominators and metric values"
+}

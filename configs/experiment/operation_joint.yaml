@@ -1,0 +1,5 @@
+# @package _global_
+defaults:
+- joint_symmetry_joint
+- override /model: operation_symmetry
+experiment_name: operation_joint

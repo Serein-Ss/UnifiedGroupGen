@@ -1,0 +1,6 @@
+{
+  "metadata_path": "D:\\app\\anaconda3\\envs\\unifiedgroupgen_cuda\\lib\\site-packages\\unifiedgroupgen-0.1.0.dist-info",
+  "entry_points": {
+    "ugg": "unifiedgroupgen.run:main"
+  }
+}

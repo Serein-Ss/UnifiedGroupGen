@@ -1,0 +1,11 @@
+# @package _global_
+defaults:
+- joint_symmetry_c2db51
+- override /model: joint_tasks
+- override /conditioning: none
+experiment_name: task_c2db51_dng
+train:
+  generation_task: dng
+  chemical_set_probability: 0.5
+conditioning:
+  cond_dropout: 0.0

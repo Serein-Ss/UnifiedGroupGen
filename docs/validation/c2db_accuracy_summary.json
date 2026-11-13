@@ -1,0 +1,1411 @@
+{
+  "checked_at": "2026-10-31T20:54:20.840598+08:00",
+  "verification_complete": true,
+  "fresh_geometry_scope": "stratified sample, not all-record recomputation",
+  "records": 16905,
+  "splits": {
+    "train": 10143,
+    "val": 3381,
+    "test": 3381
+  },
+  "current_manifest_check": {
+    "passed": true,
+    "records": 16905,
+    "splits": {
+      "train": 10143,
+      "val": 3381,
+      "test": 3381
+    },
+    "properties_unchanged": true,
+    "missing_property_labels": {
+      "band_gap": 8219
+    },
+    "layer_groups": 71,
+    "historical_full_geometry_report_bound_to_current_records": true,
+    "integrity_journal_sha256": "173b92b9d2a741904d2cc3dc2e22c22ec41103830fc730278006bab638310c64",
+    "seconds": 4.0780000002123415,
+    "scope": "All-record label and cryptographic binding of current CIF/encoding to the original full geometry audit; fresh geometry recomputation reported separately."
+  },
+  "cache_check": {
+    "passed": true,
+    "records": 16905,
+    "splits": {
+      "train": 10143,
+      "val": 3381,
+      "test": 3381
+    },
+    "authority_counts": {
+      "official_download": 6476,
+      "ase_database": 10429
+    },
+    "sha256_cache_match": 16905,
+    "periodicity_verified": [
+      true,
+      true,
+      false
+    ],
+    "seconds": 217.7039999999106,
+    "scope": "All cached JSON bytes checked against recovered CSV and current encoded provenance; exactly one structure and 2D PBC per cache. Fresh source geometry checked separately."
+  },
+  "historical_geometry_statistics": {
+    "records": 16905,
+    "historical_composition_failed": 0,
+    "historical_geometry_failed": 0,
+    "cell_atom_count_changes": 2050,
+    "numerically_identical": 8442,
+    "max_displacement_angstrom": 0.0949622320940683,
+    "max_measure_per_atom_relative_error": 0.0097131289299216,
+    "largest_displacements": [
+      {
+        "id": "1NOTa2I4-1",
+        "split": "val",
+        "angstrom": 0.0949622320940683
+      },
+      {
+        "id": "2S6Ga7-1",
+        "split": "test",
+        "angstrom": 0.08675629344998184
+      },
+      {
+        "id": "2CCsF3O4-1",
+        "split": "train",
+        "angstrom": 0.08368212197851584
+      },
+      {
+        "id": "1BiSe4Zr4I7-1",
+        "split": "test",
+        "angstrom": 0.0820452033271737
+      },
+      {
+        "id": "3TeO2-1",
+        "split": "test",
+        "angstrom": 0.08094960954239058
+      }
+    ],
+    "scope": "Stored all-record geometry statistics cryptographically bound to current descriptor/state and source CIF; not a fresh all-record geometry recomputation."
+  },
+  "fresh_sample": {
+    "complete": false,
+    "passed": true,
+    "records": 451,
+    "planned_checks_complete": true,
+    "selection": "stratified",
+    "strata": [
+      {
+        "split": "test",
+        "layer_group": 1,
+        "population": 215,
+        "sampled": 6
+      },
+      {
+        "split": "test",
+        "layer_group": 2,
+        "population": 96,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 3,
+        "population": 6,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 4,
+        "population": 10,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 5,
+        "population": 39,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 6,
+        "population": 6,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 7,
+        "population": 15,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 8,
+        "population": 5,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 9,
+        "population": 62,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 10,
+        "population": 49,
+        "sampled": 3
+      },
+      {
+        "split": "test",
+        "layer_group": 11,
+        "population": 124,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 12,
+        "population": 6,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 13,
+        "population": 135,
+        "sampled": 4
+      },
+      {
+        "split": "test",
+        "layer_group": 14,
+        "population": 51,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 15,
+        "population": 145,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 16,
+        "population": 20,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 17,
+        "population": 81,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 18,
+        "population": 95,
+        "sampled": 4
+      },
+      {
+        "split": "test",
+        "layer_group": 20,
+        "population": 8,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 21,
+        "population": 11,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 22,
+        "population": 10,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 23,
+        "population": 80,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 26,
+        "population": 6,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 27,
+        "population": 41,
+        "sampled": 3
+      },
+      {
+        "split": "test",
+        "layer_group": 28,
+        "population": 53,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 29,
+        "population": 7,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 31,
+        "population": 8,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 32,
+        "population": 136,
+        "sampled": 3
+      },
+      {
+        "split": "test",
+        "layer_group": 33,
+        "population": 4,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 35,
+        "population": 52,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 36,
+        "population": 9,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 37,
+        "population": 47,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 38,
+        "population": 2,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 41,
+        "population": 50,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 42,
+        "population": 14,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 44,
+        "population": 8,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 45,
+        "population": 5,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 46,
+        "population": 195,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 47,
+        "population": 3,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 48,
+        "population": 7,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 50,
+        "population": 2,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 52,
+        "population": 3,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 53,
+        "population": 3,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 54,
+        "population": 1,
+        "sampled": 1
+      },
+      {
+        "split": "test",
+        "layer_group": 55,
+        "population": 15,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 57,
+        "population": 7,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 58,
+        "population": 6,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 59,
+        "population": 80,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 61,
+        "population": 76,
+        "sampled": 3
+      },
+      {
+        "split": "test",
+        "layer_group": 62,
+        "population": 2,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 63,
+        "population": 12,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 64,
+        "population": 143,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 65,
+        "population": 22,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 66,
+        "population": 17,
+        "sampled": 3
+      },
+      {
+        "split": "test",
+        "layer_group": 67,
+        "population": 78,
+        "sampled": 3
+      },
+      {
+        "split": "test",
+        "layer_group": 68,
+        "population": 1,
+        "sampled": 1
+      },
+      {
+        "split": "test",
+        "layer_group": 69,
+        "population": 200,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 70,
+        "population": 20,
+        "sampled": 3
+      },
+      {
+        "split": "test",
+        "layer_group": 71,
+        "population": 113,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 72,
+        "population": 427,
+        "sampled": 3
+      },
+      {
+        "split": "test",
+        "layer_group": 74,
+        "population": 7,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 77,
+        "population": 2,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 78,
+        "population": 195,
+        "sampled": 2
+      },
+      {
+        "split": "test",
+        "layer_group": 79,
+        "population": 16,
+        "sampled": 3
+      },
+      {
+        "split": "test",
+        "layer_group": 80,
+        "population": 17,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 1,
+        "population": 682,
+        "sampled": 7
+      },
+      {
+        "split": "train",
+        "layer_group": 2,
+        "population": 288,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 3,
+        "population": 36,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 4,
+        "population": 32,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 5,
+        "population": 146,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 6,
+        "population": 18,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 7,
+        "population": 41,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 8,
+        "population": 14,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 9,
+        "population": 144,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 10,
+        "population": 141,
+        "sampled": 3
+      },
+      {
+        "split": "train",
+        "layer_group": 11,
+        "population": 372,
+        "sampled": 3
+      },
+      {
+        "split": "train",
+        "layer_group": 12,
+        "population": 14,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 13,
+        "population": 389,
+        "sampled": 3
+      },
+      {
+        "split": "train",
+        "layer_group": 14,
+        "population": 141,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 15,
+        "population": 382,
+        "sampled": 5
+      },
+      {
+        "split": "train",
+        "layer_group": 16,
+        "population": 54,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 17,
+        "population": 218,
+        "sampled": 3
+      },
+      {
+        "split": "train",
+        "layer_group": 18,
+        "population": 332,
+        "sampled": 4
+      },
+      {
+        "split": "train",
+        "layer_group": 20,
+        "population": 37,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 21,
+        "population": 30,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 22,
+        "population": 22,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 23,
+        "population": 237,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 24,
+        "population": 1,
+        "sampled": 1
+      },
+      {
+        "split": "train",
+        "layer_group": 26,
+        "population": 30,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 27,
+        "population": 127,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 28,
+        "population": 177,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 29,
+        "population": 20,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 30,
+        "population": 2,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 31,
+        "population": 9,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 32,
+        "population": 362,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 33,
+        "population": 18,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 34,
+        "population": 4,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 35,
+        "population": 128,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 36,
+        "population": 20,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 37,
+        "population": 138,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 38,
+        "population": 3,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 40,
+        "population": 6,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 41,
+        "population": 122,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 42,
+        "population": 34,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 44,
+        "population": 10,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 45,
+        "population": 13,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 46,
+        "population": 558,
+        "sampled": 3
+      },
+      {
+        "split": "train",
+        "layer_group": 47,
+        "population": 29,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 48,
+        "population": 16,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 50,
+        "population": 4,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 51,
+        "population": 1,
+        "sampled": 1
+      },
+      {
+        "split": "train",
+        "layer_group": 52,
+        "population": 9,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 53,
+        "population": 12,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 54,
+        "population": 6,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 55,
+        "population": 67,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 57,
+        "population": 19,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 58,
+        "population": 24,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 59,
+        "population": 232,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 61,
+        "population": 254,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 62,
+        "population": 18,
+        "sampled": 6
+      },
+      {
+        "split": "train",
+        "layer_group": 63,
+        "population": 26,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 64,
+        "population": 453,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 65,
+        "population": 49,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 66,
+        "population": 60,
+        "sampled": 3
+      },
+      {
+        "split": "train",
+        "layer_group": 67,
+        "population": 185,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 68,
+        "population": 1,
+        "sampled": 1
+      },
+      {
+        "split": "train",
+        "layer_group": 69,
+        "population": 625,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 70,
+        "population": 67,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 71,
+        "population": 377,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 72,
+        "population": 1269,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 74,
+        "population": 29,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 77,
+        "population": 3,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 78,
+        "population": 633,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 79,
+        "population": 54,
+        "sampled": 2
+      },
+      {
+        "split": "train",
+        "layer_group": 80,
+        "population": 69,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 1,
+        "population": 183,
+        "sampled": 4
+      },
+      {
+        "split": "val",
+        "layer_group": 2,
+        "population": 86,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 3,
+        "population": 6,
+        "sampled": 3
+      },
+      {
+        "split": "val",
+        "layer_group": 4,
+        "population": 18,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 5,
+        "population": 41,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 6,
+        "population": 6,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 7,
+        "population": 11,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 8,
+        "population": 5,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 9,
+        "population": 46,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 10,
+        "population": 45,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 11,
+        "population": 115,
+        "sampled": 3
+      },
+      {
+        "split": "val",
+        "layer_group": 12,
+        "population": 3,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 13,
+        "population": 141,
+        "sampled": 3
+      },
+      {
+        "split": "val",
+        "layer_group": 14,
+        "population": 51,
+        "sampled": 4
+      },
+      {
+        "split": "val",
+        "layer_group": 15,
+        "population": 114,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 16,
+        "population": 16,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 17,
+        "population": 84,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 18,
+        "population": 106,
+        "sampled": 3
+      },
+      {
+        "split": "val",
+        "layer_group": 20,
+        "population": 12,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 21,
+        "population": 14,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 22,
+        "population": 8,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 23,
+        "population": 80,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 24,
+        "population": 1,
+        "sampled": 1
+      },
+      {
+        "split": "val",
+        "layer_group": 26,
+        "population": 14,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 27,
+        "population": 37,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 28,
+        "population": 45,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 29,
+        "population": 5,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 30,
+        "population": 1,
+        "sampled": 1
+      },
+      {
+        "split": "val",
+        "layer_group": 31,
+        "population": 8,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 32,
+        "population": 127,
+        "sampled": 4
+      },
+      {
+        "split": "val",
+        "layer_group": 33,
+        "population": 6,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 34,
+        "population": 1,
+        "sampled": 1
+      },
+      {
+        "split": "val",
+        "layer_group": 35,
+        "population": 30,
+        "sampled": 3
+      },
+      {
+        "split": "val",
+        "layer_group": 36,
+        "population": 5,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 37,
+        "population": 43,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 38,
+        "population": 1,
+        "sampled": 1
+      },
+      {
+        "split": "val",
+        "layer_group": 40,
+        "population": 2,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 41,
+        "population": 42,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 42,
+        "population": 13,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 44,
+        "population": 5,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 45,
+        "population": 6,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 46,
+        "population": 220,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 47,
+        "population": 10,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 48,
+        "population": 9,
+        "sampled": 3
+      },
+      {
+        "split": "val",
+        "layer_group": 52,
+        "population": 2,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 53,
+        "population": 3,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 55,
+        "population": 20,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 56,
+        "population": 1,
+        "sampled": 1
+      },
+      {
+        "split": "val",
+        "layer_group": 57,
+        "population": 3,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 58,
+        "population": 6,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 59,
+        "population": 76,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 61,
+        "population": 100,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 62,
+        "population": 12,
+        "sampled": 6
+      },
+      {
+        "split": "val",
+        "layer_group": 63,
+        "population": 9,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 64,
+        "population": 154,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 65,
+        "population": 17,
+        "sampled": 3
+      },
+      {
+        "split": "val",
+        "layer_group": 66,
+        "population": 27,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 67,
+        "population": 59,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 68,
+        "population": 1,
+        "sampled": 1
+      },
+      {
+        "split": "val",
+        "layer_group": 69,
+        "population": 211,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 70,
+        "population": 26,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 71,
+        "population": 124,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 72,
+        "population": 450,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 74,
+        "population": 5,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 77,
+        "population": 4,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 78,
+        "population": 206,
+        "sampled": 2
+      },
+      {
+        "split": "val",
+        "layer_group": 79,
+        "population": 18,
+        "sampled": 3
+      },
+      {
+        "split": "val",
+        "layer_group": 80,
+        "population": 25,
+        "sampled": 3
+      }
+    ],
+    "splits": {
+      "train": 10143,
+      "val": 3381,
+      "test": 3381
+    },
+    "failed": 0,
+    "inputs_unchanged": true,
+    "input_sha256": {
+      "data\\scr\\c2db_51\\train.csv": "8c6a17ecfa6fd6c883274e24b46254b06c7b3bf20bdd3fe1e9a299993acd06f1",
+      "data\\scr\\source_recovery\\c2db_official\\train.csv": "88c0687a03fd72a412d196038634d3746db6ff8ee3bc88b1db8c88ad2e3fd164",
+      "data\\dataset\\full_verified_v1\\c2db_51\\train.jsonl": "eabf32f291bdee7ed0e5e4093a1d1b1a3ae6d3e43b7a679318933662e539dfdf",
+      "data\\scr\\c2db_51\\val.csv": "dfb02ba5becab042e1f1d5aa97cdb6d783476de858f961852e9019193c550973",
+      "data\\scr\\source_recovery\\c2db_official\\val.csv": "ab51e361f6db849949eb6a289bcf5ea61f481aa7e757d15c07605bfba86ea800",
+      "data\\dataset\\full_verified_v1\\c2db_51\\val.jsonl": "1906ec81cb299d065143b43a0bf7dca37f93988b0ffea8a14f9521db7a5f17cb",
+      "data\\scr\\c2db_51\\test.csv": "bb3d1ee02705eca39ca37604912ecd3cbd52c9e32bc5970149431e5bb7aec237",
+      "data\\scr\\source_recovery\\c2db_official\\test.csv": "9cd61400fcfbe498361f0056046f8b24a6ff503b44fd336571e5287c7a916c3b",
+      "data\\dataset\\full_verified_v1\\c2db_51\\test.jsonl": "6987e00ba1200b940576f0681a4186cee5084de0b0fa0b4e03e3c0ceb7ea2cfa"
+    },
+    "uid_overlap_across_splits": 0,
+    "joint_splits": {
+      "train": 10143,
+      "val": 3381,
+      "test": 3381
+    },
+    "joint_paths": {
+      "train": "data\\dataset\\full_verified_v1\\c2db_51\\train.jsonl",
+      "val": "data\\dataset\\full_verified_v1\\c2db_51\\val.jsonl",
+      "test": "data\\dataset\\full_verified_v1\\c2db_51\\test.jsonl"
+    },
+    "missing_property_labels": {
+      "band_gap": 8219
+    },
+    "audit_script_sha256": "475edd2b257903c3df522b598ccbae797bb04fbb22062f1bea106a5cb83a413c",
+    "authority_counts": {
+      "ase_database": 340,
+      "official_download": 111
+    },
+    "group_label_changes": 15,
+    "cell_atom_count_changes": 72,
+    "numerically_identical": 170,
+    "maxima": {
+      "source_cartesian_residual_angstrom": 7.071067517676474e-08,
+      "cif_roundtrip_max_displacement_angstrom": 2.105852605298691e-07,
+      "max_displacement_angstrom": 0.0949622320940683,
+      "measure_per_atom_relative_error": 0.0029547214826818324,
+      "operation_residual_angstrom": 6.262119067734773e-16,
+      "metric_relative_residual": 1.222998353870816e-15
+    },
+    "seconds": 393.51599999982864,
+    "checked_at": "2026-10-31T20:52:50.792130+08:00",
+    "scope": "Fresh source/cache, labels, CIF geometry and encoded group compatibility for the selected records; all-row source-file hashes/UID/split binding. No fresh online download, independent maximal layer-group re-identification or DFT recalculation."
+  },
+  "sampling_rule_validation": {
+    "passed": true,
+    "selection_records": 451,
+    "split_group_strata": 203,
+    "groups": 71,
+    "per_stratum": {
+      "train": 70,
+      "val": 68,
+      "test": 65
+    },
+    "sampling_rule": "SHA256 ranking, two per observed split/group or all if population=1; add each split top10 atom counts and top10 stored displacement",
+    "hard_cases_present": 60
+  },
+  "preserved_prefix_checks": 2700,
+  "fresh_geometry_unique_records_total": 3105,
+  "layer_group_label_differences": {
+    "records": 119,
+    "source_label_missing_or_invalid": 94,
+    "source_valid_label_changed": 25,
+    "fresh_matches": 119,
+    "failed_reidentification": 0,
+    "different_at_0p01A": 56,
+    "spglib_version": "2.6.0",
+    "seconds": 0.671000000089407
+  },
+  "data_and_model_files_modified": false,
+  "bundles_deleted": true,
+  "source_recovery_preserved": true,
+  "limits": [
+    "No claim of DFT or experimental accuracy",
+    "UID-disjoint splits do not exclude all structural near-duplicates",
+    "Geometry equivalence uses 0.1 Angstrom tolerance; encoded positions are not always numerically identical",
+    "Layer groups use the configured 0.1 Angstrom identification tolerance; no all-record independent maximal-layer-group certification"
+  ],
+  "evidence_sha256": {
+    "intermediate\\checks\\c2db_current_manifest_check.json": "81e280185482698e4bf0c40bbc667e957ebb703778bae2a7b050b6ee83808dfb",
+    "intermediate\\checks\\c2db_all_cache_hashes.json": "a967828185bb3daeab64a33b943bff7c9ba123949ff23d74850db889c0a45532",
+    "intermediate\\checks\\c2db_historical_geometry_statistics.json": "5d1657c18c2b879548d5767971866b0cff0641999d75780540d7620f757ab5d7",
+    "intermediate\\checks\\c2db_accuracy_stratified_20261031\\summary.json": "6d1434348b48606e77bb2caa5900e604d2dfa81dfc4fac2f548bf0a0983eb430",
+    "intermediate\\checks\\c2db_accuracy_stratified_20261031\\records.csv": "257f7b011857366c51eed625923cb3e11493eec4ce857d6794ad9348ca062504",
+    "intermediate\\checks\\c2db_accuracy_stratified_20261031\\records.jsonl": "2a447fc0e99995bca2d215bf42994087cc3907681b2bc358cb3614891fe49d30",
+    "intermediate\\checks\\c2db_accuracy_stratified_20261031\\selection.json": "1efcebf51c2a2999cc7d2d1c68c77109496973bd7a62b1037f5cf1a7dc3d2dea",
+    "intermediate\\checks\\c2db_accuracy_stratified_20261031\\selection_validation.json": "4257ac861d0fd032b5733e57bdc0ed3e5e8b1a405c8f1c269c34e92269278a89",
+    "intermediate\\checks\\c2db_group_label_reidentification.json": "083447944b9dcde04743bcf4102b3dcbd892a2ce5cc491fc928d6cd94ef18c35",
+    "intermediate\\checks\\c2db_group_label_reidentification.csv": "89c36ba8a032f9516b0005dd9db76472bcaed8fac49796cb6d4c05dca19570c0"
+  }
+}

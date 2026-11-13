@@ -1,0 +1,214 @@
+{
+  "datasets": {
+    "mp_20": {
+      "records": 45229,
+      "groups_seen": 179,
+      "groups_total": 230,
+      "missing_groups": [
+        32,
+        45,
+        48,
+        50,
+        73,
+        78,
+        80,
+        91,
+        93,
+        94,
+        95,
+        101,
+        103,
+        104,
+        106,
+        110,
+        126,
+        133,
+        134,
+        151,
+        158,
+        165,
+        168,
+        169,
+        170,
+        171,
+        172,
+        175,
+        177,
+        178,
+        184,
+        185,
+        192,
+        195,
+        196,
+        197,
+        201,
+        202,
+        203,
+        206,
+        207,
+        208,
+        209,
+        210,
+        211,
+        214,
+        219,
+        222,
+        226,
+        228,
+        230
+      ],
+      "group_wp_types_seen": 1013,
+      "group_wp_types_total": 1731,
+      "group_wp_types_missing": 718,
+      "observed_unordered_orbit_patterns": 4110,
+      "observed_element_decorated_patterns": 44394,
+      "max_atoms": 192,
+      "max_orbits": 32,
+      "bounded_formal_patterns": 2286561988547683,
+      "bounded_unobserved_patterns": 2286561988543573,
+      "val_patterns_absent_from_train": 431,
+      "test_patterns_absent_from_train": 416,
+      "input_files": [
+        {
+          "path": "E:\\WORKSPACE\\CodePlace\\test_CGDiT\\UnifiedGroupGen\\artifacts\\full\\mp_20\\train.jsonl",
+          "sha256": "150ac1f4be772e2347baaba4f61a658c820de65f1d711b571078d1b598557437"
+        },
+        {
+          "path": "E:\\WORKSPACE\\CodePlace\\test_CGDiT\\UnifiedGroupGen\\artifacts\\full\\mp_20\\val.jsonl",
+          "sha256": "13c6fcef388879ed281768d181d5adc6701b82abb79d6178869ee55ff3ca947b"
+        },
+        {
+          "path": "E:\\WORKSPACE\\CodePlace\\test_CGDiT\\UnifiedGroupGen\\artifacts\\full\\mp_20\\test.jsonl",
+          "sha256": "378a6f4a7cc11dff8e0f2d3f88c45aeb79a2ae1f17575fbbee81f390bdc3de80"
+        }
+      ]
+    },
+    "mpts_52": {
+      "records": 40476,
+      "groups_seen": 208,
+      "groups_total": 230,
+      "missing_groups": [
+        48,
+        89,
+        93,
+        101,
+        103,
+        168,
+        169,
+        170,
+        171,
+        177,
+        178,
+        179,
+        184,
+        192,
+        195,
+        207,
+        209,
+        210,
+        211,
+        222,
+        228,
+        230
+      ],
+      "group_wp_types_seen": 1302,
+      "group_wp_types_total": 1731,
+      "group_wp_types_missing": 429,
+      "observed_unordered_orbit_patterns": 6303,
+      "observed_element_decorated_patterns": 39990,
+      "max_atoms": 416,
+      "max_orbits": 52,
+      "bounded_formal_patterns": 6859700544696874019,
+      "bounded_unobserved_patterns": 6859700544696867716,
+      "val_patterns_absent_from_train": 765,
+      "test_patterns_absent_from_train": 1259,
+      "input_files": [
+        {
+          "path": "E:\\WORKSPACE\\CodePlace\\test_CGDiT\\UnifiedGroupGen\\artifacts\\full_tol0p01\\mpts_52\\train.jsonl",
+          "sha256": "4bfef77f42385c85913cad38d9c62b8bc1aee3ea7f29b9738e8adcfc28f78668"
+        },
+        {
+          "path": "E:\\WORKSPACE\\CodePlace\\test_CGDiT\\UnifiedGroupGen\\artifacts\\full_tol0p01\\mpts_52\\val.jsonl",
+          "sha256": "f24d234f43a00e124afe8a566c04b1581c64c9da58a971120e205531fc905664"
+        },
+        {
+          "path": "E:\\WORKSPACE\\CodePlace\\test_CGDiT\\UnifiedGroupGen\\artifacts\\full_tol0p01\\mpts_52\\test.jsonl",
+          "sha256": "7ab4a47f988bdcd25165c0785517f7f91fb4f133064590d8625aa15c111b667f"
+        }
+      ]
+    },
+    "c2db_51": {
+      "records": 16905,
+      "groups_seen": 71,
+      "groups_total": 80,
+      "missing_groups": [
+        19,
+        25,
+        39,
+        43,
+        49,
+        60,
+        73,
+        75,
+        76
+      ],
+      "group_wp_types_seen": 325,
+      "group_wp_types_total": 477,
+      "group_wp_types_missing": 152,
+      "observed_unordered_orbit_patterns": 1059,
+      "observed_element_decorated_patterns": 16802,
+      "max_atoms": 104,
+      "max_orbits": 52,
+      "bounded_formal_patterns": 17473612462032,
+      "bounded_unobserved_patterns": 17473612460973,
+      "val_patterns_absent_from_train": 121,
+      "test_patterns_absent_from_train": 106,
+      "input_files": [
+        {
+          "path": "E:\\WORKSPACE\\CodePlace\\test_CGDiT\\UnifiedGroupGen\\artifacts\\full_official_tol0p1_v7\\c2db_51\\train.jsonl",
+          "sha256": "9551316d60439c1e4dd59d8a7529ffdfa4fab4e513e349a6dd3c169fc96930ed"
+        },
+        {
+          "path": "E:\\WORKSPACE\\CodePlace\\test_CGDiT\\UnifiedGroupGen\\artifacts\\full_official_tol0p1_v7\\c2db_51\\val.jsonl",
+          "sha256": "e0aa4db0e8586f806b9d84f63b6e888ad0f4ba9180c91271e5f70aff6d03f99e"
+        },
+        {
+          "path": "E:\\WORKSPACE\\CodePlace\\test_CGDiT\\UnifiedGroupGen\\artifacts\\full_official_tol0p1_v7\\c2db_51\\test.jsonl",
+          "sha256": "aae321c47299a2a1c2ada25f7678774b1f351d5f718d76267b6c48e1cb109792"
+        }
+      ]
+    }
+  },
+  "mp20_mpts52_union": {
+    "groups_seen": 210,
+    "group_wp_types_seen": 1341,
+    "observed_unordered_orbit_patterns": 8046,
+    "missing_groups": [
+      48,
+      93,
+      101,
+      103,
+      168,
+      169,
+      170,
+      171,
+      177,
+      178,
+      184,
+      192,
+      195,
+      207,
+      209,
+      210,
+      211,
+      222,
+      228,
+      230
+    ]
+  },
+  "catalog_checks": {
+    "groups": 327,
+    "max_metric_residual": 1.7763568394002505e-15
+  },
+  "scope": "Counts refer to current prepared data and default catalog settings. Patterns are unordered WP multisets, ignore elements and continuous parameters, allow repeated positive-DOF WPs, allow zero-DOF WPs once, and obey configured atom/orbit budgets. Formal counts are not counts of exact-symmetry distinct materials or chemically feasible structures. No exhaustive materialization of missing multiset patterns; missing totals are computed by exact generating-function DP. Full per-group/type absence lists and observed pattern lists are exported."
+}

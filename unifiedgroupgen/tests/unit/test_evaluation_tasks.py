@@ -34,9 +34,9 @@ def structure(kind):
                      [[0,0,.5],[1/3,2/3,.578],[1/3,2/3,.422]])
 
 
-def test_evaluation_contains_only_five_metric_modules_and_no_entrypoint():
+def test_evaluation_contains_only_metric_modules_and_no_entrypoint():
     folder=ROOT/'unifiedgroupgen/evaluation'
-    assert {p.name for p in folder.glob('*.py')}=={'__init__.py','common.py','csp.py','dng.py','conditional.py','utils.py'}
+    assert {p.name for p in folder.glob('*.py')}=={'__init__.py','common.py','csp.py','joint_csp.py','dng.py','conditional.py','utils.py'}
     assert not (folder/'predictors').exists()
     for path in folder.glob('*.py'):
         tree=ast.parse(path.read_text(encoding='utf-8'))

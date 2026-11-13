@@ -1,6 +1,12 @@
 """Periodic image graphs for crystals and isolated layers, with live edge gradients."""
 import itertools
+from functools import lru_cache
 import torch
+
+
+@lru_cache(maxsize=64)
+def _image_shifts(bounds):
+    return torch.tensor(list(itertools.product(*(range(-n,n+1) for n in bounds))),dtype=torch.long)
 
 
 def geometry(compiled, states, lattices):
@@ -20,17 +26,17 @@ def _geometry(compiled, states, lattices):
     return torch.cat(coords), torch.cat(numbers), counts, torch.stack(periodic)
 
 
-def radius_graph(coords, cells, counts, periodic, cutoff=6., max_neighbors=50, max_images=16):
+def radius_graph(coords, cells, counts, periodic, cutoff=6., max_neighbors=50, max_images=16, keep_shells=False):
     """Cells use row vectors. An edge j→i includes the image of j relative to i.
 
     Reciprocal-vector bounds include every image in the cutoff; no fixed 27-image
     approximation, and no images along a layer's nonperiodic normal.
     """
     with torch.autocast(device_type=coords.device.type, enabled=False):
-        return _radius_graph(coords, cells, counts, periodic, cutoff, max_neighbors, max_images)
+        return _radius_graph(coords, cells, counts, periodic, cutoff, max_neighbors, max_images, keep_shells)
 
 
-def _radius_graph(coords, cells, counts, periodic, cutoff, max_neighbors, max_images):
+def _radius_graph(coords, cells, counts, periodic, cutoff, max_neighbors, max_images, keep_shells=False):
     all_edges, all_shifts, counts_edges = [], [], []
     offset = 0
     for g, count in enumerate(counts.tolist()):
@@ -39,8 +45,7 @@ def _radius_graph(coords, cells, counts, periodic, cutoff, max_neighbors, max_im
         bounds = torch.where(periodic[g], bounds, torch.zeros_like(bounds))
         if bounds.max() > max_images:
             raise ValueError('Periodic image bound exceeds max_images; increase the explicit graph limit')
-        shifts = torch.tensor(list(itertools.product(*(range(-n, n+1) for n in bounds.tolist()))),
-                              device=f.device, dtype=torch.long)
+        shifts = _image_shifts(tuple(bounds.tolist())).to(device=f.device)
         source, target = torch.meshgrid(torch.arange(count, device=f.device),
                                         torch.arange(count, device=f.device), indexing='ij')
         source, target = source.flatten(), target.flatten()
@@ -48,11 +53,19 @@ def _radius_graph(coords, cells, counts, periodic, cutoff, max_neighbors, max_im
         with torch.no_grad():
             distances = torch.linalg.vector_norm((f[source, None]-f[target, None]+shifts) @ cell, dim=-1)
             pairs, images = ((distances < cutoff) & (distances > 1e-6)).nonzero(as_tuple=True)
-            selected = []
-            for atom in range(count):
-                ids = (target[pairs] == atom).nonzero().flatten()
-                selected.append(ids[distances[pairs[ids], images[ids]].argsort(stable=True)[:max_neighbors]])
-            ids = torch.cat(selected)
+            # Stable two-key ordering exactly matches each target's old sort.
+            order = distances[pairs,images].argsort(stable=True)
+            order = order[target[pairs[order]].argsort(stable=True)]
+            degree = torch.bincount(target[pairs],minlength=count)
+            starts = degree.cumsum(0)-degree
+            rank = torch.arange(len(order),device=f.device)-torch.repeat_interleave(starts,degree)
+            if keep_shells and len(order):
+                boundary_ids = (starts+degree.clamp(max=max_neighbors)-1).clamp_min(0)
+                boundary = distances[pairs[order[boundary_ids]],images[order[boundary_ids]]]
+                keep = distances[pairs[order],images[order]] <= boundary[target[pairs[order]]]+1e-5
+            else:
+                keep = rank < max_neighbors
+            ids = order[keep]
             pairs, images = pairs[ids], images[ids]
         all_edges.append(torch.stack((source[pairs]+offset, target[pairs]+offset)))
         all_shifts.append(shifts[images]); counts_edges.append(len(pairs))

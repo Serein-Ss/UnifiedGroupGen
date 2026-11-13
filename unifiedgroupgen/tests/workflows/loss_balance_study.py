@@ -34,8 +34,9 @@ def verify(study, protocol):
 
 def freeze_sources(study):
     frozen = study/'versions/after'
-    sources = sorted(p for p in (resolve_path(ROOT/'unifiedgroupgen',ROOT)).rglob('*.py')
-                     if 'build' not in p.relative_to(resolve_path(ROOT/'unifiedgroupgen',ROOT)).parts)
+    source_root = resolve_path(ROOT/'unifiedgroupgen',ROOT)
+    sources = sorted(p for p in source_root.rglob('*.py')
+                     if 'build' not in p.relative_to(source_root).parts)
     sources.append(resolve_path(ROOT/'src/unifiedgroupgen/benchmark_comp_scaler.json',ROOT))
     sources += [resolve_path(ROOT/'scripts'/name,ROOT) for name in (
         'loss_balance_study.py', 'paired_training_study.py', 'evaluate_checkpoint.py',

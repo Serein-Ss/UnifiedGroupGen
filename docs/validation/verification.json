@@ -1,0 +1,28 @@
+{
+  "state": "verified",
+  "models": 15,
+  "unchanged_checkpoints": 30,
+  "training_files_per_run": 5,
+  "generation_tasks": 67,
+  "component_reports": 9,
+  "candidate_records": 44373,
+  "generated": 44130,
+  "failed_retained": 243,
+  "individual_cif_files": 0,
+  "scope": "Storage migration; unchanged trained weights, states, candidate denominators and metric values",
+  "tests": {
+    "generation_configuration_and_paths": 64,
+    "migration_and_import": 6,
+    "full_campaign_native_resume_offline_wandb": 3,
+    "note": "Suites overlap; counts are not added. Earlier development-run failures were superseded by final stable-source reruns."
+  },
+  "wandb": "Native logger records training, runtime, split hashes, seed and resolved launch configuration; files remain in WANDB_DIR",
+  "checkpoint_format": "New training uses native Lightning state with .pt filenames; original 30 files unchanged",
+  "formal_jobs_started": false,
+  "changed_entry_sha256": {
+    "unifiedgroupgen/run.py": "5544340dfe1ff03515388464eea9362d00a41755cd8fb543c95be2060ed4987b",
+    "unifiedgroupgen/generate.py": "c395da58ee8dfc35b2a0d6e9ab7a5a454f5116dd504ef6a7b5533bf4f41cbe6f",
+    "unifiedgroupgen/evaluate.py": "ac9e4eb143a836d0803631b85d450e84daea60c3e3fb053f51624389cf24c1e2",
+    "scripts/evaluate_models.py": "2b83ec66c85a8e832a0b659b968dc311de2f833b4294d045507c0cb7aa3b212a"
+  }
+}

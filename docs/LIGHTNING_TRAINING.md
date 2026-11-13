@@ -1,5 +1,9 @@
 # 当前训练与恢复
 
+<!-- JOINT_THEORY_SCOPE -->
+> 2026-11-12版本说明：现行方法为[单网络联合理论](THEORY.md)，实现对照见[IMPLEMENTATION.md](IMPLEMENTATION.md)。本页保留旧入口、旧配置或历史结果的操作契约；其两阶段步骤、参数量或数值不是新模型结果，未注明的新功能不自动继承。
+
+
 唯一正式入口为 `python -m unifiedgroupgen.run` 或 `ugg`。Hydra组合configs/run.yaml、experiment和runtime；启动时run.py先解析项目根目录、.env、数据位置与输出位置，然后核验数据并构建模型。task=plan只展示配置与路径，不训练或创建运行目录。
 
 ```bash

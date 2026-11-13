@@ -1,5 +1,9 @@
 # 独立生成与指标入口
 
+<!-- JOINT_THEORY_SCOPE -->
+> 2026-11-12版本说明：现行方法为[单网络联合理论](THEORY.md)，实现对照见[IMPLEMENTATION.md](IMPLEMENTATION.md)。本页保留旧入口、旧配置或历史结果的操作契约；其两阶段步骤、参数量或数值不是新模型结果，未注明的新功能不自动继承。
+
+
 训练使用 `run.py`（或 `ugg`），生成使用 `generate.py`，指标计算使用 `evaluate.py`。三者分别加载 `configs/run.yaml`、`generate.yaml`、`evaluate.yaml`，继续使用Hydra配置。指标模块本身不包含采样或任务调度。
 
 ## 指标目录

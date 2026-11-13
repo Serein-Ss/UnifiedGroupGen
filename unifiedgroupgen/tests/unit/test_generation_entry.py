@@ -42,7 +42,7 @@ def models(kind):
 
 def test_generation_directory_is_only_in_memory_sampling():
     folder=ROOT/'unifiedgroupgen/generation'
-    assert {p.name for p in folder.glob('*.py')}=={'__init__.py','descriptor.py','flow.py','rules.py','structure.py','prior.py'}
+    assert {p.name for p in folder.glob('*.py')}=={'__init__.py','descriptor.py','flow.py','rules.py','structure.py','prior.py','joint.py'}
     for path in folder.glob('*.py'):
         tree=ast.parse(path.read_text(encoding='utf-8'))
         imports=[n.module or '' for n in ast.walk(tree) if isinstance(n,ast.ImportFrom)]

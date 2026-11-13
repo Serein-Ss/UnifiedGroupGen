@@ -1,0 +1,11 @@
+family: joint_symmetry_v1
+feature_schema: nonmagnetic_v1
+hidden: 128
+layers: 4
+heads: 4
+max_atoms: 192
+max_orbits: 52
+# Keep the existing runtime composition contract. The complete-atom backbone
+# has its own attention blocks and does not consume the legacy layer chunks.
+edge_chunk_size: 8192
+checkpoint_layers: false

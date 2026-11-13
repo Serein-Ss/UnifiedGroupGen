@@ -1,5 +1,9 @@
 # 分组配置与实验组合
 
+<!-- JOINT_THEORY_SCOPE -->
+> 2026-11-12版本说明：现行方法为[单网络联合理论](THEORY.md)，实现对照见[IMPLEMENTATION.md](IMPLEMENTATION.md)。本页保留旧入口、旧配置或历史结果的操作契约；其两阶段步骤、参数量或数值不是新模型结果，未注明的新功能不自动继承。
+
+
 训练使用Hydra的defaults组合配置。实验文件只选择数据、性质条件和运行环境，不再复制整套网络与训练参数。
 
 2026-10-31增加的无来源新模型使用`experiment=new_<原名>`，默认`new_joint_u`；对应`experiments_v2.yaml`、`data/*_unified.yaml`、`learning/`和`prior/`。旧15套选择器保留用于历史模型复现。新骨架、共享性质掩码、组成/补全训练及先验组合见[MODEL_ABLATIONS_V2.md](MODEL_ABLATIONS_V2.md)，下面原15套说明属于兼容配置。

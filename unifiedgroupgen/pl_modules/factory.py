@@ -4,6 +4,31 @@ from unifiedgroupgen.pl_modules.orbitflow import OrbitFlow
 from unifiedgroupgen.pl_modules.descriptor import DescriptorTransformer
 
 
+def build_joint_model(config, device='cpu'):
+    """Explicit opt-in factory; the legacy two-stage model and weight names are unchanged."""
+    from unifiedgroupgen.pl_modules.joint_graph import JointAtomGraph
+    from unifiedgroupgen.pl_data.task_path import validate_task_config
+    validate_task_config(config)
+    architecture = config.get('model', {})
+    if architecture.get('family') == 'joint_flow_v2':
+        from unifiedgroupgen.joint_flow.model import JointFlow
+        return JointFlow(config).to(device)
+    if architecture.get('family') != 'joint_symmetry_v1':
+        raise ValueError('The joint model requires model.family=joint_symmetry_v1')
+    model = JointAtomGraph(config['allowed_elements'], hidden=architecture.get('hidden', 128),
+                          layers=architecture.get('layers', 4), heads=architecture.get('heads', 4),
+                          max_atoms=config.get('max_atoms', 192), max_orbits=config.get('max_orbits', 52),
+                          properties=config.get('properties', {}),
+                          cond_dropout=config.get('cond_dropout', .1),
+                          constraint_layers=architecture.get('constraint_layers', False),
+                          task_controls=architecture.get('task_controls', False),
+                          # Unversioned configurations belong to existing checkpoints.
+                          feature_schema=architecture.get('feature_schema', 'legacy_v1'))
+    if config.get('generation_task'):
+        model.property_encoder.subset_training = config.get('property_subset_training', False)
+    return model.to(device)
+
+
 def build_models(config, device):
     from unifiedgroupgen.tests.catalog import check_layer_catalog
     check_layer_catalog()

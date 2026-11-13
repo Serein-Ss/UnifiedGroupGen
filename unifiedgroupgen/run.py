@@ -448,6 +448,9 @@ def train_args(args, config=None, resolved_config=None):
     args.resume = resolve_path(args.resume, root) if args.resume else None
     if getattr(args, 'initialize_from', None):
         args.initialize_from = resolve_path(args.initialize_from, root)
+    if config.get('model', {}).get('family') in ('joint_symmetry_v1', 'joint_flow_v2'):
+        from unifiedgroupgen.pl_modules.joint_training import run_joint_training
+        return run_joint_training(args, config, records, validation, paths, resolved_config)
     proposal, flow = build_models(config, 'cpu')
     if hasattr(flow, 'backbone_identity'):
         config['backbone_identity'] = flow.backbone_identity

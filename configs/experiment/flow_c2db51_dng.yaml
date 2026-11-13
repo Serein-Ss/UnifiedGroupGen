@@ -1,0 +1,10 @@
+# @package _global_
+defaults:
+- task_c2db51_dng
+- override /model: joint_flow_equiformer
+experiment_name: flow_c2db51_dng
+experiment:
+  experiment_family: joint_flow_v2
+train:
+  event_budget: 96
+  chemical_set_probability: 0.0

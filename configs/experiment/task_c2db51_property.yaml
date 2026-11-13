@@ -1,0 +1,11 @@
+# @package _global_
+defaults:
+- joint_symmetry_c2db51
+- override /model: joint_tasks
+- override /conditioning: band_gap
+experiment_name: task_c2db51_property
+train:
+  generation_task: property
+  chemical_set_probability: 0.5
+conditioning:
+  cond_dropout: 0.0

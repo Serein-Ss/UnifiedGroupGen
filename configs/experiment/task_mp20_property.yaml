@@ -1,0 +1,11 @@
+# @package _global_
+defaults:
+- joint_symmetry_mp20
+- override /model: joint_tasks
+- override /conditioning: band_gap
+experiment_name: task_mp20_property
+train:
+  generation_task: property
+  chemical_set_probability: 0.5
+conditioning:
+  cond_dropout: 0.0

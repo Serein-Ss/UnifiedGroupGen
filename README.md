@@ -1,52 +1,68 @@
+# 当前主线：周期EquiformerV2联合流（2026-11-13）
+
+主模型 flow_mp20_dng / flow_c2db51_dng，性质与CSP分别用对应后缀。共享周期图EquiformerV2，从空图开始，联合几何流、元素DFM与轨道跳转；JointAtomGraph同路径对照用 model=joint_flow_atom_graph。
+
+完整命令、任务特化、批量功能与验证边界见 [JOINT_FLOW_V2.md](docs/JOINT_FLOW_V2.md)。旧选择器保留兼容，下方旧版本相关介绍以新说明为准。
+
+当前代码支持 [完整生成轨迹保存](docs/GENERATION_TRAJECTORIES.md)，以及可选的 BF16＋融合 AdamW 执行配置 `runtime=joint_flow_fast`。
+正式训练前需要为相同配置执行数据审计；首次启动步骤、RTX 3060 隔离短计时、重计算的显存/速度折衷及尚未完成项见 [训练工程效率](docs/TRAINING_EFFICIENCY.md)。短测通过不等于完整训练收敛或材料质量已验证。
+
+本轮代码发布范围与验证边界见 [2026-11-13 更新说明](docs/RELEASE_20261113.md)。
+
 # UnifiedGroupGen
 
-通过群—轨道编译与流匹配生成三维晶体和二维材料。本仓库提供代码、配置、当前训练输入和测试；模型权重、运行日志、生成结构及评估结果不随代码提交。
+以群作用为统一约束基础，从简单随机先验生成完整晶体。现行研究主线是**单一完整原子图网络中的受约束联合生成**：元素、晶格、坐标和轨道配置共同演化，网络内部显式读取群操作并施加类型化约束。三维晶体、二维层材料和严格平面结构沿用已有空间维度／周期维度定义。
 
-## 安装与入口
+默认“条件生成”仅指目标性质条件生成。结构类型、群操作及CSP组分属于硬规范／任务输入。三项并列主任务先按相同架构分别训练独立模型：无性质从头生成、目标性质条件生成、指定组分CSP。未指定群时按对应结构类型的TRAIN群频率外部采样，不训练神经选群头。新增task_*选择器已接入TRAIN经验频率和无群输入入口；同权重联合训练留作后续对照。详见[任务与默认术语](docs/TASK_DEFINITIONS.md)和[独立任务实现](docs/INDEPENDENT_TASKS.md)。
 
-```bash
-conda env create -f unifiedgroupgen/environment.yml
-conda activate unifiedgroupgen_cuda
-python -m pip install --no-build-isolation -e ./unifiedgroupgen
+## 统一项目网页
 
-# 查看组合配置，不启动训练。
-ugg experiment=new_mp20_u task=plan
-python -m unifiedgroupgen.generate --help
-python -m unifiedgroupgen.evaluate --help
-```
+项目的统一线上入口为 [UnifiedGroupGen 对称性实验室](https://unifiedgroupgen-symmetry-lab.serein-zhong.chatgpt.site/#overview)。项目与模型、训练与生成、真实结构交互、数学推导及数据分析都在同一站点。当前仅展示MP-20和C2DB-51；本地源码为web/symmetry-lab，发布需通过既有Sites项目，不能把本地构建当成线上更新。
 
-主要面向Linux CUDA服务器；Windows用于可选的小规模测试。CUDA环境、依赖版本与安装验证见[环境说明](docs/ENVIRONMENT.md)。本机路径在`.env`中设置，参考`.env.example`；实际`.env`不提交。
+## 现行理论与研究材料
 
-## 代码组织
+- [完整数学理论](docs/THEORY.md)：固定群规范、动态占据状态、公共状态硬解码、联合跳转核、教师路径、加权目标和事件感知采样。
+- [研究方案](docs/RESEARCH_PLAN.md)：同一项目的架构调整、任务范围、创新定位与验证问题。
+- [实现对照](docs/IMPLEMENTATION.md)：目标功能、当前代码和未接入接口逐项对应。
+- [联合生成器用法](docs/JOINT_SYMMETRY_V1.md) · [操作编译与网络约束层](docs/OPERATION_COMPILER.md)。
+- [来源与近邻工作](docs/REFERENCES.md)；中文论文初稿在原站点的[文章工作区](https://unifiedgroupgen-symmetry-lab.serein-zhong.chatgpt.site/manuscript.html)维护，沿用其访问范围。
+- [统一项目网页](https://unifiedgroupgen-symmetry-lab.serein-zhong.chatgpt.site/)：当前模型、分开的训练／生成流程、两库分析与真实TiO₂／MoS₂分支。站点源码独立发布，不是训练代码运行的依赖。
 
-- `unifiedgroupgen/common/`：配置、结构读写、可视化及共享函数。
-- `unifiedgroupgen/group_constraints/`：群—轨道编译器、独立参数编码、展开及投影。
-- `unifiedgroupgen/conditional/`：性质、组成与部分结构约束。
-- `unifiedgroupgen/pl_data/`：数据编码、准备、批处理与Lightning数据接口。
-- `unifiedgroupgen/pl_modules/`：描述Transformer、OrbitFlow、主干网络和损失。
-- `unifiedgroupgen/generation/`：结构生成算法；配置和运行入口为`generate.py`。
-- `unifiedgroupgen/evaluation/`：通用、CSP、DNG及性质条件指标；运行入口为`evaluate.py`。
-- `unifiedgroupgen/run.py`：Lightning训练、恢复与预训练权重加载。
-- `unifiedgroupgen/tests/`：测试与数据检查；必要参考代码仅用于兼容和回归比较。
-- `configs/`：Hydra功能分组与实验选择器。
-- `scripts/`、`assets/datasets/source/`：多模型评估、数据恢复及绘图源码。
+现行方案不再以“先固定完整元素／轨道描述，再生成几何”定义整个模型。DescriptorTransformer／OrbitFlow 及旧检查点、默认配置保留为兼容和对照路径，不因文档修订而替换。
 
-用法见[实验配置](docs/EXPERIMENT_CONFIGURATION.md)和[生成与评估任务](docs/EVALUATION_TASKS.md)。
+当前非磁性特征、CSPNet／GemNet／EquiformerV2对照，以及同一SnS记录的完整编码说明见[通用晶体特征](docs/GENERIC_FEATURES_AND_BACKBONES.md)。标准配置不创建磁矩编码器，旧检查点按原特征契约兼容加载。
 
-## 数据与实验配置
+## 安装与运行
 
-`data/dataset/full_verified_v1/`保存MP-20、MPTS-52和C2DB当前修复版的训练、验证和测试划分，以及转换清单与审计元数据。原始输入在`data/scr/`；C2DB必要恢复数据和来源资料在`data/scr/source_recovery/`。历史编码版本、重复划分和数据修复过程日志不随仓库发布，见[模型输入数据](data/dataset/README.md)。
+    conda env create -f unifiedgroupgen/environment.yml
+    conda activate unifiedgroupgen_cuda
+    python -m pip install --no-build-isolation -e ./unifiedgroupgen
+    python -m unifiedgroupgen.run experiment=operation_joint task=plan
+    python -m unifiedgroupgen.joint --help
 
-现有15套配置为MP-20、C2DB及两者联合，各含基础模型、三个单性质模型及多性质模型。原选择器保留检查点兼容，其中联合配置含`source_domain`；新`new_*`选择器移除来源条件并统一性质可见掩码。配置存在不代表新方案已经训练或验证，主干、先验和条件任务的实现边界见[模型与消融配置](docs/MODEL_ABLATIONS_V2.md)。
+显式启用的现行联合选择器为 joint_symmetry_mp20、joint_symmetry_c2db51、joint_symmetry_joint；启用操作编译及内部约束层的选择器为 operation_mp20、operation_c2db51、operation_joint。配置存在不表示新模型已完成材料质量训练。旧 generate/evaluate 入口继续服务相应旧检查点；不能混用权重格式。
 
-C2DB编码使用0.1 Å识别容差，允许对称性理想化，不是逐原子严格无损编码。8,219条带隙标签缺失，缺失未填成0；性质训练按标签可见性处理。
+现有联合入口的固定群示例：
 
-## 测试与结果存放
+    python -m unifiedgroupgen.joint sample --checkpoint outputs/EXPERIMENT/RUN/model.pt --kind space --group 225 --count 16 --output outputs/EXPERIMENT/RUN/generate/fixed_group/samples.jsonl --exact-group
 
-```bash
-python -m pytest -q
-```
+新增task_*检查点已保存TRAIN经验群频率，可省略群编号进行采样；CSP按计数可行性筛选。旧无先验检查点仍需显式规范。环境与旧入口详见[环境说明](docs/ENVIRONMENT.md)、[实验配置](docs/EXPERIMENT_CONFIGURATION.md)及[生成与评估](docs/EVALUATION_TASKS.md)。
 
-结果统一写入`outputs/<实验>/<日期>/`，训练文件与`generate/<任务>/`、`evaluate/<任务>/`按[结果目录规则](docs/OUTPUT_LAYOUT.md)组织。W&B记录配置与训练监督信息；临时检查、缓存放在`intermediate/`。这些目录均不纳入代码提交。
+## 代码、数据与结果
 
-[代码组织](docs/CODE_ORGANIZATION.md) · [文件存放规则](docs/FILE_STORAGE.md) · [统一评估协议](docs/EVALUATION_PROTOCOL_V2.md) · [公开性质预测接口](docs/PUBLIC_PRETRAINED_PREDICTORS.md)
+- group_constraints：规范、轨道模板、操作编译、硬解码和合法事件。
+- pl_modules：共享周期 EquiformerV2、JointAtomGraph 对照、内部约束层、联合目标和训练；保留旧模型。
+- pl_data：真实数据适配、当前分支锚点与条件事件路径。
+- joint_flow：v2连续几何流、离散元素流、轨道跳转、批量采样和轨迹记录。
+- generation：保留v1联合采样；conditional：性质与其他条件工具。
+- evaluation：既有评估协议；joint 适配器记录完整尝试、失败和最大群检查。
+
+主要训练数据为 data/dataset/full_verified_v1 下的 MP-20 与 C2DB-51。数据划分、编码来源、缺失标签及文件哈希保留；其他历史数据保留在本地档案，不进入当前网页。C2DB 近对称理想化与层群识别容差见[模型输入数据](data/dataset/README.md)。
+
+历史15套两阶段模型的训练／生成／性质代理结果继续保存，不能用来宣称新联合模型性能。数学、教师路径、梯度、短跑、材料质量和DFT证据分别记录；缺失磁矩保持缺失，不填零训练。
+
+    python -m pytest -q
+
+训练与结果仍按 [OUTPUT_LAYOUT.md](docs/OUTPUT_LAYOUT.md) 保存；运行日志、权重及历史数值不由本轮文档刷新重写。理论更新范围、原文快照和验证清单见 [THEORY_UPDATE_20261112.md](docs/THEORY_UPDATE_20261112.md)。
+
+当前三任务的六个task_*选择器、硬组分采样及有限步数测试用法见[INDEPENDENT_TASKS.md](docs/INDEPENDENT_TASKS.md)。本轮只执行短测，没有完整训练或混合任务训练。

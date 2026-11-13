@@ -1,5 +1,9 @@
 # 统一原始结构评估：CSP / 从头生成 / 性质条件
 
+<!-- JOINT_THEORY_SCOPE -->
+> 2026-11-12版本说明：现行方法为[单网络联合理论](THEORY.md)，实现对照见[IMPLEMENTATION.md](IMPLEMENTATION.md)。本页保留旧入口、旧配置或历史结果的操作契约；其两阶段步骤、参数量或数值不是新模型结果，未注明的新功能不自动继承。
+
+
 当前通过evaluate.py及Hydra调用；evaluation目录只保留指标计算。最新可执行命令见[EVALUATION_TASKS.md](EVALUATION_TASKS.md)。旧命令仅在tests/legacy归档，不作为当前入口。
 当前协议为 `unified_raw_v2`。输入可以来自任何模型；原生15套模型另有采样适配器。
 v1结果不覆盖，v2使用新目录，避免不同分母或失败处理混用。

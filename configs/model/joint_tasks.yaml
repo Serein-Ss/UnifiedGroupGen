@@ -1,0 +1,12 @@
+family: joint_symmetry_v1
+feature_schema: nonmagnetic_v1
+hidden: 128
+layers: 4
+heads: 4
+max_atoms: 192
+max_orbits: 52
+edge_chunk_size: 8192
+checkpoint_layers: false
+constraint_layers: true
+operation_compiler: false
+task_controls: true

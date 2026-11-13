@@ -7,7 +7,7 @@ from .periodic_graph import geometry, radius_graph, fractional_vectors
 
 class EquiformerV2Backbone(nn.Module):
     def __init__(self, hidden=512, layers=12, channels=128, lmax=6, mmax=2,
-                 cutoff=6., max_neighbors=50, max_images=16):
+                 cutoff=6., max_neighbors=50, max_images=16, use_gate_act=False):
         super().__init__()
         try:
             from .official.fairchem.core.models.equiformer_v2.equiformer_v2_deprecated import EquiformerV2
@@ -17,7 +17,7 @@ class EquiformerV2Backbone(nn.Module):
             max_num_elements=119, num_layers=layers, sphere_channels=channels, num_heads=8,
             attn_hidden_channels=channels, attn_alpha_channels=32, attn_value_channels=16,
             ffn_hidden_channels=channels*4, edge_channels=channels, lmax_list=[lmax], mmax_list=[mmax],
-            max_radius=cutoff, max_neighbors=max_neighbors)
+            max_radius=cutoff, max_neighbors=max_neighbors, use_gate_act=use_gate_act)
         self.context = nn.Linear(hidden, channels, bias=False)
         self.lattice_head = nn.Linear(channels, 9)
         self.cutoff, self.max_neighbors, self.max_images = cutoff, max_neighbors, max_images

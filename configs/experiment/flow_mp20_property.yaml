@@ -1,0 +1,9 @@
+# @package _global_
+defaults:
+- task_mp20_property
+- override /model: joint_flow_equiformer
+experiment_name: flow_mp20_property
+experiment:
+  experiment_family: joint_flow_v2
+train:
+  event_budget: 96
