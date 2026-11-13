@@ -1,0 +1,10 @@
+# @package _global_
+defaults:
+- flow_c2db51_csp
+- override /train: joint_flow_full
+- override /runtime: joint_flow_5090
+experiment_name: full_c2db51_eqv2_csp
+train:
+  chemical_set_probability: 0.0
+model:
+  heads: 8

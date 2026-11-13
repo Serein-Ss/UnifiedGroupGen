@@ -1,0 +1,71 @@
+# Default submission is exactly the two MP-20 EquiformerV2 pilot models.
+default_models:
+- full_mp20_eqv2_dng
+- full_mp20_eqv2_csp
+resources:
+  partition: '5090'
+  gpus: 1
+  cpus: 8
+  memory: 64G
+  hours: 72
+experiments:
+  full_mp20_eqv2_dng:
+    experiment: full_mp20_eqv2_dng
+    dataset: mp_20
+    backbone: equiformer_v2
+    task: dng
+  full_mp20_eqv2_csp:
+    experiment: full_mp20_eqv2_csp
+    dataset: mp_20
+    backbone: equiformer_v2
+    task: csp
+  full_mp20_eqv2_property:
+    experiment: full_mp20_eqv2_property
+    dataset: mp_20
+    backbone: equiformer_v2
+    task: property
+  full_c2db51_eqv2_dng:
+    experiment: full_c2db51_eqv2_dng
+    dataset: c2db_51
+    backbone: equiformer_v2
+    task: dng
+  full_c2db51_eqv2_csp:
+    experiment: full_c2db51_eqv2_csp
+    dataset: c2db_51
+    backbone: equiformer_v2
+    task: csp
+  full_c2db51_eqv2_property:
+    experiment: full_c2db51_eqv2_property
+    dataset: c2db_51
+    backbone: equiformer_v2
+    task: property
+  full_joint_eqv2_dng:
+    experiment: full_joint_eqv2_dng
+    dataset: mp20_c2db51
+    backbone: equiformer_v2
+    task: dng
+  full_joint_eqv2_csp:
+    experiment: full_joint_eqv2_csp
+    dataset: mp20_c2db51
+    backbone: equiformer_v2
+    task: csp
+  full_joint_eqv2_property:
+    experiment: full_joint_eqv2_property
+    dataset: mp20_c2db51
+    backbone: equiformer_v2
+    task: property
+  full_mp20_atomgraph_dng:
+    experiment: full_mp20_atomgraph_dng
+    dataset: mp_20
+    backbone: joint_atom_graph
+    task: dng
+  full_mp20_atomgraph_csp:
+    experiment: full_mp20_atomgraph_csp
+    dataset: mp_20
+    backbone: joint_atom_graph
+    task: csp
+  full_mp20_atomgraph_property:
+    experiment: full_mp20_atomgraph_property
+    dataset: mp_20
+    backbone: joint_atom_graph
+    task: property

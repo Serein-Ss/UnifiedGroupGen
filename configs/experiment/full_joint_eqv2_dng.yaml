@@ -1,0 +1,9 @@
+# @package _global_
+defaults:
+- flow_mp20_dng
+- override /data: joint_unified
+- override /train: joint_flow_full
+- override /runtime: joint_flow_5090
+experiment_name: full_joint_eqv2_dng
+model:
+  heads: 8

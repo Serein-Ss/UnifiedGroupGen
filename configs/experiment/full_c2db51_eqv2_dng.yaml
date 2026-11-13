@@ -1,0 +1,8 @@
+# @package _global_
+defaults:
+- flow_c2db51_dng
+- override /train: joint_flow_full
+- override /runtime: joint_flow_5090
+experiment_name: full_c2db51_eqv2_dng
+model:
+  heads: 8

@@ -1,0 +1,924 @@
+{
+  "schema": "ugg_full_flow_5090_preparation_v1",
+  "date": "2026-11-13",
+  "parent_commit": "613cf0941ca745966b7bfea84e3f6e08cb96691d",
+  "scope": "Configuration and submission preparation only; no local model construction, optimizer steps, scheduler submission or training",
+  "local_training_executed": false,
+  "local_scheduler_submissions_executed": false,
+  "tests": {
+    "tests": 31,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 2.602
+  },
+  "test_report_sha256": "99f0fb6f4c9351ddd577ca8f178f4f85983560a63fb98b90326a1396e0ef0b95",
+  "bash_syntax": {
+    "parser": "Git for Windows Bash -n via stdin",
+    "passed": true,
+    "script": "submit_files/joint_flow5090.sbatch"
+  },
+  "actual_hydra_plan_checks": [
+    {
+      "experiment": "full_mp20_eqv2_dng",
+      "passed": true,
+      "stdout_sha256": "04824b6805e49493a595f2bccd820b0f7064f1c340a282db0c50f44866e273dd"
+    },
+    {
+      "experiment": "full_mp20_eqv2_csp",
+      "passed": true,
+      "stdout_sha256": "743bf566b3720ea27c933340df738002c1699b46158fbe0fc7de152e9c192fb8"
+    }
+  ],
+  "default_plan": {
+    "selected": [
+      "full_mp20_eqv2_dng",
+      "full_mp20_eqv2_csp"
+    ],
+    "jobs": 2,
+    "phase": "audit_then_train",
+    "resources": {
+      "partition": "5090",
+      "gpus": 1,
+      "cpus": 8,
+      "memory": "64G",
+      "hours": 72
+    },
+    "available": {
+      "full_mp20_eqv2_dng": {
+        "experiment": "full_mp20_eqv2_dng",
+        "dataset": "mp_20",
+        "backbone": "equiformer_v2",
+        "task": "dng"
+      },
+      "full_mp20_eqv2_csp": {
+        "experiment": "full_mp20_eqv2_csp",
+        "dataset": "mp_20",
+        "backbone": "equiformer_v2",
+        "task": "csp"
+      },
+      "full_mp20_eqv2_property": {
+        "experiment": "full_mp20_eqv2_property",
+        "dataset": "mp_20",
+        "backbone": "equiformer_v2",
+        "task": "property"
+      },
+      "full_c2db51_eqv2_dng": {
+        "experiment": "full_c2db51_eqv2_dng",
+        "dataset": "c2db_51",
+        "backbone": "equiformer_v2",
+        "task": "dng"
+      },
+      "full_c2db51_eqv2_csp": {
+        "experiment": "full_c2db51_eqv2_csp",
+        "dataset": "c2db_51",
+        "backbone": "equiformer_v2",
+        "task": "csp"
+      },
+      "full_c2db51_eqv2_property": {
+        "experiment": "full_c2db51_eqv2_property",
+        "dataset": "c2db_51",
+        "backbone": "equiformer_v2",
+        "task": "property"
+      },
+      "full_joint_eqv2_dng": {
+        "experiment": "full_joint_eqv2_dng",
+        "dataset": "mp20_c2db51",
+        "backbone": "equiformer_v2",
+        "task": "dng"
+      },
+      "full_joint_eqv2_csp": {
+        "experiment": "full_joint_eqv2_csp",
+        "dataset": "mp20_c2db51",
+        "backbone": "equiformer_v2",
+        "task": "csp"
+      },
+      "full_joint_eqv2_property": {
+        "experiment": "full_joint_eqv2_property",
+        "dataset": "mp20_c2db51",
+        "backbone": "equiformer_v2",
+        "task": "property"
+      },
+      "full_mp20_atomgraph_dng": {
+        "experiment": "full_mp20_atomgraph_dng",
+        "dataset": "mp_20",
+        "backbone": "joint_atom_graph",
+        "task": "dng"
+      },
+      "full_mp20_atomgraph_csp": {
+        "experiment": "full_mp20_atomgraph_csp",
+        "dataset": "mp_20",
+        "backbone": "joint_atom_graph",
+        "task": "csp"
+      },
+      "full_mp20_atomgraph_property": {
+        "experiment": "full_mp20_atomgraph_property",
+        "dataset": "mp_20",
+        "backbone": "joint_atom_graph",
+        "task": "property"
+      }
+    },
+    "local_training_started": false
+  },
+  "configurations": [
+    {
+      "name": "full_mp20_eqv2_dng",
+      "dataset": "mp_20",
+      "task": "dng",
+      "backbone": "equiformer_v2",
+      "model": {
+        "family": "joint_flow_v2",
+        "backbone": "equiformer_v2",
+        "hidden": 128,
+        "layers": 4,
+        "channels": 128,
+        "heads": 8,
+        "lmax": 4,
+        "mmax": 2,
+        "use_gate_act": true,
+        "cutoff": 6.0,
+        "max_neighbors": 64,
+        "max_images": 16,
+        "task_controls": true,
+        "operation_compiler": true,
+        "edge_chunk_size": 8192,
+        "checkpoint_layers": false
+      },
+      "max_atoms": 192,
+      "max_orbits": 52,
+      "epochs": 200,
+      "learning_rate": 0.0003,
+      "gradient_clip": 10,
+      "properties": {},
+      "chemical_set_probability": 0.0,
+      "joint_train_limit": null,
+      "joint_val_limit": null,
+      "joint_max_steps": -1,
+      "runtime": {
+        "batch_size": 8,
+        "edge_budget": 40000,
+        "edge_chunk_size": 8192,
+        "checkpoint": false,
+        "validation_interval": 1,
+        "coordinate_length_scale": 3.0,
+        "joint_train_limit": null,
+        "joint_val_limit": null,
+        "joint_max_steps": null,
+        "precision": "bf16",
+        "fused_adamw": true,
+        "log_every_n_steps": 25
+      },
+      "train_files": [
+        "artifacts/full_verified_v1/mp_20/train.jsonl"
+      ],
+      "val_files": [
+        "artifacts/full_verified_v1/mp_20/val.jsonl"
+      ],
+      "test_files": [
+        "artifacts/full_verified_v1/mp_20/test.jsonl"
+      ]
+    },
+    {
+      "name": "full_mp20_eqv2_csp",
+      "dataset": "mp_20",
+      "task": "csp",
+      "backbone": "equiformer_v2",
+      "model": {
+        "family": "joint_flow_v2",
+        "backbone": "equiformer_v2",
+        "hidden": 128,
+        "layers": 4,
+        "channels": 128,
+        "heads": 8,
+        "lmax": 4,
+        "mmax": 2,
+        "use_gate_act": true,
+        "cutoff": 6.0,
+        "max_neighbors": 64,
+        "max_images": 16,
+        "task_controls": true,
+        "operation_compiler": true,
+        "edge_chunk_size": 8192,
+        "checkpoint_layers": false
+      },
+      "max_atoms": 192,
+      "max_orbits": 52,
+      "epochs": 200,
+      "learning_rate": 0.0003,
+      "gradient_clip": 10,
+      "properties": {},
+      "chemical_set_probability": 0.0,
+      "joint_train_limit": null,
+      "joint_val_limit": null,
+      "joint_max_steps": -1,
+      "runtime": {
+        "batch_size": 8,
+        "edge_budget": 40000,
+        "edge_chunk_size": 8192,
+        "checkpoint": false,
+        "validation_interval": 1,
+        "coordinate_length_scale": 3.0,
+        "joint_train_limit": null,
+        "joint_val_limit": null,
+        "joint_max_steps": null,
+        "precision": "bf16",
+        "fused_adamw": true,
+        "log_every_n_steps": 25
+      },
+      "train_files": [
+        "artifacts/full_verified_v1/mp_20/train.jsonl"
+      ],
+      "val_files": [
+        "artifacts/full_verified_v1/mp_20/val.jsonl"
+      ],
+      "test_files": [
+        "artifacts/full_verified_v1/mp_20/test.jsonl"
+      ]
+    },
+    {
+      "name": "full_mp20_eqv2_property",
+      "dataset": "mp_20",
+      "task": "property",
+      "backbone": "equiformer_v2",
+      "model": {
+        "family": "joint_flow_v2",
+        "backbone": "equiformer_v2",
+        "hidden": 128,
+        "layers": 4,
+        "channels": 128,
+        "heads": 8,
+        "lmax": 4,
+        "mmax": 2,
+        "use_gate_act": true,
+        "cutoff": 6.0,
+        "max_neighbors": 64,
+        "max_images": 16,
+        "task_controls": true,
+        "operation_compiler": true,
+        "edge_chunk_size": 8192,
+        "checkpoint_layers": false
+      },
+      "max_atoms": 192,
+      "max_orbits": 52,
+      "epochs": 200,
+      "learning_rate": 0.0003,
+      "gradient_clip": 10,
+      "properties": {
+        "band_gap": {
+          "type": "scalar"
+        }
+      },
+      "chemical_set_probability": 0.0,
+      "joint_train_limit": null,
+      "joint_val_limit": null,
+      "joint_max_steps": -1,
+      "runtime": {
+        "batch_size": 8,
+        "edge_budget": 40000,
+        "edge_chunk_size": 8192,
+        "checkpoint": false,
+        "validation_interval": 1,
+        "coordinate_length_scale": 3.0,
+        "joint_train_limit": null,
+        "joint_val_limit": null,
+        "joint_max_steps": null,
+        "precision": "bf16",
+        "fused_adamw": true,
+        "log_every_n_steps": 25
+      },
+      "train_files": [
+        "artifacts/full_verified_v1/mp_20/train.jsonl"
+      ],
+      "val_files": [
+        "artifacts/full_verified_v1/mp_20/val.jsonl"
+      ],
+      "test_files": [
+        "artifacts/full_verified_v1/mp_20/test.jsonl"
+      ]
+    },
+    {
+      "name": "full_c2db51_eqv2_dng",
+      "dataset": "c2db_51",
+      "task": "dng",
+      "backbone": "equiformer_v2",
+      "model": {
+        "family": "joint_flow_v2",
+        "backbone": "equiformer_v2",
+        "hidden": 128,
+        "layers": 4,
+        "channels": 128,
+        "heads": 8,
+        "lmax": 4,
+        "mmax": 2,
+        "use_gate_act": true,
+        "cutoff": 6.0,
+        "max_neighbors": 64,
+        "max_images": 16,
+        "task_controls": true,
+        "operation_compiler": true,
+        "edge_chunk_size": 8192,
+        "checkpoint_layers": false
+      },
+      "max_atoms": 192,
+      "max_orbits": 52,
+      "epochs": 200,
+      "learning_rate": 0.0003,
+      "gradient_clip": 10,
+      "properties": {},
+      "chemical_set_probability": 0.0,
+      "joint_train_limit": null,
+      "joint_val_limit": null,
+      "joint_max_steps": -1,
+      "runtime": {
+        "batch_size": 8,
+        "edge_budget": 40000,
+        "edge_chunk_size": 8192,
+        "checkpoint": false,
+        "validation_interval": 1,
+        "coordinate_length_scale": 3.0,
+        "joint_train_limit": null,
+        "joint_val_limit": null,
+        "joint_max_steps": null,
+        "precision": "bf16",
+        "fused_adamw": true,
+        "log_every_n_steps": 25
+      },
+      "train_files": [
+        "artifacts/full_verified_v1/c2db_51/train.jsonl"
+      ],
+      "val_files": [
+        "artifacts/full_verified_v1/c2db_51/val.jsonl"
+      ],
+      "test_files": [
+        "artifacts/full_verified_v1/c2db_51/test.jsonl"
+      ]
+    },
+    {
+      "name": "full_c2db51_eqv2_csp",
+      "dataset": "c2db_51",
+      "task": "csp",
+      "backbone": "equiformer_v2",
+      "model": {
+        "family": "joint_flow_v2",
+        "backbone": "equiformer_v2",
+        "hidden": 128,
+        "layers": 4,
+        "channels": 128,
+        "heads": 8,
+        "lmax": 4,
+        "mmax": 2,
+        "use_gate_act": true,
+        "cutoff": 6.0,
+        "max_neighbors": 64,
+        "max_images": 16,
+        "task_controls": true,
+        "operation_compiler": true,
+        "edge_chunk_size": 8192,
+        "checkpoint_layers": false
+      },
+      "max_atoms": 192,
+      "max_orbits": 52,
+      "epochs": 200,
+      "learning_rate": 0.0003,
+      "gradient_clip": 10,
+      "properties": {},
+      "chemical_set_probability": 0.0,
+      "joint_train_limit": null,
+      "joint_val_limit": null,
+      "joint_max_steps": -1,
+      "runtime": {
+        "batch_size": 8,
+        "edge_budget": 40000,
+        "edge_chunk_size": 8192,
+        "checkpoint": false,
+        "validation_interval": 1,
+        "coordinate_length_scale": 3.0,
+        "joint_train_limit": null,
+        "joint_val_limit": null,
+        "joint_max_steps": null,
+        "precision": "bf16",
+        "fused_adamw": true,
+        "log_every_n_steps": 25
+      },
+      "train_files": [
+        "artifacts/full_verified_v1/c2db_51/train.jsonl"
+      ],
+      "val_files": [
+        "artifacts/full_verified_v1/c2db_51/val.jsonl"
+      ],
+      "test_files": [
+        "artifacts/full_verified_v1/c2db_51/test.jsonl"
+      ]
+    },
+    {
+      "name": "full_c2db51_eqv2_property",
+      "dataset": "c2db_51",
+      "task": "property",
+      "backbone": "equiformer_v2",
+      "model": {
+        "family": "joint_flow_v2",
+        "backbone": "equiformer_v2",
+        "hidden": 128,
+        "layers": 4,
+        "channels": 128,
+        "heads": 8,
+        "lmax": 4,
+        "mmax": 2,
+        "use_gate_act": true,
+        "cutoff": 6.0,
+        "max_neighbors": 64,
+        "max_images": 16,
+        "task_controls": true,
+        "operation_compiler": true,
+        "edge_chunk_size": 8192,
+        "checkpoint_layers": false
+      },
+      "max_atoms": 192,
+      "max_orbits": 52,
+      "epochs": 200,
+      "learning_rate": 0.0003,
+      "gradient_clip": 10,
+      "properties": {
+        "band_gap": {
+          "type": "scalar"
+        }
+      },
+      "chemical_set_probability": 0.0,
+      "joint_train_limit": null,
+      "joint_val_limit": null,
+      "joint_max_steps": -1,
+      "runtime": {
+        "batch_size": 8,
+        "edge_budget": 40000,
+        "edge_chunk_size": 8192,
+        "checkpoint": false,
+        "validation_interval": 1,
+        "coordinate_length_scale": 3.0,
+        "joint_train_limit": null,
+        "joint_val_limit": null,
+        "joint_max_steps": null,
+        "precision": "bf16",
+        "fused_adamw": true,
+        "log_every_n_steps": 25
+      },
+      "train_files": [
+        "artifacts/full_verified_v1/c2db_51/train.jsonl"
+      ],
+      "val_files": [
+        "artifacts/full_verified_v1/c2db_51/val.jsonl"
+      ],
+      "test_files": [
+        "artifacts/full_verified_v1/c2db_51/test.jsonl"
+      ]
+    },
+    {
+      "name": "full_joint_eqv2_dng",
+      "dataset": "mp20_c2db51",
+      "task": "dng",
+      "backbone": "equiformer_v2",
+      "model": {
+        "family": "joint_flow_v2",
+        "backbone": "equiformer_v2",
+        "hidden": 128,
+        "layers": 4,
+        "channels": 128,
+        "heads": 8,
+        "lmax": 4,
+        "mmax": 2,
+        "use_gate_act": true,
+        "cutoff": 6.0,
+        "max_neighbors": 64,
+        "max_images": 16,
+        "task_controls": true,
+        "operation_compiler": true,
+        "edge_chunk_size": 8192,
+        "checkpoint_layers": false
+      },
+      "max_atoms": 192,
+      "max_orbits": 52,
+      "epochs": 200,
+      "learning_rate": 0.0003,
+      "gradient_clip": 10,
+      "properties": {},
+      "chemical_set_probability": 0.0,
+      "joint_train_limit": null,
+      "joint_val_limit": null,
+      "joint_max_steps": -1,
+      "runtime": {
+        "batch_size": 8,
+        "edge_budget": 40000,
+        "edge_chunk_size": 8192,
+        "checkpoint": false,
+        "validation_interval": 1,
+        "coordinate_length_scale": 3.0,
+        "joint_train_limit": null,
+        "joint_val_limit": null,
+        "joint_max_steps": null,
+        "precision": "bf16",
+        "fused_adamw": true,
+        "log_every_n_steps": 25
+      },
+      "train_files": [
+        "artifacts/full_verified_v1/mp_20/train.jsonl",
+        "artifacts/full_verified_v1/c2db_51/train.jsonl"
+      ],
+      "val_files": [
+        "artifacts/full_verified_v1/mp_20/val.jsonl",
+        "artifacts/full_verified_v1/c2db_51/val.jsonl"
+      ],
+      "test_files": [
+        "artifacts/full_verified_v1/mp_20/test.jsonl",
+        "artifacts/full_verified_v1/c2db_51/test.jsonl"
+      ]
+    },
+    {
+      "name": "full_joint_eqv2_csp",
+      "dataset": "mp20_c2db51",
+      "task": "csp",
+      "backbone": "equiformer_v2",
+      "model": {
+        "family": "joint_flow_v2",
+        "backbone": "equiformer_v2",
+        "hidden": 128,
+        "layers": 4,
+        "channels": 128,
+        "heads": 8,
+        "lmax": 4,
+        "mmax": 2,
+        "use_gate_act": true,
+        "cutoff": 6.0,
+        "max_neighbors": 64,
+        "max_images": 16,
+        "task_controls": true,
+        "operation_compiler": true,
+        "edge_chunk_size": 8192,
+        "checkpoint_layers": false
+      },
+      "max_atoms": 192,
+      "max_orbits": 52,
+      "epochs": 200,
+      "learning_rate": 0.0003,
+      "gradient_clip": 10,
+      "properties": {},
+      "chemical_set_probability": 0.0,
+      "joint_train_limit": null,
+      "joint_val_limit": null,
+      "joint_max_steps": -1,
+      "runtime": {
+        "batch_size": 8,
+        "edge_budget": 40000,
+        "edge_chunk_size": 8192,
+        "checkpoint": false,
+        "validation_interval": 1,
+        "coordinate_length_scale": 3.0,
+        "joint_train_limit": null,
+        "joint_val_limit": null,
+        "joint_max_steps": null,
+        "precision": "bf16",
+        "fused_adamw": true,
+        "log_every_n_steps": 25
+      },
+      "train_files": [
+        "artifacts/full_verified_v1/mp_20/train.jsonl",
+        "artifacts/full_verified_v1/c2db_51/train.jsonl"
+      ],
+      "val_files": [
+        "artifacts/full_verified_v1/mp_20/val.jsonl",
+        "artifacts/full_verified_v1/c2db_51/val.jsonl"
+      ],
+      "test_files": [
+        "artifacts/full_verified_v1/mp_20/test.jsonl",
+        "artifacts/full_verified_v1/c2db_51/test.jsonl"
+      ]
+    },
+    {
+      "name": "full_joint_eqv2_property",
+      "dataset": "mp20_c2db51",
+      "task": "property",
+      "backbone": "equiformer_v2",
+      "model": {
+        "family": "joint_flow_v2",
+        "backbone": "equiformer_v2",
+        "hidden": 128,
+        "layers": 4,
+        "channels": 128,
+        "heads": 8,
+        "lmax": 4,
+        "mmax": 2,
+        "use_gate_act": true,
+        "cutoff": 6.0,
+        "max_neighbors": 64,
+        "max_images": 16,
+        "task_controls": true,
+        "operation_compiler": true,
+        "edge_chunk_size": 8192,
+        "checkpoint_layers": false
+      },
+      "max_atoms": 192,
+      "max_orbits": 52,
+      "epochs": 200,
+      "learning_rate": 0.0003,
+      "gradient_clip": 10,
+      "properties": {
+        "band_gap": {
+          "type": "scalar"
+        }
+      },
+      "chemical_set_probability": 0.0,
+      "joint_train_limit": null,
+      "joint_val_limit": null,
+      "joint_max_steps": -1,
+      "runtime": {
+        "batch_size": 8,
+        "edge_budget": 40000,
+        "edge_chunk_size": 8192,
+        "checkpoint": false,
+        "validation_interval": 1,
+        "coordinate_length_scale": 3.0,
+        "joint_train_limit": null,
+        "joint_val_limit": null,
+        "joint_max_steps": null,
+        "precision": "bf16",
+        "fused_adamw": true,
+        "log_every_n_steps": 25
+      },
+      "train_files": [
+        "artifacts/full_verified_v1/mp_20/train.jsonl",
+        "artifacts/full_verified_v1/c2db_51/train.jsonl"
+      ],
+      "val_files": [
+        "artifacts/full_verified_v1/mp_20/val.jsonl",
+        "artifacts/full_verified_v1/c2db_51/val.jsonl"
+      ],
+      "test_files": [
+        "artifacts/full_verified_v1/mp_20/test.jsonl",
+        "artifacts/full_verified_v1/c2db_51/test.jsonl"
+      ]
+    },
+    {
+      "name": "full_mp20_atomgraph_dng",
+      "dataset": "mp_20",
+      "task": "dng",
+      "backbone": "joint_atom_graph",
+      "model": {
+        "family": "joint_flow_v2",
+        "backbone": "joint_atom_graph",
+        "hidden": 128,
+        "layers": 4,
+        "heads": 4,
+        "task_controls": true,
+        "operation_compiler": true,
+        "edge_chunk_size": 8192,
+        "checkpoint_layers": false
+      },
+      "max_atoms": 192,
+      "max_orbits": 52,
+      "epochs": 200,
+      "learning_rate": 0.0003,
+      "gradient_clip": 10,
+      "properties": {},
+      "chemical_set_probability": 0.0,
+      "joint_train_limit": null,
+      "joint_val_limit": null,
+      "joint_max_steps": -1,
+      "runtime": {
+        "batch_size": 8,
+        "edge_budget": 40000,
+        "edge_chunk_size": 8192,
+        "checkpoint": false,
+        "validation_interval": 1,
+        "coordinate_length_scale": 3.0,
+        "joint_train_limit": null,
+        "joint_val_limit": null,
+        "joint_max_steps": null,
+        "precision": "bf16",
+        "fused_adamw": true,
+        "log_every_n_steps": 25
+      },
+      "train_files": [
+        "artifacts/full_verified_v1/mp_20/train.jsonl"
+      ],
+      "val_files": [
+        "artifacts/full_verified_v1/mp_20/val.jsonl"
+      ],
+      "test_files": [
+        "artifacts/full_verified_v1/mp_20/test.jsonl"
+      ]
+    },
+    {
+      "name": "full_mp20_atomgraph_csp",
+      "dataset": "mp_20",
+      "task": "csp",
+      "backbone": "joint_atom_graph",
+      "model": {
+        "family": "joint_flow_v2",
+        "backbone": "joint_atom_graph",
+        "hidden": 128,
+        "layers": 4,
+        "heads": 4,
+        "task_controls": true,
+        "operation_compiler": true,
+        "edge_chunk_size": 8192,
+        "checkpoint_layers": false
+      },
+      "max_atoms": 192,
+      "max_orbits": 52,
+      "epochs": 200,
+      "learning_rate": 0.0003,
+      "gradient_clip": 10,
+      "properties": {},
+      "chemical_set_probability": 0.0,
+      "joint_train_limit": null,
+      "joint_val_limit": null,
+      "joint_max_steps": -1,
+      "runtime": {
+        "batch_size": 8,
+        "edge_budget": 40000,
+        "edge_chunk_size": 8192,
+        "checkpoint": false,
+        "validation_interval": 1,
+        "coordinate_length_scale": 3.0,
+        "joint_train_limit": null,
+        "joint_val_limit": null,
+        "joint_max_steps": null,
+        "precision": "bf16",
+        "fused_adamw": true,
+        "log_every_n_steps": 25
+      },
+      "train_files": [
+        "artifacts/full_verified_v1/mp_20/train.jsonl"
+      ],
+      "val_files": [
+        "artifacts/full_verified_v1/mp_20/val.jsonl"
+      ],
+      "test_files": [
+        "artifacts/full_verified_v1/mp_20/test.jsonl"
+      ]
+    },
+    {
+      "name": "full_mp20_atomgraph_property",
+      "dataset": "mp_20",
+      "task": "property",
+      "backbone": "joint_atom_graph",
+      "model": {
+        "family": "joint_flow_v2",
+        "backbone": "joint_atom_graph",
+        "hidden": 128,
+        "layers": 4,
+        "heads": 4,
+        "task_controls": true,
+        "operation_compiler": true,
+        "edge_chunk_size": 8192,
+        "checkpoint_layers": false
+      },
+      "max_atoms": 192,
+      "max_orbits": 52,
+      "epochs": 200,
+      "learning_rate": 0.0003,
+      "gradient_clip": 10,
+      "properties": {
+        "band_gap": {
+          "type": "scalar"
+        }
+      },
+      "chemical_set_probability": 0.0,
+      "joint_train_limit": null,
+      "joint_val_limit": null,
+      "joint_max_steps": -1,
+      "runtime": {
+        "batch_size": 8,
+        "edge_budget": 40000,
+        "edge_chunk_size": 8192,
+        "checkpoint": false,
+        "validation_interval": 1,
+        "coordinate_length_scale": 3.0,
+        "joint_train_limit": null,
+        "joint_val_limit": null,
+        "joint_max_steps": null,
+        "precision": "bf16",
+        "fused_adamw": true,
+        "log_every_n_steps": 25
+      },
+      "train_files": [
+        "artifacts/full_verified_v1/mp_20/train.jsonl"
+      ],
+      "val_files": [
+        "artifacts/full_verified_v1/mp_20/val.jsonl"
+      ],
+      "test_files": [
+        "artifacts/full_verified_v1/mp_20/test.jsonl"
+      ]
+    }
+  ],
+  "input_inventory": {
+    "mp_20": {
+      "splits": {
+        "train": {
+          "records": 27136,
+          "band_gap_observed": 27136,
+          "kinds": [
+            "space"
+          ],
+          "max_orbits": 20,
+          "sha256": "a0f9a0574fba45633970b69415385fc04f5f1234a18bb0817d9e87bf88ed23b7"
+        },
+        "val": {
+          "records": 9047,
+          "band_gap_observed": 9047,
+          "kinds": [
+            "space"
+          ],
+          "max_orbits": 20,
+          "sha256": "52c212083e121e982951e4d88345e3f4e1ac7142083173c5f6d3a9638721eb69"
+        },
+        "test": {
+          "records": 9046,
+          "band_gap_observed": 9046,
+          "kinds": [
+            "space"
+          ],
+          "max_orbits": 20,
+          "sha256": "ee399467c8ba2000f98474524f896188fffeb34275fb5dcfa169c5d54641abd6"
+        }
+      },
+      "identifiers_split_disjoint": true
+    },
+    "c2db_51": {
+      "splits": {
+        "train": {
+          "records": 10143,
+          "band_gap_observed": 5206,
+          "kinds": [
+            "layer"
+          ],
+          "max_orbits": 51,
+          "sha256": "eabf32f291bdee7ed0e5e4093a1d1b1a3ae6d3e43b7a679318933662e539dfdf"
+        },
+        "val": {
+          "records": 3381,
+          "band_gap_observed": 1758,
+          "kinds": [
+            "layer"
+          ],
+          "max_orbits": 37,
+          "sha256": "1906ec81cb299d065143b43a0bf7dca37f93988b0ffea8a14f9521db7a5f17cb"
+        },
+        "test": {
+          "records": 3381,
+          "band_gap_observed": 1722,
+          "kinds": [
+            "layer"
+          ],
+          "max_orbits": 27,
+          "sha256": "6987e00ba1200b940576f0681a4186cee5084de0b0fa0b4e03e3c0ceb7ea2cfa"
+        }
+      },
+      "identifiers_split_disjoint": true
+    },
+    "mixed": {
+      "splits": {
+        "train": {
+          "records": 37279,
+          "band_gap_observed": 32342
+        },
+        "val": {
+          "records": 12428,
+          "band_gap_observed": 10805
+        },
+        "test": {
+          "records": 12427,
+          "band_gap_observed": 10768
+        }
+      },
+      "policy": "Natural concatenation of matching splits; no TEST/VAL in TRAIN, no dataset conditioning"
+    }
+  },
+  "source_sha256": {
+    "configs/experiment/full_mp20_eqv2_dng.yaml": "788954c345873dfa4eaffb8fc046ea1851abf8e57f5b8386fe15035491235f89",
+    "configs/experiment/full_mp20_eqv2_csp.yaml": "a2cff11ca24f56736e5e395be79710c9c0300376803cdcfa44a3f19cf3c858d1",
+    "configs/experiment/full_mp20_eqv2_property.yaml": "3f798a2cb704f5ecfae7e100c31a4421ca01e23e5f16e64073ec9a7d36bd5882",
+    "configs/experiment/full_c2db51_eqv2_dng.yaml": "a85c7fbf9f73e88fa6f03fd1e3d2e30b813bdad585f481be48a990babc910741",
+    "configs/experiment/full_c2db51_eqv2_csp.yaml": "4f52dd8255d094d4332bb0443360ae51c31a1dcaf50c568168c8ab3612ad1ab5",
+    "configs/experiment/full_c2db51_eqv2_property.yaml": "801c454d99419d7abcc5d2d076a85ac16fa9c42502cb83cb864e74de42822a12",
+    "configs/experiment/full_joint_eqv2_dng.yaml": "c59eb270ccbb56d5c3ef0d94db02c9d232fce0488e289ac3fdfc4d9080b56a74",
+    "configs/experiment/full_joint_eqv2_csp.yaml": "f2879b28e68a08b1324b65d7ccac964c7a201ae6dca7b7bd0fc4465a0f6cd367",
+    "configs/experiment/full_joint_eqv2_property.yaml": "e30cba4e8a93d154405ef996a0a5d093f891b7caa8a68a84308760305cb84c07",
+    "configs/experiment/full_mp20_atomgraph_dng.yaml": "8277a2b2109aab0e4fc5171787f18aae13051f15d9c1834e3d33e0ff2a4e6ecd",
+    "configs/experiment/full_mp20_atomgraph_csp.yaml": "3e05735dd020de2edac52a2960242f78d9125112217755b1a58145a1863b81a0",
+    "configs/experiment/full_mp20_atomgraph_property.yaml": "af5b3db3332ffed856ce5ecb9b6b1ec34c72bd9777075755e100f2bf58f04078",
+    "configs/experiments_joint_flow_full.yaml": "24cfec8b357a8142117de6812e63a19bf5f8f1f6af7bed77748bb5a570be0af7",
+    "configs/train/joint_flow_full.yaml": "648fde1a1603b862adea35ac59f067af859158712c32ef6e7246b7f8c7cc0c87",
+    "configs/runtime/joint_flow_5090.yaml": "0acc73295d75f0d676c961c408ae0ff13be514a87449cc165e001110f58bbc57",
+    "submit_files/joint_flow5090.py": "04313a6cc18f0873e458109bdf238ba760490fc85fa5168dd2a949bedcd113a5",
+    "submit_files/joint_flow5090.sbatch": "daa989a78c3be6ddd9e9bcbbf2337079c98662ad73702645d5943f66dc3e7eab",
+    "unifiedgroupgen/tests/unit/test_joint_flow_full_5090.py": "6a24fc054f7ba6b3cf4e5cb7b796854ab0f6e631f193a21261af4348fe9395aa"
+  },
+  "server_preflight": "Each selected worker must pass a full campaign-private dataset audit before invoking normal training; local inventory is not that certificate",
+  "not_validated": [
+    "Actual 5090 environment and GPU allocation",
+    "Full training execution or convergence",
+    "5090 memory fit, optimal batch size or runtime",
+    "Material quality or task performance",
+    "Full property/composition conditional group-mixture correction"
+  ]
+}

@@ -1,0 +1,6 @@
+defaults:
+- joint_flow_fast
+- _self_
+# Starting limits, not a measured optimum or a periodic-edge memory guarantee.
+batch_size: 8
+edge_budget: 40000

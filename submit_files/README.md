@@ -1,5 +1,7 @@
 # TH-HPC6 5090 提交脚本
 
+当前joint_flow_v2完整训练使用[joint_flow5090.py与12模型配置](../docs/FULL_JOINT_FLOW_5090.md)，默认仅提交MP-20＋EquiformerV2的DNG/CSP两个作业。下方hpc5090.py的旧15模型评估/组成训练批次继续保留，不能用于启动这两个新模型。
+
 本目录由 GitHub 管理。脚本面向 `/fs6/home/zhongrsh/workspace/UnifiedGroupGen`，使用个人 Conda 环境 `unifiedgroupgen`、`GCC/12.2.0` 和 `CUDA/12.9`。
 
 当前环境是 PyTorch `2.7.1+cu128`，四个 PyG 扩展在服务器 glibc 2.28 上用 CUDA 12.9 编译。不要直接用原始 CUDA 11.8 `environment.yml` 覆盖此环境。
