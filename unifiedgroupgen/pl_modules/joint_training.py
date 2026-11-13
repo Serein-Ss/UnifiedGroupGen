@@ -1,10 +1,11 @@
 """Opt-in native Lightning training and versioned checkpoints for the joint generator."""
 from pathlib import Path
+import os
 import hashlib
 import json
 import torch
 import pytorch_lightning as pl
-from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 from lightning_fabric.utilities.seed import _collect_rng_states, _set_rng_states
 from unifiedgroupgen.common.configuration import RunSettings, project_root
 from unifiedgroupgen.common.source import file_hash
@@ -19,6 +20,28 @@ FLOW_FORMAT = 'ugg_joint_flow_v2'
 
 def checkpoint_format(config):
     return FLOW_FORMAT if config.get('model', {}).get('family') == 'joint_flow_v2' else FORMAT
+
+
+def strict_fp32(runtime):
+    if runtime.get('strict_fp32',False):
+        if runtime.get('precision','fp32')!='fp32':
+            raise ValueError('strict_fp32 requires precision=fp32')
+        if os.environ.get('TORCH_ALLOW_TF32_CUBLAS_OVERRIDE')=='1':
+            raise ValueError('Disable TORCH_ALLOW_TF32_CUBLAS_OVERRIDE for strict FP32')
+        torch.set_float32_matmul_precision('highest')
+        torch.backends.cuda.matmul.allow_tf32=False
+        torch.backends.cudnn.allow_tf32=False
+
+
+def joint_callbacks(config,output):
+    monitor=config.get('validation_monitor','val/loss')
+    callbacks=[JointTrainingArtifacts(output)]
+    if config.get('early_stopping'):
+        callbacks.append(EarlyStopping(monitor=monitor,mode='min',check_finite=True,
+            check_on_train_epoch_end=False,verbose=True,**config['early_stopping']))
+    callbacks.append(ModelCheckpoint(dirpath=Path(output).parent,filename='best',monitor=monitor,
+                     mode='min',save_top_k=1,save_last=True,save_on_train_epoch_end=True))
+    return callbacks
 
 
 def _normalize_epoch_boundary(checkpoint, batches):
@@ -82,6 +105,8 @@ class JointGeneratorModule(pl.LightningModule):
         self.model = build_joint_model(config)
         self._targets = {}
         self._pending_rng = None
+        self._pending_lr_metric = None
+        self._validation_rng = None
         self.save_hyperparameters(dict(config=self.config, runtime=self.runtime, split_hashes=self.split_hashes))
 
     def transfer_batch_to_device(self, batch, device, dataloader_idx):
@@ -129,7 +154,12 @@ class JointGeneratorModule(pl.LightningModule):
 
     def configure_optimizers(self):
         options={'fused':True} if self.runtime.get('fused_adamw',False) else {}
-        return torch.optim.AdamW(self.parameters(), lr=self.config.get('learning_rate', 1e-3),**options)
+        optimizer=torch.optim.AdamW(self.parameters(), lr=self.config.get('learning_rate', 1e-3),**options)
+        if not self.config.get('lr_schedule'):return optimizer
+        scheduler=torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer,mode='min',
+                         threshold_mode='abs',**self.config['lr_schedule'])
+        return dict(optimizer=optimizer,lr_scheduler=dict(scheduler=scheduler,
+            monitor=self.config.get('validation_monitor','val/loss'),interval='epoch',frequency=1,strict=True))
 
     def configure_gradient_clipping(self,optimizer,gradient_clip_val=None,gradient_clip_algorithm=None):
         # Lightning 2.5 rejects fused clipping even without a gradient scaler.
@@ -143,9 +173,15 @@ class JointGeneratorModule(pl.LightningModule):
         super().configure_gradient_clipping(optimizer,gradient_clip_val,gradient_clip_algorithm)
 
     def on_save_checkpoint(self, checkpoint):
+        boundary=_normalize_epoch_boundary(checkpoint,self.trainer.num_training_batches)
+        pending=None
+        # PL 2.5 saves epoch callbacks before stepping ReduceLROnPlateau.
+        # Final public save_checkpoint occurs after the step and needs no replay.
+        if boundary and self.config.get('lr_schedule') and self.lr_schedulers().last_epoch<checkpoint['epoch']:
+            pending=float(self.trainer.callback_metrics[self.config.get('validation_monitor','val/loss')])
         checkpoint['joint_state'] = dict(format=checkpoint_format(self.config), config=self.config, runtime=self.runtime,
                                         split_hashes=self.split_hashes, rng=_collect_rng_states(),
-                                        epoch_boundary=_normalize_epoch_boundary(checkpoint, self.trainer.num_training_batches))
+                                        epoch_boundary=boundary,pending_lr_metric=pending)
 
     def on_load_checkpoint(self, checkpoint):
         state = checkpoint.get('joint_state', {})
@@ -154,11 +190,30 @@ class JointGeneratorModule(pl.LightningModule):
         if state.get('runtime') != self.runtime or state.get('split_hashes') != self.split_hashes:
             raise ValueError('Joint resume execution settings or dataset hashes differ')
         self._pending_rng = state['rng']
+        self._pending_lr_metric = state.get('pending_lr_metric')
 
     def on_train_start(self):
+        if self._pending_lr_metric is not None:
+            self.lr_schedulers().step(self._pending_lr_metric)
+            self._pending_lr_metric=None
         if self._pending_rng is not None:
             _set_rng_states(self._pending_rng)
             self._pending_rng = None
+
+    def on_train_epoch_start(self):
+        if self.config.get('lr_schedule'):
+            self.log('train/learning_rate',self.optimizers(use_pl_optimizer=False).param_groups[0]['lr'],
+                     on_step=False,on_epoch=True,batch_size=1)
+
+    def on_validation_epoch_start(self):
+        if self.config.get('validation_seed') is not None:
+            self._validation_rng=_collect_rng_states()
+            torch.manual_seed(self.config['validation_seed'])
+
+    def on_validation_epoch_end(self):
+        if self._validation_rng is not None:
+            _set_rng_states(self._validation_rng)
+            self._validation_rng=None
 
 
 class JointTrainingArtifacts(pl.Callback):
@@ -175,7 +230,13 @@ class JointTrainingArtifacts(pl.Callback):
     def on_train_epoch_end(self, trainer, module):
         metrics = {name: float(value.detach()) for name,value in trainer.callback_metrics.items()
                    if torch.is_tensor(value) and value.numel() == 1}
-        row = dict(epoch=trainer.current_epoch,global_step=trainer.global_step,metrics=metrics)
+        row = dict(epoch=trainer.current_epoch,global_step=trainer.global_step,metrics=metrics,
+                   learning_rates_used=[g['lr'] for opt in trainer.optimizers for g in opt.param_groups])
+        for callback in trainer.callbacks:
+            if isinstance(callback,EarlyStopping):
+                score=float(callback.best_score)
+                row['early_stopping']=dict(wait_count=callback.wait_count,patience=callback.patience,
+                                           best_score=score if torch.isfinite(callback.best_score) else None)
         with self.output.with_suffix('.history.jsonl').open('a',encoding='utf-8') as stream:
             stream.write(json.dumps(row,allow_nan=False)+'\n')
 
@@ -217,16 +278,15 @@ def fit_joint(config, records, validation, output, device='cpu', epochs=1, runti
         raise ValueError('Fused AdamW profile requires CUDA')
     if runtime.get('fused_adamw',False) and precision=='fp16' and config.get('gradient_clip',10.):
         raise ValueError('FP16 with clipping requires unfused AdamW; BF16 fused clipping is supported')
+    strict_fp32(runtime)
     module = JointGeneratorModule(config, runtime, split_hashes)
     if initialize_from:
         module.model.load_state_dict(load_joint_checkpoint(initialize_from)['model'], strict=True)
     data = JointDataModule(records, validation, runtime, config.get('model', {}).get('operation_compiler', False))
-    callback = ModelCheckpoint(dirpath=output.parent, filename='best', monitor='val/loss',
-                               mode='min', save_top_k=1, save_last=True, save_on_train_epoch_end=True)
     trainer = pl.Trainer(accelerator='gpu' if str(device).startswith('cuda') else 'cpu',
                          devices=[torch.device(device).index or 0] if str(device).startswith('cuda') else 1,
                          max_epochs=epochs, max_steps=max_steps, precision=modes[precision], logger=logger,
-                         callbacks=[JointTrainingArtifacts(output),callback], default_root_dir=str(output.parent),
+                         callbacks=joint_callbacks(config,output), default_root_dir=str(output.parent),
                          enable_model_summary=False, enable_progress_bar=False, num_sanity_val_steps=0,
                          gradient_clip_val=config.get('gradient_clip', 10.),
                          check_val_every_n_epoch=1, log_every_n_steps=runtime.get('log_every_n_steps',1), inference_mode=False,
@@ -240,7 +300,11 @@ def fit_joint(config, records, validation, output, device='cpu', epochs=1, runti
     torch.save(dict(format=checkpoint_format(config), config=config, runtime=runtime, split_hashes=split_hashes or {},
                     model=module.model.state_dict(), epoch=trainer.current_epoch,
                     global_step=trainer.global_step), output)
+    checkpoint_callback=next(c for c in trainer.callbacks if isinstance(c,ModelCheckpoint))
     status = dict(format=checkpoint_format(config), state='complete', global_step=trainer.global_step,
+                  epochs_completed=trainer.current_epoch,max_epochs=epochs,
+                  stop_reason='early_stopping' if any(isinstance(c,EarlyStopping) and c.stopped_epoch>0 for c in trainer.callbacks) else 'training_budget_reached',
+                  best_validation_loss=float(checkpoint_callback.best_model_score) if checkpoint_callback.best_model_score is not None else None,
                   train_records=len(records), val_records=len(validation),
                   magnetic_label_records=sum(r.get('magnetic_moments') is not None for r in records),
                   validation_loss=float(trainer.callback_metrics['val/loss']) if 'val/loss' in trainer.callback_metrics else None,
@@ -275,7 +339,7 @@ def run_joint_training(args, config, records, validation, paths, resolved_config
     loggers = build_loggers(args, output, settings, args.resume)
     runtime = {key: getattr(args, key) if getattr(args, key) is not None else previous_runtime.get(key)
                for key in ('batch_size', 'edge_budget')}
-    for key in ('precision','fused_adamw','log_every_n_steps'):
+    for key in ('precision','fused_adamw','log_every_n_steps','strict_fp32'):
         value=getattr(args,key,None)
         if value is not None:runtime[key]=value
         elif key in previous_runtime:runtime[key]=previous_runtime[key]

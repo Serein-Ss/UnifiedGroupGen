@@ -8,6 +8,20 @@ resources:
   cpus: 8
   memory: 64G
   hours: 72
+calibration:
+  candidates:
+  - [1, 40000]
+  - [2, 40000]
+  - [4, 40000]
+  - [8, 40000]
+  - [16, 60000]
+  - [32, 80000]
+  - [64, 120000]
+  - [128, 160000]
+  memory_fraction: 0.85
+  reserve_gib: 2
+  warmup_steps: 2
+  stress_times: [0.05, 0.75, 0.95]
 experiments:
   full_mp20_eqv2_dng:
     experiment: full_mp20_eqv2_dng

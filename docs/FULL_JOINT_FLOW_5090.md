@@ -1,4 +1,4 @@
-# 12个独立模型配置与5090首次完整训练
+# 12个独立模型配置与5090 FP32正式训练基准
 
 本批次准备12个joint_flow_v2模型，沿用已经修复的六随机流辅助路径、群操作硬约束和联合损失。不修改生成模型，不合并三种任务训练。默认提交仅包含MP-20＋EquiformerV2的DNG、CSP两个模型；其他10组只准备配置，需显式选择。
 
@@ -29,14 +29,26 @@ DNG不提供性质或组分；CSP训练时可见准确的每胞元素计数，�
 
 ## 完整训练设置
 
-- 全量可用TRAIN与VAL，200 epoch，无短测记录截断，joint_max_steps=-1。
-- AdamW，学习率3e-4保持固定，梯度裁剪10，每epoch验证并按val/loss保存最佳检查点。当前联合训练不接入旧两阶段的学习率调度和早停，200 epoch是首轮完整基线预算，不保证已经收敛。
+- 全量可用TRAIN与VAL，最多1000 epoch，无短测记录截断，joint_max_steps=-1。1000是上限，早停可提前结束，不保证全局收敛或材料生成质量。
+- AdamW，初始学习率3e-4，梯度裁剪10。每epoch计算完整VAL的联合损失val/loss及连续几何、元素、跳转等分项，以val/loss选择最佳检查点。
+- ReduceLROnPlateau按验证损失衰减：factor=0.5、patience=10、绝对改进阈值1e-4、min_lr=1e-6。按PyTorch定义，超过10次无显著改善的验证后减半；批大小变化不自动线性放大学习率。
+- 早停同样监控val/loss，连续60次验证无至少1e-4的改善后结束；非有限验证值触发停止检查。验证每epoch一次，因此耐心以epoch计。验证教师路径固定，验证阶段原生网络随机数固定为918并在结束后恢复训练随机状态，减少监控噪声；这不是确定性GPU计算的保证。
 - 主干宽度128、4层；EquiformerV2为128球通道、lmax=4、mmax=2、原生8头，配置heads已标为实际8；JointAtomGraph沿用4头。原生Equiformer核心及其等变表示未修改。
 - 事件预算96，最多192原子、52轨道；轨道预算回退使用修复后的独立时钟。
-- BF16神经计算、FP32关键几何、融合AdamW；日志步频25；激活重计算默认关闭。
-- 5090起始batch_size=8、edge_budget=40000。该预算是原子数平方的批量代理，不是实际周期边数或显存的严格上界；这是未做5090实测校准的起点，不是最优吞吐或不OOM的保证。
+- 正式训练使用FP32（Lightning 32-true），关闭autocast与TF32；融合AdamW仍保留，参数、梯度和优化器状态使用FP32。日志步频25；激活重计算默认关闭。可选joint_flow_fast配置保留其原有BF16行为，不作为本轮基准。
+- 每个5090作业先自动校准batch_size和edge_budget，再以测得的配置训练；配置中的8/40000只供直接入口的回退默认值。默认服务器提交路径必须有通过校验的校准记录才可启动训练。
 
 共同配置为[完整训练](../configs/train/joint_flow_full.yaml)和[5090执行配置](../configs/runtime/joint_flow_5090.yaml)。两主干的表示和参数量不同，本组对照用于检验同一方法在替换主干后是否适用，不宣称参数量相等。
+
+## 服务器自动校准
+
+[校准程序](../submit_files/joint_flow5090_calibrate.py)仅允许在已分配的服务器作业内运行。DNG、CSP分别校准，候选(batch_size, edge_budget)为(1,40000)、(2,40000)、(4,40000)、(8,40000)、(16,60000)、(32,80000)、(64,120000)、(128,160000)。edge_budget沿用实际批采样器的原子数平方代理，因此实际每批记录数可能小于batch_size。
+
+每个候选使用独立CUDA子进程与新初始化模型，执行2步预热、5步吞吐计时以及4步大结构/时间压力检查（t=0.05、0.75、0.95）。每候选11步、每模型最多88步临时前向/反向/优化器探测，**仅在用户启动服务器作业后执行**。从TRAIN中按实际批采样器选择代表性批次，包含目标尺寸较大的结构；不使用VAL/TEST选择批大小。计时包括CPU路径构造、传输、FP32前后向、裁剪和融合AdamW，预热和压力检查不计入吞吐。临时权重丢弃，正式训练在独立进程以seed=42重新初始化。
+
+筛选要求梯度/权重有限，且峰值CUDA reserved显存不超过总显存85%和启动空闲显存减2 GiB两者的较小值。OOM或显存余量不足的候选淘汰，其他错误阻止正式训练；通过者按实测记录/秒选择，吞吐相同优先较小批次。所有候选失败也会阻止训练。有限探测与边预算代理不能严格覆盖后续所有中间状态及周期边数，仍需观察真实训练显存；不宣称已找到全局最优批大小或绝不OOM。
+
+校准结果保存到intermediate/hpc_runs/<批次名>/profiles/<模型名>.json，包含GPU、显存阈值、峰值、吞吐、实际批大小和中间原子数。对应profiles/<模型名>/attempt_*/保存输入、每候选JSON和日志。完整结果绑定冻结提交、配置哈希、TRAIN输入哈希和校准策略，重试直接复用。已有last.ckpt时若原校准记录缺失或不一致则拒绝重新校准，避免断点恢复时改变训练批次轨迹。
 
 ## 服务器更新与默认提交
 
@@ -56,23 +68,25 @@ conda activate unifiedgroupgen
 python submit_files/joint_flow5090.py plan
 
 # 用户确认准备启动时才执行：恰好两个训练作业。
-python submit_files/joint_flow5090.py submit --name jointflow_mp20_first_v1
+python submit_files/joint_flow5090.py submit --name jointflow_mp20_fp32_v2
 yhq
 ```
 
-提交器为每个模型申请5090分区1 GPU、8 CPU、64 GiB内存、72h。72h是单次调度上限，不是训练耗时预测。两个作业独立，账号并发限制由调度器执行；没有附加旧15模型评估、校准训练、其他10个模型、生成或DFT任务。
+提交器为每个模型申请5090分区1 GPU、8 CPU、64 GiB内存、72h。72h是单次调度上限，不是1000 epoch总耗时预测。两个作业独立，账号并发限制由调度器执行；校准在各自同一个训练作业内完成，没有额外校准作业，也不提交旧15模型评估、其他10个模型、生成或DFT任务。
 
-每个计算作业先运行对应配置的完整数据审计，证书通过后才调用正常Hydra/Lightning训练入口。审计与训练使用同一个批次私有data_audit覆盖；审计失败阻止训练，不跳过门禁。运行日志记录GPU和提交版本，脚本不安装或升级环境包。
+每个计算作业依次执行完整数据审计、自动校准、正常Hydra/Lightning训练入口。审计、校准与训练使用同一个批次私有data_audit覆盖；审计失败阻止后续步骤。运行日志记录GPU、冻结提交和正式训练的batch/edge覆盖参数，脚本不安装或升级环境包。
 
 `submit`通过git archive冻结代码、配置和提交脚本。冻结目录链接服务器自己的data、outputs、intermediate、assets、wandb和.env；不复制或改写已有权重、数据、环境。运行期间保持共享数据和环境不变，并保留冻结目录供恢复使用。新的代码提交可用于新批次，不替换已有批次的源码。
 
 源文件必须已提交；未提交的运行代码会被拒绝，以免实际训练的版本和用户看到的工作树不同。提交器不自动reset、stash或清理任何文件。直接运行sbatch文件不替代提交器提供的冻结目录和manifest参数。
 
+本版campaign格式为ugg_joint_flow_full_5090_v2。原先BF16/200 epoch的v1批次保留冻结源码，当前提交器拒绝将其改成新实验；请使用新的批次名，而不是复用旧名。
+
 其他模型只在明确选择时提交，例如：
 
 ```bash
 python submit_files/joint_flow5090.py plan --models full_joint_eqv2_property
-python submit_files/joint_flow5090.py submit --name jointflow_joint_property_v1 --models full_joint_eqv2_property
+python submit_files/joint_flow5090.py submit --name jointflow_joint_property_fp32_v2 --models full_joint_eqv2_property
 ```
 
 ## 输出与续训
@@ -80,24 +94,24 @@ python submit_files/joint_flow5090.py submit --name jointflow_joint_property_v1 
 首次默认批次的输出分别位于：
 
 ```text
-outputs/full_mp20_eqv2_dng/jointflow_mp20_first_v1/
-outputs/full_mp20_eqv2_csp/jointflow_mp20_first_v1/
+outputs/full_mp20_eqv2_dng/jointflow_mp20_fp32_v2/
+outputs/full_mp20_eqv2_csp/jointflow_mp20_fp32_v2/
 ```
 
-每组包含model.pt（最终权重）、best.ckpt（按VAL损失选择的原生最佳权重）、last.ckpt（含优化器与循环状态的续训检查点）、model.history.jsonl及model.status.json。既有joint sample入口可直接读取best.ckpt；后续DNG/CSP评估应使用独立GPU作业和既定完整尝试分母，不将验证损失或示例结构当成材料性能结论。
+每组包含model.pt（最终权重）、best.ckpt（按VAL损失选择的原生最佳权重）、last.ckpt（续训检查点）、model.history.jsonl及model.status.json。history记录联合/分项训练验证损失、当轮学习率和早停状态；最终status记录实际完成epoch、1000上限、停止原因及最佳验证损失。既有joint sample入口可直接读取best.ckpt；后续DNG/CSP评估应使用独立GPU作业和既定完整尝试分母，不将验证损失或示例结构当成材料性能结论。
 
-批次目录intermediate/hpc_runs/jointflow_mp20_first_v1/中保存campaign.json、submitted.json、submission_history.jsonl、source/、audits/及logs/。日志名为ugg_模型名-作业号.out，可用tail查看；训练指标写在对应模型的history文件中。
+批次目录intermediate/hpc_runs/jointflow_mp20_fp32_v2/中保存campaign.json、submitted.json、submission_history.jsonl、source/、audits/、profiles/及logs/。日志名为ugg_模型名-作业号.out，可用tail查看。
 
 重复普通submit不会重复提交已有作业号。若超时或失败，先用yhq确认原作业已经结束，再执行：
 
 ```bash
-python submit_files/joint_flow5090.py submit --name jointflow_mp20_first_v1 --retry
+python submit_files/joint_flow5090.py submit --name jointflow_mp20_fp32_v2 --retry
 ```
 
-它保留原冻结源码和选择，跳过已完成模型，重新审计未完成模型并自动从其last.ckpt恢复；worker文件锁阻止同一模型并发训练。没有last.ckpt但已有训练产物时拒绝覆盖，应检查原因并使用新批次名。更改模型集合、训练超参数或数据需创建新批次并重新审计；不能把旧批次恢复成另一个实验。
+它保留原冻结源码和选择，跳过已完成模型，重新审计未完成模型、复用原校准配置并从last.ckpt恢复；worker文件锁阻止同一模型并发训练。原生检查点保留优化器、学习率调度器、早停计数、循环和RNG状态；针对Lightning 2.5在epoch回调保存后才更新plateau调度器的顺序，记录尚未执行的验证指标，并在恢复时补执行一次，最终保存后不重复执行。没有last.ckpt但已有训练产物时拒绝覆盖，应检查原因并使用新批次名。更改模型集合、训练超参数或数据需创建新批次并重新审计；不能把旧批次恢复成另一个实验。
 
 ## 本地验证范围
 
-本次本地没有构造训练模型、运行优化器或提交调度任务。仅进行12配置解析、数据清点、只读Hydra plan、Bash -n语法检查，以及模拟yhbatch/训练子进程的配置与控制流测试。验证记录见[准备状态](validation/full_flow_5090_20261113.json)。服务器软件、显存、完整训练耗时、收敛与材料性能仍需用户启动后实测。
+本次本地未构造真实训练模型、未执行真实Trainer.fit、反向传播、optimizer.step、CUDA校准或调度提交。仅进行12配置解析、只读Hydra plan、Bash -n检查，以及模拟yhbatch/训练子进程的配置与控制流测试。调度器状态测试只为标量参数实例化优化器并更新学习率计数，不更新参数。验证记录见[FP32准备状态](validation/full_flow_fp32_5090_20261113.json)；[旧准备记录](validation/full_flow_5090_20261113.json)保留为200 epoch/BF16版本的历史快照。
 
-本轮配置与控制流测试31项通过；默认两个模型的真实Hydra plan入口通过，提交脚本通过Git Bash的-n解析。测试中的yhbatch与训练子进程均为mock，未重复运行会启动短训的旧测试集。
+本轮47项配置、校准控制流与状态测试通过，覆盖plateau衰减/恢复、早停计数恢复、FP32设置、验证RNG隔离、校准候选选择/输入映射、原校准复用及默认两作业门禁。默认两个模型的真实Hydra plan和Git Bash语法检查另行执行。未运行会启动短训的旧测试集；真实Lightning端到端续训、5090校准、吞吐、显存、实际收敛和材料性能需服务器启动后实测。

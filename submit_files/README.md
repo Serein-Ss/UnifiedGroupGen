@@ -1,6 +1,6 @@
 # TH-HPC6 5090 提交脚本
 
-当前joint_flow_v2完整训练使用[joint_flow5090.py与12模型配置](../docs/FULL_JOINT_FLOW_5090.md)，默认仅提交MP-20＋EquiformerV2的DNG/CSP两个作业。下方hpc5090.py的旧15模型评估/组成训练批次继续保留，不能用于启动这两个新模型。
+当前joint_flow_v2完整训练使用[joint_flow5090.py与12模型配置](../docs/FULL_JOINT_FLOW_5090.md)，采用FP32（关闭TF32）、1000 epoch上限、验证损失衰减与早停；每个服务器作业先校准batch/edge预算，再开始正式训练。默认仅提交MP-20＋EquiformerV2的DNG/CSP两个作业，使用新批次名jointflow_mp20_fp32_v2。下方hpc5090.py的旧15模型评估/组成训练批次继续保留，不能用于启动这两个新模型。
 
 本目录由 GitHub 管理。脚本面向 `/fs6/home/zhongrsh/workspace/UnifiedGroupGen`，使用个人 Conda 环境 `unifiedgroupgen`、`GCC/12.2.0` 和 `CUDA/12.9`。
 

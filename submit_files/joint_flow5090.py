@@ -29,7 +29,7 @@ def selection(data,models=None):
 
 def plan(models=None):
     data=catalog();chosen=selection(data,models)
-    return dict(selected=chosen,jobs=len(chosen),phase='audit_then_train',
+    return dict(selected=chosen,jobs=len(chosen),phase='audit_calibrate_train',calibration=data['calibration'],
                 resources=data['resources'],available=data['experiments'],
                 local_training_started=False)
 
@@ -46,19 +46,30 @@ def complete(campaign,model):
     return True
 
 
-def commands(campaign,model):
+def audit_command(campaign,model):
     entry=campaign['entries'][model];selector=entry['experiment']
     audit='data.data_audit=intermediate/hpc_runs/'+campaign['name']+'/audits/'+model+'.json'
-    audit_command=[sys.executable,'-u','-m','unifiedgroupgen.joint','audit',
-                   '--experiment',selector,'--override',audit]
+    return [sys.executable,'-u','-m','unifiedgroupgen.joint','audit','--experiment',selector,'--override',audit]
+
+
+def commands(campaign,model):
+    audit=audit_command(campaign,model)
+    selector=campaign['entries'][model]['experiment']
     path=output(campaign,model);last=path.parent/'last.ckpt'
     train_command=[sys.executable,'-u','-m','unifiedgroupgen.run','experiment='+selector,
-                   audit,'device=cuda:0','seed=42','threads=4','logging.mode=offline',
+                   audit[-1],'device=cuda:0','seed=42','threads=4','logging.mode=offline',
                    'output='+str(path)]
+    profile=Path(campaign['root'])/'intermediate/hpc_runs'/campaign['name']/'profiles'/(model+'.json')
+    if profile.is_file():
+        from submit_files.joint_flow5090_calibrate import identity,validate_profile
+        audit_report=read(profile.parent.parent/'audits'/(model+'.json'))
+        chosen=validate_profile(read(profile),identity(campaign,model,audit_report))
+        train_command+=['runtime.batch_size='+str(chosen['batch_size']),'runtime.edge_budget='+str(chosen['edge_budget'])]
+    elif last.is_file():raise ValueError('Resume requires the original batch calibration profile')
     if last.is_file():train_command.append('resume='+str(last))
     elif any((path.parent/name).exists() for name in ('model.pt','best.ckpt','model.history.jsonl','model.status.json')):
         raise ValueError('Existing run has no resumable last.ckpt; use a new campaign: '+str(path.parent))
-    return audit_command,train_command
+    return audit,train_command
 
 
 def submit(name,models=None,retry=False):
@@ -70,8 +81,8 @@ def submit(name,models=None,retry=False):
     with FileLock(str(base/(name+'.submit.lock')),timeout=0):
         if manifest.exists():
             campaign=read(manifest)
-            if campaign.get('schema')!='ugg_joint_flow_full_5090_v1':
-                raise ValueError('Campaign belongs to a different workflow')
+            if campaign.get('schema')!='ugg_joint_flow_full_5090_v2':
+                raise ValueError('Use a new campaign name for FP32/calibrated training; old frozen runs are preserved')
             if models is not None and list(models)!=campaign['models']:
                 raise ValueError('Selection is frozen; use a new campaign name')
         else:
@@ -83,9 +94,9 @@ def submit(name,models=None,retry=False):
             if untracked.strip():raise ValueError('Commit runtime source before freezing: '+untracked.strip())
             revision=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
             folder.mkdir();source=snapshot(ROOT,folder,revision)
-            campaign=dict(schema='ugg_joint_flow_full_5090_v1',name=name,root=str(ROOT),
+            campaign=dict(schema='ugg_joint_flow_full_5090_v2',name=name,root=str(ROOT),
                           source=str(source),revision=revision,models=chosen,
-                          entries={m:data['experiments'][m] for m in chosen},resources=data['resources'])
+                          entries={m:data['experiments'][m] for m in chosen},resources=data['resources'],calibration=data['calibration'])
             write(manifest,campaign)
         (folder/'logs').mkdir(exist_ok=True)
         jobs_path=folder/'submitted.json'
@@ -117,8 +128,8 @@ def submit(name,models=None,retry=False):
 
 def device_info():
     import torch
-    if not torch.cuda.is_available() or not torch.cuda.is_bf16_supported():
-        raise RuntimeError('Full-flow 5090 profile requires CUDA with BF16 support')
+    if not torch.cuda.is_available():
+        raise RuntimeError('Full-flow 5090 profile requires the allocated CUDA GPU')
     return dict(torch=torch.__version__,gpu=torch.cuda.get_device_name(0),
                 gpu_memory_bytes=torch.cuda.get_device_properties(0).total_memory)
 
@@ -126,7 +137,7 @@ def device_info():
 def run_worker(campaign_path,model):
     from filelock import FileLock
     campaign=read(campaign_path)
-    if campaign.get('schema')!='ugg_joint_flow_full_5090_v1' or model not in campaign['models']:
+    if campaign.get('schema')!='ugg_joint_flow_full_5090_v2' or model not in campaign['models']:
         raise ValueError('Model is not selected in this full-flow campaign')
     if ROOT.resolve()!=Path(campaign['source']).resolve():
         raise ValueError('Run workers from the frozen source directory')
@@ -134,13 +145,21 @@ def run_worker(campaign_path,model):
     with FileLock(str(folder/'locks'/(model+'.lock')),timeout=0):
         if complete(campaign,model):
             print('Training already complete:',model);return
-        audit,train=commands(campaign,model)
+        audit=audit_command(campaign,model)
         print(json.dumps(dict(model=model,revision=campaign['revision'],hardware=device_info()),ensure_ascii=False),flush=True)
         print('AUDIT COMMAND',json.dumps(audit),flush=True)
         subprocess.run(audit,cwd=ROOT,check=True)
         certificate=folder/'audits'/(model+'.json')
         if not certificate.is_file() or not read(certificate).get('passed'):
             raise RuntimeError('No successful campaign data audit: '+str(certificate))
+        profile=folder/'profiles'/(model+'.json')
+        if not profile.is_file() or read(profile).get('state')!='complete':
+            if (output(campaign,model).parent/'last.ckpt').exists():
+                raise ValueError('Cannot recalibrate an existing training run; restore its original profile')
+            subprocess.run([sys.executable,'-u',str(ROOT/'submit_files/joint_flow5090_calibrate.py'),
+                            'calibrate','--campaign',str(campaign_path),'--model',model],cwd=ROOT,check=True)
+        if not profile.is_file():raise RuntimeError('Calibration produced no profile; training is blocked')
+        _,train=commands(campaign,model)
         print('TRAIN COMMAND',json.dumps(train),flush=True)
         subprocess.run(train,cwd=ROOT,check=True)
         if not complete(campaign,model):

@@ -7,6 +7,7 @@ import pytest
 import yaml
 from filelock import FileLock, Timeout
 from submit_files import joint_flow5090 as jobs
+from submit_files import joint_flow5090_calibrate as calibration
 from unifiedgroupgen.common.configuration import compose_experiment, training_definition
 
 ROOT=Path(__file__).resolve().parents[3]
@@ -19,14 +20,16 @@ def test_full_configuration_has_correct_task_data_backbone_and_no_limits(name,en
     assert cfg.experiment_name==name and c['experiment_id']==name
     assert c['model']['family']=='joint_flow_v2' and c['model']['backbone']==entry['backbone']
     assert c['dataset']==entry['dataset'] and c['generation_task']==entry['task']
-    assert c['epochs']==200 and c['joint_max_steps']==-1
+    assert c['epochs']==1000 and c['joint_max_steps']==-1
+    assert c['lr_schedule']==dict(factor=.5,patience=10,threshold=.0001,min_lr=.000001)
+    assert c['early_stopping']==dict(patience=60,min_delta=.0001) and c['validation_seed']==918
     assert c['joint_train_limit'] is c['joint_val_limit'] is None
     assert cfg.runtime.joint_train_limit is cfg.runtime.joint_val_limit is cfg.runtime.joint_max_steps is None
     assert c['chemical_set_probability']==0. and c['composition_probability']==c['observation_probability']==0.
     assert not c.get('dataset_domains') and c['cond_dropout']==0.
     assert set(c['properties'])==({'band_gap'} if entry['task']=='property' else set())
     assert not any(p.get('context') for p in c['properties'].values())
-    assert cfg.runtime.precision=='bf16' and cfg.runtime.fused_adamw
+    assert cfg.runtime.precision=='fp32' and cfg.runtime.strict_fp32 and cfg.runtime.fused_adamw
     assert cfg.runtime.batch_size==c['batch_size']==8 and cfg.runtime.edge_budget==c['edge_budget']==40000
     assert cfg.runtime.edge_budget>=c['max_atoms']*(c['max_atoms']-1)
     assert c['model']['hidden']==128 and c['model']['layers']==4 and not c['model']['checkpoint_layers']
@@ -46,7 +49,8 @@ def test_matrix_and_default_plan_are_exactly_requested():
     assert combinations==expected
     plan=jobs.plan()
     assert plan['selected']==['full_mp20_eqv2_dng','full_mp20_eqv2_csp'] and plan['jobs']==2
-    assert plan['phase']=='audit_then_train' and not plan['local_training_started']
+    assert plan['phase']=='audit_calibrate_train' and not plan['local_training_started']
+    assert plan['calibration']['candidates'][-1]==[128,160000]
     assert plan['resources']==dict(partition='5090',gpus=1,cpus=8,memory='64G',hours=72)
     assert jobs.plan(['full_joint_eqv2_property'])['jobs']==1
 
@@ -58,8 +62,18 @@ def test_bad_selection_is_rejected(models):
 
 def campaign(root,source):
     models=DATA['default_models']
-    return dict(schema='ugg_joint_flow_full_5090_v1',root=str(root),source=str(source),name='test_full',
-                revision='frozen-commit',models=models,entries={m:DATA['experiments'][m] for m in models},resources=DATA['resources'])
+    return dict(schema='ugg_joint_flow_full_5090_v2',root=str(root),source=str(source),name='test_full',
+                revision='frozen-commit',models=models,entries={m:DATA['experiments'][m] for m in models},
+                resources=DATA['resources'],calibration=DATA['calibration'])
+
+
+def make_profile(c,model):
+    folder=Path(c['root'])/'intermediate/hpc_runs'/c['name']
+    audit=dict(passed=True,config_sha256='fixture',inputs={'train':[]})
+    jobs.write(folder/'audits'/(model+'.json'),audit)
+    chosen=dict(state='pass',batch_size=16,edge_budget=60000,records_per_second=10.,precision='fp32',
+                peak_reserved_bytes=100,memory_limit_bytes=200)
+    jobs.write(folder/'profiles'/(model+'.json'),dict(state='complete',identity=calibration.identity(c,model,audit),selected=chosen))
 
 
 def test_commands_share_audit_definition_and_resume_native_last_checkpoint(tmp_path):
@@ -70,9 +84,12 @@ def test_commands_share_audit_definition_and_resume_native_last_checkpoint(tmp_p
     assert not any(v.startswith('resume=') or 'joint_max_steps=' in v or '_limit=' in v for v in train)
     path=jobs.output(c,model);path.parent.mkdir(parents=True)
     (path.parent/'last.ckpt').write_bytes(b'native-checkpoint-fixture')
+    with pytest.raises(ValueError,match='original batch calibration'):jobs.commands(c,model)
+    make_profile(c,model)
     _,train=jobs.commands(c,model)
     assert 'resume='+str(path.parent/'last.ckpt') in train
     assert 'output='+str(path) in train
+    assert 'runtime.batch_size=16' in train and 'runtime.edge_budget=60000' in train
 
 
 def test_incomplete_unresumable_results_are_preserved(tmp_path):
@@ -160,13 +177,26 @@ def test_worker_audits_before_training_with_mock_commands_only(tmp_path,monkeypa
     def execute(command,**kwargs):
         calls.append(command)
         if 'audit' in command:jobs.write(p.parent/'audits'/(model+'.json'),dict(passed=True))
+        elif 'calibrate' in command:make_profile(c,model)
         else:
             out=jobs.output(c,model);out.parent.mkdir(parents=True)
             for n in ('model.pt','best.ckpt','last.ckpt'):(out.parent/n).write_bytes(b'fixture')
             jobs.write(out.with_suffix('.status.json'),dict(state='complete'))
     monkeypatch.setattr(jobs.subprocess,'run',execute)
-    jobs.run_worker(p,model);assert len(calls)==2 and 'audit' in calls[0] and 'unifiedgroupgen.run' in calls[1]
-    jobs.run_worker(p,model);assert len(calls)==2
+    jobs.run_worker(p,model);assert len(calls)==3 and 'audit' in calls[0] and 'calibrate' in calls[1] and 'unifiedgroupgen.run' in calls[2]
+    assert 'runtime.batch_size=16' in calls[2]
+    jobs.run_worker(p,model);assert len(calls)==3
+
+
+def test_failed_calibration_cannot_start_training(tmp_path,monkeypatch):
+    c,p=worker_fixture(tmp_path,monkeypatch);model=c['models'][0];calls=[]
+    def execute(command,**kwargs):
+        calls.append(command)
+        if 'audit' in command:jobs.write(p.parent/'audits'/(model+'.json'),dict(passed=True))
+        else:raise subprocess.CalledProcessError(1,command)
+    monkeypatch.setattr(jobs.subprocess,'run',execute)
+    with pytest.raises(subprocess.CalledProcessError):jobs.run_worker(p,model)
+    assert len(calls)==2 and all('unifiedgroupgen.run' not in c for c in calls)
 
 
 def test_concurrent_worker_is_rejected_before_any_command(tmp_path,monkeypatch):

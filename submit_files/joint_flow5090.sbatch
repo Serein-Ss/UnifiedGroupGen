@@ -25,6 +25,7 @@ export OMP_NUM_THREADS=1
 export MKL_NUM_THREADS=1
 export OPENBLAS_NUM_THREADS=1
 export NUMEXPR_NUM_THREADS=1
+export TORCH_ALLOW_TF32_CUBLAS_OVERRIDE=0
 export MPLBACKEND=Agg
 hostname
 printf 'Git commit at submission: %s\n' "${UGG_GIT_COMMIT:-not recorded}"

@@ -1,0 +1,929 @@
+{
+  "schema": "ugg_full_flow_fp32_5090_preparation_v2",
+  "date": "2026-11-13",
+  "parent_commit": "9baa0f7bef10952db11dbd01dfcc4ad8db57fac8",
+  "scope": "Configuration, mocked subprocess/control flow, scalar optimizer/scheduler/callback state, read-only plans and input hash checks only",
+  "local_training_executed": false,
+  "local_real_model_constructed": false,
+  "local_backward_executed": false,
+  "local_optimizer_steps_executed": false,
+  "local_cuda_calibration_executed": false,
+  "local_scheduler_submissions_executed": false,
+  "tests": {
+    "tests": 47,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "test_seconds": 14.947,
+  "test_report_sha256": "9e1f29df472b680dbc06690e54958b3d32d0756ab36621e234c6cd871695d1ca",
+  "test_files": [
+    "unifiedgroupgen/tests/unit/test_joint_flow_full_5090.py",
+    "unifiedgroupgen/tests/unit/test_joint_training_controls.py",
+    "unifiedgroupgen/tests/unit/test_joint_flow_calibration.py"
+  ],
+  "bash_syntax": {
+    "parser": "Git for Windows Bash -n via stdin",
+    "passed": true,
+    "script": "submit_files/joint_flow5090.sbatch"
+  },
+  "actual_hydra_plan_checks": [
+    {
+      "experiment": "full_mp20_eqv2_dng",
+      "passed": true,
+      "stdout_sha256": "5809a71ecd764e2a1d5e2d25c19ab9d39dad41c6fc4f3cb637ea98a7e85ea640"
+    },
+    {
+      "experiment": "full_mp20_eqv2_csp",
+      "passed": true,
+      "stdout_sha256": "70b7cbd13d3a2813d35d8f713a0afc993faa0973c71107d27a662b5863bb1094"
+    }
+  ],
+  "submission_plan": {
+    "selected": [
+      "full_mp20_eqv2_dng",
+      "full_mp20_eqv2_csp"
+    ],
+    "jobs": 2,
+    "phase": "audit_calibrate_train",
+    "calibration": {
+      "candidates": [
+        [
+          1,
+          40000
+        ],
+        [
+          2,
+          40000
+        ],
+        [
+          4,
+          40000
+        ],
+        [
+          8,
+          40000
+        ],
+        [
+          16,
+          60000
+        ],
+        [
+          32,
+          80000
+        ],
+        [
+          64,
+          120000
+        ],
+        [
+          128,
+          160000
+        ]
+      ],
+      "memory_fraction": 0.85,
+      "reserve_gib": 2,
+      "warmup_steps": 2,
+      "stress_times": [
+        0.05,
+        0.75,
+        0.95
+      ]
+    },
+    "resources": {
+      "partition": "5090",
+      "gpus": 1,
+      "cpus": 8,
+      "memory": "64G",
+      "hours": 72
+    },
+    "available": {
+      "full_mp20_eqv2_dng": {
+        "experiment": "full_mp20_eqv2_dng",
+        "dataset": "mp_20",
+        "backbone": "equiformer_v2",
+        "task": "dng"
+      },
+      "full_mp20_eqv2_csp": {
+        "experiment": "full_mp20_eqv2_csp",
+        "dataset": "mp_20",
+        "backbone": "equiformer_v2",
+        "task": "csp"
+      },
+      "full_mp20_eqv2_property": {
+        "experiment": "full_mp20_eqv2_property",
+        "dataset": "mp_20",
+        "backbone": "equiformer_v2",
+        "task": "property"
+      },
+      "full_c2db51_eqv2_dng": {
+        "experiment": "full_c2db51_eqv2_dng",
+        "dataset": "c2db_51",
+        "backbone": "equiformer_v2",
+        "task": "dng"
+      },
+      "full_c2db51_eqv2_csp": {
+        "experiment": "full_c2db51_eqv2_csp",
+        "dataset": "c2db_51",
+        "backbone": "equiformer_v2",
+        "task": "csp"
+      },
+      "full_c2db51_eqv2_property": {
+        "experiment": "full_c2db51_eqv2_property",
+        "dataset": "c2db_51",
+        "backbone": "equiformer_v2",
+        "task": "property"
+      },
+      "full_joint_eqv2_dng": {
+        "experiment": "full_joint_eqv2_dng",
+        "dataset": "mp20_c2db51",
+        "backbone": "equiformer_v2",
+        "task": "dng"
+      },
+      "full_joint_eqv2_csp": {
+        "experiment": "full_joint_eqv2_csp",
+        "dataset": "mp20_c2db51",
+        "backbone": "equiformer_v2",
+        "task": "csp"
+      },
+      "full_joint_eqv2_property": {
+        "experiment": "full_joint_eqv2_property",
+        "dataset": "mp20_c2db51",
+        "backbone": "equiformer_v2",
+        "task": "property"
+      },
+      "full_mp20_atomgraph_dng": {
+        "experiment": "full_mp20_atomgraph_dng",
+        "dataset": "mp_20",
+        "backbone": "joint_atom_graph",
+        "task": "dng"
+      },
+      "full_mp20_atomgraph_csp": {
+        "experiment": "full_mp20_atomgraph_csp",
+        "dataset": "mp_20",
+        "backbone": "joint_atom_graph",
+        "task": "csp"
+      },
+      "full_mp20_atomgraph_property": {
+        "experiment": "full_mp20_atomgraph_property",
+        "dataset": "mp_20",
+        "backbone": "joint_atom_graph",
+        "task": "property"
+      }
+    },
+    "local_training_started": false
+  },
+  "configurations": [
+    {
+      "name": "full_mp20_eqv2_dng",
+      "dataset": "mp_20",
+      "task": "dng",
+      "model": {
+        "family": "joint_flow_v2",
+        "backbone": "equiformer_v2",
+        "hidden": 128,
+        "layers": 4,
+        "channels": 128,
+        "heads": 8,
+        "lmax": 4,
+        "mmax": 2,
+        "use_gate_act": true,
+        "cutoff": 6.0,
+        "max_neighbors": 64,
+        "max_images": 16,
+        "task_controls": true,
+        "operation_compiler": true,
+        "edge_chunk_size": 8192,
+        "checkpoint_layers": false
+      },
+      "epochs": 1000,
+      "learning_rate": 0.0003,
+      "validation_monitor": "val/loss",
+      "validation_seed": 918,
+      "lr_schedule": {
+        "factor": 0.5,
+        "patience": 10,
+        "threshold": 0.0001,
+        "min_lr": 1e-06
+      },
+      "early_stopping": {
+        "patience": 60,
+        "min_delta": 0.0001
+      },
+      "runtime": {
+        "batch_size": 8,
+        "edge_budget": 40000,
+        "edge_chunk_size": 8192,
+        "checkpoint": false,
+        "validation_interval": 1,
+        "coordinate_length_scale": 3.0,
+        "joint_train_limit": null,
+        "joint_val_limit": null,
+        "joint_max_steps": null,
+        "precision": "fp32",
+        "fused_adamw": true,
+        "log_every_n_steps": 25,
+        "strict_fp32": true
+      },
+      "joint_train_limit": null,
+      "joint_val_limit": null,
+      "joint_max_steps": -1
+    },
+    {
+      "name": "full_mp20_eqv2_csp",
+      "dataset": "mp_20",
+      "task": "csp",
+      "model": {
+        "family": "joint_flow_v2",
+        "backbone": "equiformer_v2",
+        "hidden": 128,
+        "layers": 4,
+        "channels": 128,
+        "heads": 8,
+        "lmax": 4,
+        "mmax": 2,
+        "use_gate_act": true,
+        "cutoff": 6.0,
+        "max_neighbors": 64,
+        "max_images": 16,
+        "task_controls": true,
+        "operation_compiler": true,
+        "edge_chunk_size": 8192,
+        "checkpoint_layers": false
+      },
+      "epochs": 1000,
+      "learning_rate": 0.0003,
+      "validation_monitor": "val/loss",
+      "validation_seed": 918,
+      "lr_schedule": {
+        "factor": 0.5,
+        "patience": 10,
+        "threshold": 0.0001,
+        "min_lr": 1e-06
+      },
+      "early_stopping": {
+        "patience": 60,
+        "min_delta": 0.0001
+      },
+      "runtime": {
+        "batch_size": 8,
+        "edge_budget": 40000,
+        "edge_chunk_size": 8192,
+        "checkpoint": false,
+        "validation_interval": 1,
+        "coordinate_length_scale": 3.0,
+        "joint_train_limit": null,
+        "joint_val_limit": null,
+        "joint_max_steps": null,
+        "precision": "fp32",
+        "fused_adamw": true,
+        "log_every_n_steps": 25,
+        "strict_fp32": true
+      },
+      "joint_train_limit": null,
+      "joint_val_limit": null,
+      "joint_max_steps": -1
+    },
+    {
+      "name": "full_mp20_eqv2_property",
+      "dataset": "mp_20",
+      "task": "property",
+      "model": {
+        "family": "joint_flow_v2",
+        "backbone": "equiformer_v2",
+        "hidden": 128,
+        "layers": 4,
+        "channels": 128,
+        "heads": 8,
+        "lmax": 4,
+        "mmax": 2,
+        "use_gate_act": true,
+        "cutoff": 6.0,
+        "max_neighbors": 64,
+        "max_images": 16,
+        "task_controls": true,
+        "operation_compiler": true,
+        "edge_chunk_size": 8192,
+        "checkpoint_layers": false
+      },
+      "epochs": 1000,
+      "learning_rate": 0.0003,
+      "validation_monitor": "val/loss",
+      "validation_seed": 918,
+      "lr_schedule": {
+        "factor": 0.5,
+        "patience": 10,
+        "threshold": 0.0001,
+        "min_lr": 1e-06
+      },
+      "early_stopping": {
+        "patience": 60,
+        "min_delta": 0.0001
+      },
+      "runtime": {
+        "batch_size": 8,
+        "edge_budget": 40000,
+        "edge_chunk_size": 8192,
+        "checkpoint": false,
+        "validation_interval": 1,
+        "coordinate_length_scale": 3.0,
+        "joint_train_limit": null,
+        "joint_val_limit": null,
+        "joint_max_steps": null,
+        "precision": "fp32",
+        "fused_adamw": true,
+        "log_every_n_steps": 25,
+        "strict_fp32": true
+      },
+      "joint_train_limit": null,
+      "joint_val_limit": null,
+      "joint_max_steps": -1
+    },
+    {
+      "name": "full_c2db51_eqv2_dng",
+      "dataset": "c2db_51",
+      "task": "dng",
+      "model": {
+        "family": "joint_flow_v2",
+        "backbone": "equiformer_v2",
+        "hidden": 128,
+        "layers": 4,
+        "channels": 128,
+        "heads": 8,
+        "lmax": 4,
+        "mmax": 2,
+        "use_gate_act": true,
+        "cutoff": 6.0,
+        "max_neighbors": 64,
+        "max_images": 16,
+        "task_controls": true,
+        "operation_compiler": true,
+        "edge_chunk_size": 8192,
+        "checkpoint_layers": false
+      },
+      "epochs": 1000,
+      "learning_rate": 0.0003,
+      "validation_monitor": "val/loss",
+      "validation_seed": 918,
+      "lr_schedule": {
+        "factor": 0.5,
+        "patience": 10,
+        "threshold": 0.0001,
+        "min_lr": 1e-06
+      },
+      "early_stopping": {
+        "patience": 60,
+        "min_delta": 0.0001
+      },
+      "runtime": {
+        "batch_size": 8,
+        "edge_budget": 40000,
+        "edge_chunk_size": 8192,
+        "checkpoint": false,
+        "validation_interval": 1,
+        "coordinate_length_scale": 3.0,
+        "joint_train_limit": null,
+        "joint_val_limit": null,
+        "joint_max_steps": null,
+        "precision": "fp32",
+        "fused_adamw": true,
+        "log_every_n_steps": 25,
+        "strict_fp32": true
+      },
+      "joint_train_limit": null,
+      "joint_val_limit": null,
+      "joint_max_steps": -1
+    },
+    {
+      "name": "full_c2db51_eqv2_csp",
+      "dataset": "c2db_51",
+      "task": "csp",
+      "model": {
+        "family": "joint_flow_v2",
+        "backbone": "equiformer_v2",
+        "hidden": 128,
+        "layers": 4,
+        "channels": 128,
+        "heads": 8,
+        "lmax": 4,
+        "mmax": 2,
+        "use_gate_act": true,
+        "cutoff": 6.0,
+        "max_neighbors": 64,
+        "max_images": 16,
+        "task_controls": true,
+        "operation_compiler": true,
+        "edge_chunk_size": 8192,
+        "checkpoint_layers": false
+      },
+      "epochs": 1000,
+      "learning_rate": 0.0003,
+      "validation_monitor": "val/loss",
+      "validation_seed": 918,
+      "lr_schedule": {
+        "factor": 0.5,
+        "patience": 10,
+        "threshold": 0.0001,
+        "min_lr": 1e-06
+      },
+      "early_stopping": {
+        "patience": 60,
+        "min_delta": 0.0001
+      },
+      "runtime": {
+        "batch_size": 8,
+        "edge_budget": 40000,
+        "edge_chunk_size": 8192,
+        "checkpoint": false,
+        "validation_interval": 1,
+        "coordinate_length_scale": 3.0,
+        "joint_train_limit": null,
+        "joint_val_limit": null,
+        "joint_max_steps": null,
+        "precision": "fp32",
+        "fused_adamw": true,
+        "log_every_n_steps": 25,
+        "strict_fp32": true
+      },
+      "joint_train_limit": null,
+      "joint_val_limit": null,
+      "joint_max_steps": -1
+    },
+    {
+      "name": "full_c2db51_eqv2_property",
+      "dataset": "c2db_51",
+      "task": "property",
+      "model": {
+        "family": "joint_flow_v2",
+        "backbone": "equiformer_v2",
+        "hidden": 128,
+        "layers": 4,
+        "channels": 128,
+        "heads": 8,
+        "lmax": 4,
+        "mmax": 2,
+        "use_gate_act": true,
+        "cutoff": 6.0,
+        "max_neighbors": 64,
+        "max_images": 16,
+        "task_controls": true,
+        "operation_compiler": true,
+        "edge_chunk_size": 8192,
+        "checkpoint_layers": false
+      },
+      "epochs": 1000,
+      "learning_rate": 0.0003,
+      "validation_monitor": "val/loss",
+      "validation_seed": 918,
+      "lr_schedule": {
+        "factor": 0.5,
+        "patience": 10,
+        "threshold": 0.0001,
+        "min_lr": 1e-06
+      },
+      "early_stopping": {
+        "patience": 60,
+        "min_delta": 0.0001
+      },
+      "runtime": {
+        "batch_size": 8,
+        "edge_budget": 40000,
+        "edge_chunk_size": 8192,
+        "checkpoint": false,
+        "validation_interval": 1,
+        "coordinate_length_scale": 3.0,
+        "joint_train_limit": null,
+        "joint_val_limit": null,
+        "joint_max_steps": null,
+        "precision": "fp32",
+        "fused_adamw": true,
+        "log_every_n_steps": 25,
+        "strict_fp32": true
+      },
+      "joint_train_limit": null,
+      "joint_val_limit": null,
+      "joint_max_steps": -1
+    },
+    {
+      "name": "full_joint_eqv2_dng",
+      "dataset": "mp20_c2db51",
+      "task": "dng",
+      "model": {
+        "family": "joint_flow_v2",
+        "backbone": "equiformer_v2",
+        "hidden": 128,
+        "layers": 4,
+        "channels": 128,
+        "heads": 8,
+        "lmax": 4,
+        "mmax": 2,
+        "use_gate_act": true,
+        "cutoff": 6.0,
+        "max_neighbors": 64,
+        "max_images": 16,
+        "task_controls": true,
+        "operation_compiler": true,
+        "edge_chunk_size": 8192,
+        "checkpoint_layers": false
+      },
+      "epochs": 1000,
+      "learning_rate": 0.0003,
+      "validation_monitor": "val/loss",
+      "validation_seed": 918,
+      "lr_schedule": {
+        "factor": 0.5,
+        "patience": 10,
+        "threshold": 0.0001,
+        "min_lr": 1e-06
+      },
+      "early_stopping": {
+        "patience": 60,
+        "min_delta": 0.0001
+      },
+      "runtime": {
+        "batch_size": 8,
+        "edge_budget": 40000,
+        "edge_chunk_size": 8192,
+        "checkpoint": false,
+        "validation_interval": 1,
+        "coordinate_length_scale": 3.0,
+        "joint_train_limit": null,
+        "joint_val_limit": null,
+        "joint_max_steps": null,
+        "precision": "fp32",
+        "fused_adamw": true,
+        "log_every_n_steps": 25,
+        "strict_fp32": true
+      },
+      "joint_train_limit": null,
+      "joint_val_limit": null,
+      "joint_max_steps": -1
+    },
+    {
+      "name": "full_joint_eqv2_csp",
+      "dataset": "mp20_c2db51",
+      "task": "csp",
+      "model": {
+        "family": "joint_flow_v2",
+        "backbone": "equiformer_v2",
+        "hidden": 128,
+        "layers": 4,
+        "channels": 128,
+        "heads": 8,
+        "lmax": 4,
+        "mmax": 2,
+        "use_gate_act": true,
+        "cutoff": 6.0,
+        "max_neighbors": 64,
+        "max_images": 16,
+        "task_controls": true,
+        "operation_compiler": true,
+        "edge_chunk_size": 8192,
+        "checkpoint_layers": false
+      },
+      "epochs": 1000,
+      "learning_rate": 0.0003,
+      "validation_monitor": "val/loss",
+      "validation_seed": 918,
+      "lr_schedule": {
+        "factor": 0.5,
+        "patience": 10,
+        "threshold": 0.0001,
+        "min_lr": 1e-06
+      },
+      "early_stopping": {
+        "patience": 60,
+        "min_delta": 0.0001
+      },
+      "runtime": {
+        "batch_size": 8,
+        "edge_budget": 40000,
+        "edge_chunk_size": 8192,
+        "checkpoint": false,
+        "validation_interval": 1,
+        "coordinate_length_scale": 3.0,
+        "joint_train_limit": null,
+        "joint_val_limit": null,
+        "joint_max_steps": null,
+        "precision": "fp32",
+        "fused_adamw": true,
+        "log_every_n_steps": 25,
+        "strict_fp32": true
+      },
+      "joint_train_limit": null,
+      "joint_val_limit": null,
+      "joint_max_steps": -1
+    },
+    {
+      "name": "full_joint_eqv2_property",
+      "dataset": "mp20_c2db51",
+      "task": "property",
+      "model": {
+        "family": "joint_flow_v2",
+        "backbone": "equiformer_v2",
+        "hidden": 128,
+        "layers": 4,
+        "channels": 128,
+        "heads": 8,
+        "lmax": 4,
+        "mmax": 2,
+        "use_gate_act": true,
+        "cutoff": 6.0,
+        "max_neighbors": 64,
+        "max_images": 16,
+        "task_controls": true,
+        "operation_compiler": true,
+        "edge_chunk_size": 8192,
+        "checkpoint_layers": false
+      },
+      "epochs": 1000,
+      "learning_rate": 0.0003,
+      "validation_monitor": "val/loss",
+      "validation_seed": 918,
+      "lr_schedule": {
+        "factor": 0.5,
+        "patience": 10,
+        "threshold": 0.0001,
+        "min_lr": 1e-06
+      },
+      "early_stopping": {
+        "patience": 60,
+        "min_delta": 0.0001
+      },
+      "runtime": {
+        "batch_size": 8,
+        "edge_budget": 40000,
+        "edge_chunk_size": 8192,
+        "checkpoint": false,
+        "validation_interval": 1,
+        "coordinate_length_scale": 3.0,
+        "joint_train_limit": null,
+        "joint_val_limit": null,
+        "joint_max_steps": null,
+        "precision": "fp32",
+        "fused_adamw": true,
+        "log_every_n_steps": 25,
+        "strict_fp32": true
+      },
+      "joint_train_limit": null,
+      "joint_val_limit": null,
+      "joint_max_steps": -1
+    },
+    {
+      "name": "full_mp20_atomgraph_dng",
+      "dataset": "mp_20",
+      "task": "dng",
+      "model": {
+        "family": "joint_flow_v2",
+        "backbone": "joint_atom_graph",
+        "hidden": 128,
+        "layers": 4,
+        "heads": 4,
+        "task_controls": true,
+        "operation_compiler": true,
+        "edge_chunk_size": 8192,
+        "checkpoint_layers": false
+      },
+      "epochs": 1000,
+      "learning_rate": 0.0003,
+      "validation_monitor": "val/loss",
+      "validation_seed": 918,
+      "lr_schedule": {
+        "factor": 0.5,
+        "patience": 10,
+        "threshold": 0.0001,
+        "min_lr": 1e-06
+      },
+      "early_stopping": {
+        "patience": 60,
+        "min_delta": 0.0001
+      },
+      "runtime": {
+        "batch_size": 8,
+        "edge_budget": 40000,
+        "edge_chunk_size": 8192,
+        "checkpoint": false,
+        "validation_interval": 1,
+        "coordinate_length_scale": 3.0,
+        "joint_train_limit": null,
+        "joint_val_limit": null,
+        "joint_max_steps": null,
+        "precision": "fp32",
+        "fused_adamw": true,
+        "log_every_n_steps": 25,
+        "strict_fp32": true
+      },
+      "joint_train_limit": null,
+      "joint_val_limit": null,
+      "joint_max_steps": -1
+    },
+    {
+      "name": "full_mp20_atomgraph_csp",
+      "dataset": "mp_20",
+      "task": "csp",
+      "model": {
+        "family": "joint_flow_v2",
+        "backbone": "joint_atom_graph",
+        "hidden": 128,
+        "layers": 4,
+        "heads": 4,
+        "task_controls": true,
+        "operation_compiler": true,
+        "edge_chunk_size": 8192,
+        "checkpoint_layers": false
+      },
+      "epochs": 1000,
+      "learning_rate": 0.0003,
+      "validation_monitor": "val/loss",
+      "validation_seed": 918,
+      "lr_schedule": {
+        "factor": 0.5,
+        "patience": 10,
+        "threshold": 0.0001,
+        "min_lr": 1e-06
+      },
+      "early_stopping": {
+        "patience": 60,
+        "min_delta": 0.0001
+      },
+      "runtime": {
+        "batch_size": 8,
+        "edge_budget": 40000,
+        "edge_chunk_size": 8192,
+        "checkpoint": false,
+        "validation_interval": 1,
+        "coordinate_length_scale": 3.0,
+        "joint_train_limit": null,
+        "joint_val_limit": null,
+        "joint_max_steps": null,
+        "precision": "fp32",
+        "fused_adamw": true,
+        "log_every_n_steps": 25,
+        "strict_fp32": true
+      },
+      "joint_train_limit": null,
+      "joint_val_limit": null,
+      "joint_max_steps": -1
+    },
+    {
+      "name": "full_mp20_atomgraph_property",
+      "dataset": "mp_20",
+      "task": "property",
+      "model": {
+        "family": "joint_flow_v2",
+        "backbone": "joint_atom_graph",
+        "hidden": 128,
+        "layers": 4,
+        "heads": 4,
+        "task_controls": true,
+        "operation_compiler": true,
+        "edge_chunk_size": 8192,
+        "checkpoint_layers": false
+      },
+      "epochs": 1000,
+      "learning_rate": 0.0003,
+      "validation_monitor": "val/loss",
+      "validation_seed": 918,
+      "lr_schedule": {
+        "factor": 0.5,
+        "patience": 10,
+        "threshold": 0.0001,
+        "min_lr": 1e-06
+      },
+      "early_stopping": {
+        "patience": 60,
+        "min_delta": 0.0001
+      },
+      "runtime": {
+        "batch_size": 8,
+        "edge_budget": 40000,
+        "edge_chunk_size": 8192,
+        "checkpoint": false,
+        "validation_interval": 1,
+        "coordinate_length_scale": 3.0,
+        "joint_train_limit": null,
+        "joint_val_limit": null,
+        "joint_max_steps": null,
+        "precision": "fp32",
+        "fused_adamw": true,
+        "log_every_n_steps": 25,
+        "strict_fp32": true
+      },
+      "joint_train_limit": null,
+      "joint_val_limit": null,
+      "joint_max_steps": -1
+    }
+  ],
+  "input_inventory": {
+    "mp_20": {
+      "splits": {
+        "train": {
+          "records": 27136,
+          "band_gap_observed": 27136,
+          "kinds": [
+            "space"
+          ],
+          "max_orbits": 20,
+          "sha256": "a0f9a0574fba45633970b69415385fc04f5f1234a18bb0817d9e87bf88ed23b7"
+        },
+        "val": {
+          "records": 9047,
+          "band_gap_observed": 9047,
+          "kinds": [
+            "space"
+          ],
+          "max_orbits": 20,
+          "sha256": "52c212083e121e982951e4d88345e3f4e1ac7142083173c5f6d3a9638721eb69"
+        },
+        "test": {
+          "records": 9046,
+          "band_gap_observed": 9046,
+          "kinds": [
+            "space"
+          ],
+          "max_orbits": 20,
+          "sha256": "ee399467c8ba2000f98474524f896188fffeb34275fb5dcfa169c5d54641abd6"
+        }
+      },
+      "identifiers_split_disjoint": true
+    },
+    "c2db_51": {
+      "splits": {
+        "train": {
+          "records": 10143,
+          "band_gap_observed": 5206,
+          "kinds": [
+            "layer"
+          ],
+          "max_orbits": 51,
+          "sha256": "eabf32f291bdee7ed0e5e4093a1d1b1a3ae6d3e43b7a679318933662e539dfdf"
+        },
+        "val": {
+          "records": 3381,
+          "band_gap_observed": 1758,
+          "kinds": [
+            "layer"
+          ],
+          "max_orbits": 37,
+          "sha256": "1906ec81cb299d065143b43a0bf7dca37f93988b0ffea8a14f9521db7a5f17cb"
+        },
+        "test": {
+          "records": 3381,
+          "band_gap_observed": 1722,
+          "kinds": [
+            "layer"
+          ],
+          "max_orbits": 27,
+          "sha256": "6987e00ba1200b940576f0681a4186cee5084de0b0fa0b4e03e3c0ceb7ea2cfa"
+        }
+      },
+      "identifiers_split_disjoint": true
+    },
+    "mixed": {
+      "splits": {
+        "train": {
+          "records": 37279,
+          "band_gap_observed": 32342
+        },
+        "val": {
+          "records": 12428,
+          "band_gap_observed": 10805
+        },
+        "test": {
+          "records": 12427,
+          "band_gap_observed": 10768
+        }
+      },
+      "policy": "Natural concatenation of matching splits; no TEST/VAL in TRAIN, no dataset conditioning"
+    }
+  },
+  "input_inventory_source": "docs/validation/full_flow_5090_20261113.json",
+  "input_hashes_reverified": true,
+  "input_hash_files": 6,
+  "source_sha256": {
+    "configs/experiments_joint_flow_full.yaml": "09d02719112fd081889d8502c59a0bf9f75d75c0e724457054b3980434f24eb1",
+    "configs/train/joint_flow_full.yaml": "092dc689a01bf9101152c07085e8c2610121e031bb457282ce7738bf5f1bdb7b",
+    "configs/runtime/joint_flow_5090.yaml": "dfe1b53578a4886f0ea590ae1925af00b3ae09fee60d3da6a6fba9a6e00bb91c",
+    "submit_files/joint_flow5090.py": "c3212705a69dbedd98cb4555a4b64687241dbaae092dae761ebb61187cfb4e15",
+    "submit_files/joint_flow5090_calibrate.py": "845918f4e8263892994f05f001df203e81f7ebb575aaf08313bf07bcb6c30ac2",
+    "submit_files/joint_flow5090.sbatch": "a3dcc7dcea4946403aa1c4e74a2251b8e71e94b7f79aa06376111e6ecbcb4444",
+    "unifiedgroupgen/pl_modules/joint_training.py": "465935fc65b8b05e68d5b203ec9dee18957d1582ebadfa4e1c20665a98b13113",
+    "unifiedgroupgen/tests/unit/test_joint_flow_full_5090.py": "01ed9baed0170c75a18282437347cfd4363a8be4027d59b985a6d3339d3800e9",
+    "unifiedgroupgen/tests/unit/test_joint_training_controls.py": "f3b4024b70226a0d9c04d7407ddf2f3eea6a00411cdab3ec96361b49adb9d15f",
+    "unifiedgroupgen/tests/unit/test_joint_flow_calibration.py": "daa9f7bcdeb1e8c8766536066b55372c6a3734ea13421557b65a470822f5366c"
+  },
+  "calibrated_batch_size": null,
+  "server_workflow": "Full campaign-private dataset audit -> finite TRAIN FP32 calibration probes -> independent fresh formal training",
+  "calibration_probe_steps_per_candidate": 11,
+  "calibration_max_optimizer_steps_per_model": 88,
+  "checkpoint_scope": "Native optimizer/scheduler/EarlyStopping/RNG state; pending plateau metric replay tested at state level, no real fit executed locally",
+  "not_validated": [
+    "Actual 5090 software/GPU allocation and CUDA probe execution",
+    "Selected batch size, actual throughput or memory fit",
+    "Real Lightning end-to-end training/resume with these new controls",
+    "Full training convergence and material generation/task performance",
+    "Strict memory upper bound for every periodic intermediate graph",
+    "Full property/composition conditional group-mixture correction"
+  ],
+  "source_hash_scope": "Git index blobs (LF-normalized), matching the frozen git archive rather than Windows worktree line endings"
+}
