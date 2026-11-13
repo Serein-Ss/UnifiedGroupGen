@@ -275,3 +275,34 @@ python submit_files/export_hpc5090.py \
 `--cifs-per-task -1` 可额外将全部成功结构导出为独立 CIF；`--cifs-per-task 0` 只保留完整原记录。`--models mp20_u joint_u` 可只导出指定模型。本包不复制权重、训练数据、Conda 或 `.env`。
 
 使用上传项目 ZIP 时相同的 Xftp/WinSCP/SFTP 连接，打开 `/fs6/home/zhongrsh/workspace/UnifiedGroupGen_exports/`，下载刚生成的 ZIP 和 `.sha256` 到本地 `intermediate/server_exports/`。本地校验 ZIP 的 SHA256 与服务器打印值一致后解压，按 `(model, task, index)` 对应结构和逐结构指标；CSP 同时保留 `(case_id, candidate)`。
+
+### 下载四个新模型的训练产物并恢复到本地
+
+`transfer_hpc5090_training.py` 为独立标准库脚本，可在 base Python 执行。服务器可只 fetch 并从该提交读取工具，不更新当前工作树或实验冻结代码：
+
+```bash
+(
+set -e
+cd /fs6/home/zhongrsh/workspace/UnifiedGroupGen
+module load proxy2/proxy2
+git fetch origin main
+mkdir -p intermediate/checks
+git show FETCH_HEAD:submit_files/transfer_hpc5090_training.py > intermediate/checks/transfer_hpc5090_training.py
+python intermediate/checks/transfer_hpc5090_training.py export \
+  --root "$PWD" \
+  --campaign intermediate/hpc_runs/hpc5090_comp_v1/campaign.json
+)
+```
+
+入口检查四个训练状态完成、必需权重/历史文件存在，并确认最佳权重 SHA256 与本批次评估所用检查点相同。导出原 `outputs/<模型>/hpc5090_comp_v1/` 训练文件，排除已另行导出的 `generate/`、`evaluate/`；同时保留本批次的训练/审计调度日志、配置、资源校准、状态、审计证书及冻结源码。冻结源码目录内的公共预训练二进制、软链接、`.env`、训练数据和环境不打包。四个原生权重使用 ZIP_STORED，减少登录节点压缩开销。
+
+打印的 ZIP 和同名 `.zip.sha256` 写入服务器 workspace 下的 `UnifiedGroupGen_exports/`。下载两者到本地 `intermediate/UnifiedGroupGen_exports/`，然后从本地项目根目录执行，`--archive` 使用实际下载文件名：
+
+```powershell
+python submit_files/transfer_hpc5090_training.py restore `
+  --root . `
+  --archive intermediate/UnifiedGroupGen_exports/hpc5090_comp_v1_new4_training_TIMESTAMP.zip `
+  --results intermediate/UnifiedGroupGen_exports/hpc5090_comp_v1_all19_fullcif_20261104_140604.zip
+```
+
+恢复前核对下载 SHA256、全部成员文件哈希及路径，再与本地19模型结果包核对最佳检查点身份。不同内容的同名文件会阻止整个导入；完全相同的文件跳过。四模型训练文件按原路径恢复到 `outputs/`；冻结配置/源码、作业日志按原路径保存在 `intermediate/hpc_runs/hpc5090_comp_v1/`，不覆盖项目当前代码。导入清单和核验记录保存于 `intermediate/server_training_imports/<压缩包名>/`。此操作不安装环境、加载权重或开始训练/生成。
