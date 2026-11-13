@@ -1,0 +1,394 @@
+{
+  "schema": "ugg_path_rng_fix_v1",
+  "date": "2026-11-13",
+  "parent_commit": "cc86af93a80ec5fc215bb18c2c4de2ecb9769d4b",
+  "scope": "Auxiliary training-path random-stream isolation and bounded integration; no complete training or material-quality claim",
+  "rng_scheme": {
+    "name": "seedsequence_spawn6_v1",
+    "streams": [
+      "program",
+      "training_time",
+      "orbit_clock",
+      "initial_geometry",
+      "birth_kernel",
+      "element_lifetime"
+    ],
+    "qualification": "Separate PRNG states; theoretical independence assumes ideal child random sources"
+  },
+  "tests": {
+    "tests": 576,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 3,
+    "passed": 573,
+    "seconds": 180.306,
+    "report_sha256": "1fd1a1dd595b68cf10c4e05ba551a0eb9ebc8d7028abafcf46086b50b7787371",
+    "new_path_rng_checks_passed": 12,
+    "skipped_cases": [
+      {
+        "test": "unifiedgroupgen.tests.unit.test_periodic_backbones.test_backbone_forward_backward_and_tangent_constraints[cspnet-options0-bf16-cpu]",
+        "reason": "Training uses CUDA mixed precision"
+      },
+      {
+        "test": "unifiedgroupgen.tests.unit.test_periodic_backbones.test_backbone_forward_backward_and_tangent_constraints[mattergen-options1-bf16-cpu]",
+        "reason": "Training uses CUDA mixed precision"
+      },
+      {
+        "test": "unifiedgroupgen.tests.unit.test_periodic_backbones.test_backbone_forward_backward_and_tangent_constraints[equiformer_v2-options2-bf16-cpu]",
+        "reason": "Training uses CUDA mixed precision"
+      }
+    ]
+  },
+  "pre_fix": {
+    "regression_expected_failure": true,
+    "report_sha256": "61d27820d875f28052ea5f6050e0780413afe5f5158bd397f824e739f18515cd",
+    "four_event_first_cdf_at_02": 0.6195,
+    "expected": 0.5904
+  },
+  "statistics": {
+    "scope": "Finite statistical diagnostics on actual production sample_path; not a formal PRNG proof or material-quality result",
+    "seeds": 12000,
+    "program_events": 4,
+    "expected_first_cdf_at_02": 0.5903999999999999,
+    "first_cdf_at_02": 0.5925833333333334,
+    "first_mean": 0.20002897575027115,
+    "expected_first_mean": 0.2,
+    "all_clock_mean": 0.5003359368209014,
+    "training_time_mean": 0.5003633137150431,
+    "training_time_first_clock_correlation": 0.006879028967241671,
+    "first_clock_ks": {
+      "statistic": 0.005331338768120059,
+      "pvalue": 0.8828414184266737
+    },
+    "remaining_hazard": [
+      {
+        "remaining": 1,
+        "n": 1331,
+        "expected": 0.12307692307692297,
+        "observed": 0.13072877535687452
+      },
+      {
+        "remaining": 2,
+        "n": 3804,
+        "expected": 0.23100591715976315,
+        "observed": 0.22108307045215564
+      },
+      {
+        "remaining": 3,
+        "n": 4576,
+        "expected": 0.3256513427400999,
+        "observed": 0.32124125874125875
+      },
+      {
+        "remaining": 4,
+        "n": 2107,
+        "expected": 0.40864810055670286,
+        "observed": 0.3972472710014238
+      }
+    ],
+    "element_clock": {
+      "observations": 21523,
+      "calibration_error": -42.97526404805729,
+      "standard_deviation": 59.834026222145326
+    }
+  },
+  "real_records": {
+    "scope": "Actual TRAIN records with default configurations; not dataset-wide incidence estimates",
+    "records": [
+      {
+        "dataset": "mp_20",
+        "id": "mp-550220",
+        "orbits": 20,
+        "budget": 96,
+        "seeds": 2048,
+        "fallback_count": 0,
+        "fallback_seed_examples": [],
+        "fallback_pairwise_exact": true,
+        "seconds": 6.849157600023318
+      },
+      {
+        "dataset": "c2db_51",
+        "id": "1Pd19Se32-1",
+        "orbits": 51,
+        "budget": 96,
+        "seeds": 2048,
+        "fallback_count": 6,
+        "fallback_seed_examples": [
+          166,
+          283,
+          816,
+          1069,
+          1613,
+          1616
+        ],
+        "fallback_pairwise_exact": true,
+        "seconds": 38.90165309997974
+      }
+    ]
+  },
+  "short_test": {
+    "hardware": {
+      "torch": "2.7.1+cu118",
+      "device": "cuda:0",
+      "gpu": "NVIDIA GeForce RTX 3060"
+    },
+    "protocol": {
+      "train_records": 4,
+      "val_records": 2,
+      "optimizer_steps": 2,
+      "hidden": 32,
+      "layers": 2,
+      "channels": 32,
+      "lmax": 2,
+      "mmax": 1,
+      "precision": "fp32",
+      "compile_constraints": true,
+      "sampling_steps": 8,
+      "sampling_epsilon": 0.01,
+      "training_timing": "2 warmups + 5 synchronized steps; excludes CPU teacher construction",
+      "effective_native_heads": 8
+    },
+    "runs": [
+      {
+        "dataset": "mp_20",
+        "task": "dng",
+        "backbone": "equiformer_v2",
+        "steps": 2,
+        "train_ids": [
+          "mp-1221227",
+          "mp-1185360",
+          "mp-1188861",
+          "mp-561310"
+        ],
+        "val_ids": [
+          "mp-865981",
+          "mp-39712"
+        ],
+        "split_sha256": {
+          "train": "a0f9a0574fba45633970b69415385fc04f5f1234a18bb0817d9e87bf88ed23b7",
+          "val": "52c212083e121e982951e4d88345e3f4e1ac7142083173c5f6d3a9638721eb69"
+        },
+        "parameters": 809898,
+        "validation_loss": 14.505613327026367,
+        "sampling_attempts": 2,
+        "completed": 0,
+        "reasons": [
+          "unfinished_at_terminal_time",
+          "unfinished_at_terminal_time"
+        ],
+        "initial_empty": true,
+        "generated_atoms": [
+          44,
+          44
+        ]
+      },
+      {
+        "dataset": "mp_20",
+        "task": "property",
+        "backbone": "equiformer_v2",
+        "steps": 2,
+        "train_ids": [
+          "mp-1221227",
+          "mp-1185360",
+          "mp-1188861",
+          "mp-561310"
+        ],
+        "val_ids": [
+          "mp-865981",
+          "mp-39712"
+        ],
+        "split_sha256": {
+          "train": "a0f9a0574fba45633970b69415385fc04f5f1234a18bb0817d9e87bf88ed23b7",
+          "val": "52c212083e121e982951e4d88345e3f4e1ac7142083173c5f6d3a9638721eb69"
+        },
+        "parameters": 811050,
+        "validation_loss": 16.47728157043457,
+        "sampling_attempts": 2,
+        "completed": 0,
+        "reasons": [
+          "unfinished_at_terminal_time",
+          "unfinished_at_terminal_time"
+        ],
+        "initial_empty": true,
+        "generated_atoms": [
+          25,
+          58
+        ]
+      },
+      {
+        "dataset": "mp_20",
+        "task": "csp",
+        "backbone": "equiformer_v2",
+        "steps": 2,
+        "train_ids": [
+          "mp-1221227",
+          "mp-1185360",
+          "mp-1188861",
+          "mp-561310"
+        ],
+        "val_ids": [
+          "mp-865981",
+          "mp-39712"
+        ],
+        "split_sha256": {
+          "train": "a0f9a0574fba45633970b69415385fc04f5f1234a18bb0817d9e87bf88ed23b7",
+          "val": "52c212083e121e982951e4d88345e3f4e1ac7142083173c5f6d3a9638721eb69"
+        },
+        "parameters": 809898,
+        "validation_loss": 6.2976179122924805,
+        "sampling_attempts": 2,
+        "completed": 2,
+        "reasons": [
+          "complete",
+          "complete"
+        ],
+        "initial_empty": true,
+        "generated_atoms": [
+          16,
+          16
+        ]
+      },
+      {
+        "dataset": "c2db_51",
+        "task": "dng",
+        "backbone": "equiformer_v2",
+        "steps": 2,
+        "train_ids": [
+          "1OVF2-2",
+          "1Br2Zr2S3-1",
+          "2HKTe-1",
+          "2IrSe-4"
+        ],
+        "val_ids": [
+          "1CoNi2Se4-1",
+          "2InCl3-1"
+        ],
+        "split_sha256": {
+          "train": "eabf32f291bdee7ed0e5e4093a1d1b1a3ae6d3e43b7a679318933662e539dfdf",
+          "val": "1906ec81cb299d065143b43a0bf7dca37f93988b0ffea8a14f9521db7a5f17cb"
+        },
+        "parameters": 809898,
+        "validation_loss": 8.849519729614258,
+        "sampling_attempts": 2,
+        "completed": 2,
+        "reasons": [
+          "complete",
+          "complete"
+        ],
+        "initial_empty": true,
+        "generated_atoms": [
+          14,
+          18
+        ]
+      },
+      {
+        "dataset": "c2db_51",
+        "task": "property",
+        "backbone": "equiformer_v2",
+        "steps": 2,
+        "train_ids": [
+          "1OVF2-2",
+          "1Br2Zr2S3-1",
+          "2HKTe-1",
+          "2IrSe-4"
+        ],
+        "val_ids": [
+          "1CoNi2Se4-1",
+          "2InCl3-1"
+        ],
+        "split_sha256": {
+          "train": "eabf32f291bdee7ed0e5e4093a1d1b1a3ae6d3e43b7a679318933662e539dfdf",
+          "val": "1906ec81cb299d065143b43a0bf7dca37f93988b0ffea8a14f9521db7a5f17cb"
+        },
+        "parameters": 811050,
+        "validation_loss": 10.574684143066406,
+        "sampling_attempts": 2,
+        "completed": 1,
+        "reasons": [
+          "unfinished_at_terminal_time",
+          "complete"
+        ],
+        "initial_empty": true,
+        "generated_atoms": [
+          16,
+          26
+        ]
+      },
+      {
+        "dataset": "c2db_51",
+        "task": "csp",
+        "backbone": "equiformer_v2",
+        "steps": 2,
+        "train_ids": [
+          "1OVF2-2",
+          "1Br2Zr2S3-1",
+          "2HKTe-1",
+          "2IrSe-4"
+        ],
+        "val_ids": [
+          "1CoNi2Se4-1",
+          "2InCl3-1"
+        ],
+        "split_sha256": {
+          "train": "eabf32f291bdee7ed0e5e4093a1d1b1a3ae6d3e43b7a679318933662e539dfdf",
+          "val": "1906ec81cb299d065143b43a0bf7dca37f93988b0ffea8a14f9521db7a5f17cb"
+        },
+        "parameters": 809898,
+        "validation_loss": 12.475982666015625,
+        "sampling_attempts": 2,
+        "completed": 2,
+        "reasons": [
+          "complete",
+          "complete"
+        ],
+        "initial_empty": true,
+        "generated_atoms": [
+          14,
+          14
+        ]
+      }
+    ],
+    "main_task_attempts": 12,
+    "main_task_completed": 7,
+    "main_task_unfinished": 5,
+    "task_optimizer_steps_total": 12,
+    "timing_optimizer_steps_extra": 28,
+    "timing_generation_attempts_extra": 16,
+    "timings_not_used_for_speed_claim": true,
+    "source_unchanged_during_run": true,
+    "near_zero_edge_diagnostics_observed": true
+  },
+  "wheel": {
+    "build_passed": true,
+    "crc_passed": true,
+    "files": 414,
+    "bytes": 919209,
+    "sha256": "e4ac3a58aeffa7f96b4469056e2c6d1391b0fe2445caf451d07f8d5b5d269c38",
+    "scope": "Built from actual Git index; dependencies not reinstalled"
+  },
+  "source_sha256": {
+    "unifiedgroupgen/joint_flow/path.py": "3a7fd116694c9cbcd9ef72507ead8a7e92ad5d49350089582777da970ff9b2d0",
+    "unifiedgroupgen/tests/unit/test_joint_flow_path_rng.py": "12962313792b2e417edc664503da9d781dd9671f4c21d3101601e2d86a8c408d",
+    "unifiedgroupgen/joint_flow/state.py": "8747328c9838f1a7d1d8d3c9c31174509a5868a1d550662ab8682bb77e78062e",
+    "unifiedgroupgen/joint_flow/sampling.py": "22d67d91c883683482f91cfd4cf897cef44b115b07047523519941955809be56",
+    "unifiedgroupgen/joint_flow/objective.py": "61290862a9f3a52fecf152fadd35900e837a91cbce8cd7feba466c0b985c83ab",
+    "unifiedgroupgen/pl_modules/joint_training.py": "d56e5ef6c47eaeaf80ff680b9375f3933df7351768374a37cc57f310e0442565"
+  },
+  "unchanged": [
+    "Network architecture",
+    "Loss functions",
+    "Target-independent jump kernel",
+    "Inference sampler",
+    "Legacy sample_training_path",
+    "Existing research checkpoints"
+  ],
+  "compatibility": "Teacher samples for the same root seed change; old-checkpoint continuation uses the corrected path and is not a bitwise continuation of the old teacher law",
+  "not_verified": [
+    "Formal independence of finite PRNG outputs",
+    "Global learned-field regularity across graph changes",
+    "Long-run convergence",
+    "Full material validity and stability",
+    "Complete historical HPC regression",
+    "Conditional group-mixture correction"
+  ]
+}

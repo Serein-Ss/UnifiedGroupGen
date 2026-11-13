@@ -26,8 +26,10 @@ class FlowSample:
 
 def sample_path(target, seed, time=None, allowed_elements=None, max_atoms=192,max_orbits=52,
                 budget=96,augment=True,birth_scale=.2):
-    rng=np.random.default_rng(seed)
-    generator=torch.Generator(device=target.state.metric.device).manual_seed(int(seed))
+    # Only the program stream participates in budget fallback. Clock/noise
+    # streams are independent children and are sampled after the final program.
+    streams=np.random.SeedSequence(int(seed)).spawn(6)
+    rng=np.random.default_rng(streams[0])
     endpoint=target.state
     allowed=endpoint.chemistry.domain(allowed_elements or sorted(set(endpoint.elements)))
     if endpoint.num_atoms>max_atoms or len(endpoint.letters)>max_orbits:
@@ -80,10 +82,17 @@ def sample_path(target, seed, time=None, allowed_elements=None, max_atoms=192,ma
         if augment:
             return sample_path(target,seed,time,allowed_elements,max_atoms,max_orbits,budget,False,birth_scale)
         raise ValueError('Orbit event budget cannot represent endpoint')
-    t=float(rng.uniform(1e-4,1-1e-4) if time is None else time)
+    time_rng=np.random.default_rng(streams[1])
+    event_rng=np.random.default_rng(streams[2])
+    initial_generator=torch.Generator(device=target.state.metric.device).manual_seed(
+        int(streams[3].generate_state(1,dtype=np.uint64)[0]))
+    generator=torch.Generator(device=target.state.metric.device).manual_seed(
+        int(streams[4].generate_state(1,dtype=np.uint64)[0]))
+    element_rng=np.random.default_rng(streams[5])
+    t=float(time_rng.uniform(1e-4,1-1e-4) if time is None else time)
     if not 0<=t<=1:raise ValueError('time outside [0,1]')
-    times=np.sort(rng.random(len(program)))
-    state=initial(endpoint.spec,generator,budget,endpoint.chemistry,endpoint.metric.device,endpoint.metric.dtype)
+    times=np.sort(event_rng.random(len(program)))
+    state=initial(endpoint.spec,initial_generator,budget,endpoint.chemistry,endpoint.metric.device,endpoint.metric.dtype)
     roles=();births={};last=0.;completed=0
     def bridge(s,stop):
         x=torch.cat([anchors[i] for i in roles]) if roles else s.coordinates.new_zeros((0,3))
@@ -95,7 +104,7 @@ def sample_path(target, seed, time=None, allowed_elements=None, max_atoms=192,ma
         state=bridge(state,float(tau))
         state=apply(state,action,generator,birth_scale)
         for role in next_roles:
-            if role not in roles:births[role]=(float(tau),float(rng.random()))
+            if role not in roles:births[role]=(float(tau),float(element_rng.random()))
         roles=next_roles;last=float(tau);completed+=1
     state=bridge(state,t)
     if not endpoint.chemistry.counts:
