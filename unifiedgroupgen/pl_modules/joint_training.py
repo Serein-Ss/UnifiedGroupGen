@@ -1,14 +1,17 @@
 """Opt-in native Lightning training and versioned checkpoints for the joint generator."""
 from pathlib import Path
+from contextlib import contextmanager
 import os
 import hashlib
 import json
+import time
 import torch
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 from lightning_fabric.utilities.seed import _collect_rng_states, _set_rng_states
 from unifiedgroupgen.common.configuration import RunSettings, project_root
 from unifiedgroupgen.common.source import file_hash
+from unifiedgroupgen.common.structures import write_json
 from unifiedgroupgen.pl_data.joint_datamodule import JointDataModule
 from unifiedgroupgen.pl_data.joint_path import target_from_record, sample_training_path
 from unifiedgroupgen.pl_modules.factory import build_joint_model
@@ -20,6 +23,31 @@ FLOW_FORMAT = 'ugg_joint_flow_v2'
 
 def checkpoint_format(config):
     return FLOW_FORMAT if config.get('model', {}).get('family') == 'joint_flow_v2' else FORMAT
+
+
+def _update_flow_status(output, **values):
+    path=Path(output).with_suffix('.status.json')
+    previous=json.loads(path.read_text(encoding='utf-8')) if path.exists() else {}
+    write_json(path,{**previous,**values,'updated':time.time(),'pid':os.getpid()})
+
+
+@contextmanager
+def _flow_status(output,config):
+    """Observe v2 initialization, execution and exceptions without changing training."""
+    enabled=checkpoint_format(config)==FLOW_FORMAT
+    if enabled:
+        write_json(Path(output).with_suffix('.status.json'),dict(format=FLOW_FORMAT,
+            state='initializing',phase='building_model',started=time.time(),updated=time.time(),
+            pid=os.getpid(),epoch=None,global_step=None))
+    def progress(phase,**values):
+        if enabled:_update_flow_status(output,phase=phase,**values)
+    try:
+        yield progress
+    except BaseException as error:
+        if enabled:
+            _update_flow_status(output,state='interrupted' if isinstance(error,(KeyboardInterrupt,SystemExit)) else 'failed',
+                                error_type=type(error).__name__,error=str(error))
+        raise
 
 
 def strict_fp32(runtime):
@@ -225,7 +253,15 @@ class JointTrainingArtifacts(pl.Callback):
             value = outputs['loss'] if isinstance(outputs,dict) else outputs
             status = dict(format=checkpoint_format(module.config),state='running',epoch=trainer.current_epoch,
                           global_step=trainer.global_step,loss=float(value.detach()))
-            self.output.with_suffix('.status.json').write_text(json.dumps(status,indent=2),encoding='utf-8')
+            if checkpoint_format(module.config)==FLOW_FORMAT:
+                _update_flow_status(self.output,phase='training',**status)
+            else:
+                self.output.with_suffix('.status.json').write_text(json.dumps(status,indent=2),encoding='utf-8')
+
+    def on_validation_start(self,trainer,module):
+        if checkpoint_format(module.config)==FLOW_FORMAT:
+            _update_flow_status(self.output,state='running',phase='validation',
+                                epoch=trainer.current_epoch,global_step=trainer.global_step)
 
     def on_train_epoch_end(self, trainer, module):
         metrics = {name: float(value.detach()) for name,value in trainer.callback_metrics.items()
@@ -239,6 +275,9 @@ class JointTrainingArtifacts(pl.Callback):
                                            best_score=score if torch.isfinite(callback.best_score) else None)
         with self.output.with_suffix('.history.jsonl').open('a',encoding='utf-8') as stream:
             stream.write(json.dumps(row,allow_nan=False)+'\n')
+        if checkpoint_format(module.config)==FLOW_FORMAT:
+            _update_flow_status(self.output,state='running',phase='epoch_end',epoch=trainer.current_epoch,
+                                global_step=trainer.global_step,validation_loss=metrics.get('val/loss'))
 
 
 def fit_joint(config, records, validation, output, device='cpu', epochs=1, runtime=None,
@@ -249,7 +288,10 @@ def fit_joint(config, records, validation, output, device='cpu', epochs=1, runti
         raise ValueError('Joint training requires nonempty, identifier-disjoint train and validation records')
     output = Path(output)
     output.parent.mkdir(parents=True, exist_ok=True)
-    if output.exists() and not resume:
+    protected=(output,output.with_suffix('.history.jsonl'),output.with_suffix('.status.json'),
+               output.parent/'model.best.pt',output.parent/'train.log',*output.parent.glob('*.ckpt'))
+    if not resume and (output.exists() or (checkpoint_format(config)==FLOW_FORMAT and
+                                          any(path.exists() or path.is_symlink() for path in protected))):
         raise FileExistsError('Use a new joint training output; existing checkpoints are preserved')
     from unifiedgroupgen.pl_data.task_path import validate_task_config, has_property_target
     validate_task_config(config)
@@ -279,40 +321,50 @@ def fit_joint(config, records, validation, output, device='cpu', epochs=1, runti
     if runtime.get('fused_adamw',False) and precision=='fp16' and config.get('gradient_clip',10.):
         raise ValueError('FP16 with clipping requires unfused AdamW; BF16 fused clipping is supported')
     strict_fp32(runtime)
-    module = JointGeneratorModule(config, runtime, split_hashes)
-    if initialize_from:
-        module.model.load_state_dict(load_joint_checkpoint(initialize_from)['model'], strict=True)
-    data = JointDataModule(records, validation, runtime, config.get('model', {}).get('operation_compiler', False))
-    trainer = pl.Trainer(accelerator='gpu' if str(device).startswith('cuda') else 'cpu',
-                         devices=[torch.device(device).index or 0] if str(device).startswith('cuda') else 1,
-                         max_epochs=epochs, max_steps=max_steps, precision=modes[precision], logger=logger,
-                         callbacks=joint_callbacks(config,output), default_root_dir=str(output.parent),
-                         enable_model_summary=False, enable_progress_bar=False, num_sanity_val_steps=0,
-                         gradient_clip_val=config.get('gradient_clip', 10.),
-                         check_val_every_n_epoch=1, log_every_n_steps=runtime.get('log_every_n_steps',1), inference_mode=False,
-                         reload_dataloaders_every_n_epochs=1)
-    trainer.fit(module, datamodule=data, ckpt_path=str(resume) if resume else None)
-    if trainer.interrupted:
-        raise KeyboardInterrupt('Joint training interrupted; native last.ckpt is resumable')
-    # Capture the completed loop boundary, rather than the callback's in-hook
-    # snapshot. This is a public Lightning API and preserves optimizer/RNG state.
-    trainer.save_checkpoint(output.parent/'last.ckpt')
-    torch.save(dict(format=checkpoint_format(config), config=config, runtime=runtime, split_hashes=split_hashes or {},
-                    model=module.model.state_dict(), epoch=trainer.current_epoch,
-                    global_step=trainer.global_step), output)
-    checkpoint_callback=next(c for c in trainer.callbacks if isinstance(c,ModelCheckpoint))
-    status = dict(format=checkpoint_format(config), state='complete', global_step=trainer.global_step,
-                  epochs_completed=trainer.current_epoch,max_epochs=epochs,
-                  stop_reason='early_stopping' if any(isinstance(c,EarlyStopping) and c.stopped_epoch>0 for c in trainer.callbacks) else 'training_budget_reached',
-                  best_validation_loss=float(checkpoint_callback.best_model_score) if checkpoint_callback.best_model_score is not None else None,
-                  train_records=len(records), val_records=len(validation),
-                  magnetic_label_records=sum(r.get('magnetic_moments') is not None for r in records),
-                  validation_loss=float(trainer.callback_metrics['val/loss']) if 'val/loss' in trainer.callback_metrics else None,
-                  last_checkpoint=str(output.parent/'last.ckpt'),
-                  task=config.get('generation_task', 'legacy_joint'), label_coverage=coverage,
-                  scope='Training execution validated; material quality is not certified')
-    output.with_suffix('.status.json').write_text(json.dumps(status, indent=2), encoding='utf-8')
-    return trainer
+    with _flow_status(output,config) as progress:
+        progress('building_model',max_epochs=epochs,train_records=len(records),val_records=len(validation),
+                 batch_size=runtime['batch_size'],precision=precision,resumed_from=str(resume) if resume else None)
+        module = JointGeneratorModule(config, runtime, split_hashes)
+        if initialize_from:
+            module.model.load_state_dict(load_joint_checkpoint(initialize_from)['model'], strict=True)
+        progress('preparing_targets')
+        data = JointDataModule(records, validation, runtime, config.get('model', {}).get('operation_compiler', False))
+        progress('trainer_setup')
+        trainer = pl.Trainer(accelerator='gpu' if str(device).startswith('cuda') else 'cpu',
+                             devices=[torch.device(device).index or 0] if str(device).startswith('cuda') else 1,
+                             max_epochs=epochs, max_steps=max_steps, precision=modes[precision], logger=logger,
+                             callbacks=joint_callbacks(config,output), default_root_dir=str(output.parent),
+                             enable_model_summary=False, enable_progress_bar=False, num_sanity_val_steps=0,
+                             gradient_clip_val=config.get('gradient_clip', 10.),
+                             check_val_every_n_epoch=1, log_every_n_steps=runtime.get('log_every_n_steps',1), inference_mode=False,
+                             reload_dataloaders_every_n_epochs=1)
+        progress('waiting_for_first_batch')
+        trainer.fit(module, datamodule=data, ckpt_path=str(resume) if resume else None)
+        if trainer.interrupted:
+            raise KeyboardInterrupt('Joint training interrupted; native last.ckpt is resumable')
+        # Capture the completed loop boundary, rather than the callback's in-hook
+        # snapshot. This is a public Lightning API and preserves optimizer/RNG state.
+        progress('saving',state='running')
+        trainer.save_checkpoint(output.parent/'last.ckpt')
+        torch.save(dict(format=checkpoint_format(config), config=config, runtime=runtime, split_hashes=split_hashes or {},
+                        model=module.model.state_dict(), epoch=trainer.current_epoch,
+                        global_step=trainer.global_step), output)
+        checkpoint_callback=next(c for c in trainer.callbacks if isinstance(c,ModelCheckpoint))
+        status = dict(format=checkpoint_format(config), state='complete', global_step=trainer.global_step,
+                      epochs_completed=trainer.current_epoch,max_epochs=epochs,
+                      stop_reason='early_stopping' if any(isinstance(c,EarlyStopping) and c.stopped_epoch>0 for c in trainer.callbacks) else 'training_budget_reached',
+                      best_validation_loss=float(checkpoint_callback.best_model_score) if checkpoint_callback.best_model_score is not None else None,
+                      train_records=len(records), val_records=len(validation),
+                      magnetic_label_records=sum(r.get('magnetic_moments') is not None for r in records),
+                      validation_loss=float(trainer.callback_metrics['val/loss']) if 'val/loss' in trainer.callback_metrics else None,
+                      last_checkpoint=str(output.parent/'last.ckpt'),
+                      task=config.get('generation_task', 'legacy_joint'), label_coverage=coverage,
+                      scope='Training execution validated; material quality is not certified')
+        if checkpoint_format(config)==FLOW_FORMAT:
+            _update_flow_status(output,phase='finished',**status)
+        else:
+            output.with_suffix('.status.json').write_text(json.dumps(status, indent=2), encoding='utf-8')
+        return trainer
 
 
 def run_joint_training(args, config, records, validation, paths, resolved_config=None):

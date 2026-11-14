@@ -100,9 +100,11 @@ outputs/full_mp20_eqv2_csp/jointflow_mp20_fp32_v2/
 
 每组包含model.pt（最终权重）、best.ckpt（按VAL损失选择的原生最佳权重）、last.ckpt（续训检查点）、model.history.jsonl及model.status.json。history记录联合/分项训练验证损失、当轮学习率和早停状态；最终status记录实际完成epoch、1000上限、停止原因及最佳验证损失。既有joint sample入口可直接读取best.ckpt；后续DNG/CSP评估应使用独立GPU作业和既定完整尝试分母，不将验证损失或示例结构当成材料性能结论。
 
+新版见[统一输出规范](OUTPUT_LAYOUT.md)：v2状态增加模型构建、目标缓存准备、等待首批、训练、验证及保存阶段，生成补齐摘要/状态文件。GitHub代码更新不会改变已按a5079802冻结的任务。初始化阶段不是定时心跳，不能只凭文件更新时间判断卡住；已有服务器状态仍按冻结版本解释。
+
 批次目录intermediate/hpc_runs/jointflow_mp20_fp32_v2/中保存campaign.json、submitted.json、submission_history.jsonl、source/、audits/、profiles/及logs/。日志名为ugg_模型名-作业号.out，可用tail查看。
 
-重复普通submit不会重复提交已有作业号。若超时或失败，先用yhq确认原作业已经结束，再执行：
+重复普通submit不会重复提交已有作业号。下述 `--retry` 只适用于保持原冻结源码的恢复；不能修复旧源码中的镜像超限及无边图错误。这两处修复后的独立续训请使用[安全恢复说明](REPAIRED_RESUME_20261114.md)。若只是超时且无需修改源码，先用yhq确认原作业已经结束，再执行：
 
 ```bash
 python submit_files/joint_flow5090.py submit --name jointflow_mp20_fp32_v2 --retry

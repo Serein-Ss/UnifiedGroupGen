@@ -45,6 +45,13 @@ flow_c2db51_dng、flow_c2db51_property、flow_c2db51_csp。
 层材料用--kind layer。指定群可增加--group，CSP额外指定--formula和--formula-units或--composition。
 每条样本的随机数源独立；打包仅加速前向，不让图间消息交叉。账本保留每次尝试、未完成、数值失败与验证拒绝。
 
+目录和文件语义以[统一输出规范](OUTPUT_LAYOUT.md)为准。v2现可省略`--output`，
+用`--task-name`将账本放在检查点旁的`generate/<任务>/samples.jsonl`；默认任务名由类型、任务和种子组成。
+标准账本同时生成`summary.json`和`sampling.status.json`，记录逐批进度、正常完成、失败和可捕获中断。
+显式旧文件名继续有效，使用带完整文件名前缀的配套文件；已有产物拒绝覆盖。
+训练仍用`last.ckpt`续训、`best.ckpt`选择模型，`model.pt`是正常结束后的最终权重导出；
+状态新增初始化阶段，首步前不能把`initializing`理解为已完成参数更新。
+
 可选完整结构轨迹：增加 `--trajectory-dir outputs/run/trajectories` 保存每次尝试；
 增加 `--trajectory-indices 0 7` 只记录全局编号0和7。记录空图、每个已接受连续步、离散事件后状态及最终状态，
 逐帧写入独立JSONL，最终账本保留轨迹路径。默认关闭，不改变原输出。详见[轨迹格式与使用](GENERATION_TRAJECTORIES.md)。

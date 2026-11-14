@@ -9,6 +9,53 @@ def _image_shifts(bounds):
     return torch.tensor(list(itertools.product(*(range(-n,n+1) for n in bounds))),dtype=torch.long)
 
 
+_IMAGE_DISTANCE_BUDGET = 1 << 20
+
+
+def _shift_chunks(bounds, count, device):
+    shifts = itertools.product(*(range(-n,n+1) for n in bounds))
+    width = min(65536, max(1, _IMAGE_DISTANCE_BUDGET // max(count*count, 1)))
+    while chunk := list(itertools.islice(shifts, width)):
+        yield torch.tensor(chunk, dtype=torch.long, device=device)
+
+
+def _large_image_neighbors(f, cell, bounds, source, target, cutoff, max_neighbors, keep_shells):
+    """Exact two-pass selection without materializing the full image cube.
+
+    First find each target's kth distance, then retain its complete boundary
+    shell. Scratch space is chunked; time and retained shells still depend on
+    the actual geometry. The caller disables gradients for topology selection.
+    """
+    count = len(f)
+    best = f.new_full((count, max_neighbors), torch.inf)
+    delta = f[source, None]-f[target, None]
+    for shifts in _shift_chunks(bounds, count, f.device):
+        distances = torch.linalg.vector_norm((delta+shifts) @ cell, dim=-1)
+        valid = (distances < cutoff) & (distances > 1e-6)
+        distances = distances.masked_fill(~valid, torch.inf)
+        by_target = distances.reshape(count,count,-1).transpose(0,1).reshape(count,-1)
+        best = torch.cat((best,by_target),dim=1).topk(max_neighbors,dim=1,largest=False).values
+    boundary = best.max(dim=1).values
+    pairs_all, shifts_all, distances_all = [], [], []
+    for shifts in _shift_chunks(bounds, count, f.device):
+        distances = torch.linalg.vector_norm((delta+shifts) @ cell, dim=-1)
+        limit = boundary[target,None]+(1e-5 if keep_shells else 0.)
+        pairs, images = ((distances < cutoff) & (distances > 1e-6) & (distances <= limit)).nonzero(as_tuple=True)
+        pairs_all.append(pairs); shifts_all.append(shifts[images]); distances_all.append(distances[pairs,images])
+    pairs, shifts, distances = torch.cat(pairs_all), torch.cat(shifts_all), torch.cat(distances_all)
+    # Restore dense pair/image enumeration as the tie breaker, independently of
+    # chunk boundaries: target, distance, pair index, lexicographic image.
+    order = torch.arange(len(pairs),device=f.device)
+    for key in (shifts[:,2],shifts[:,1],shifts[:,0],pairs,distances,target[pairs]):
+        order = order[key[order].argsort(stable=True)]
+    if not keep_shells:
+        degree = torch.bincount(target[pairs],minlength=count)
+        starts = degree.cumsum(0)-degree
+        rank = torch.arange(len(order),device=f.device)-torch.repeat_interleave(starts,degree)
+        order = order[rank < max_neighbors]
+    return pairs[order], shifts[order]
+
+
 def geometry(compiled, states, lattices):
     with torch.autocast(device_type=states[0].device.type, enabled=False):
         return _geometry(compiled, states, lattices)
@@ -26,17 +73,22 @@ def _geometry(compiled, states, lattices):
     return torch.cat(coords), torch.cat(numbers), counts, torch.stack(periodic)
 
 
-def radius_graph(coords, cells, counts, periodic, cutoff=6., max_neighbors=50, max_images=16, keep_shells=False):
+def radius_graph(coords, cells, counts, periodic, cutoff=6., max_neighbors=50, max_images=16, keep_shells=False,
+                 allow_large_images=False):
     """Cells use row vectors. An edge j→i includes the image of j relative to i.
 
     Reciprocal-vector bounds include every image in the cutoff; no fixed 27-image
     approximation, and no images along a layer's nonperiodic normal.
+    Legacy callers retain the explicit image guard. Joint-flow callers can opt
+    into exact chunked search when that guard would otherwise reject a state.
     """
     with torch.autocast(device_type=coords.device.type, enabled=False):
-        return _radius_graph(coords, cells, counts, periodic, cutoff, max_neighbors, max_images, keep_shells)
+        return _radius_graph(coords, cells, counts, periodic, cutoff, max_neighbors, max_images, keep_shells,
+                             allow_large_images)
 
 
-def _radius_graph(coords, cells, counts, periodic, cutoff, max_neighbors, max_images, keep_shells=False):
+def _radius_graph(coords, cells, counts, periodic, cutoff, max_neighbors, max_images, keep_shells=False,
+                  allow_large_images=False):
     all_edges, all_shifts, counts_edges = [], [], []
     offset = 0
     for g, count in enumerate(counts.tolist()):
@@ -44,7 +96,18 @@ def _radius_graph(coords, cells, counts, periodic, cutoff, max_neighbors, max_im
         bounds = torch.ceil(cutoff*torch.linalg.vector_norm(torch.linalg.inv(cell), dim=0)).long()+1
         bounds = torch.where(periodic[g], bounds, torch.zeros_like(bounds))
         if bounds.max() > max_images:
-            raise ValueError('Periodic image bound exceeds max_images; increase the explicit graph limit')
+            if not allow_large_images:
+                raise ValueError('Periodic image bound exceeds max_images; increase the explicit graph limit')
+            source, target = torch.meshgrid(torch.arange(count,device=f.device),
+                                           torch.arange(count,device=f.device),indexing='ij')
+            source, target = source.flatten(), target.flatten()
+            with torch.no_grad():
+                pairs, shifts = _large_image_neighbors(f,cell,tuple(bounds.tolist()),source,target,
+                                                       cutoff,max_neighbors,keep_shells)
+            all_edges.append(torch.stack((source[pairs]+offset,target[pairs]+offset)))
+            all_shifts.append(shifts); counts_edges.append(len(pairs))
+            offset += count
+            continue
         shifts = _image_shifts(tuple(bounds.tolist())).to(device=f.device)
         source, target = torch.meshgrid(torch.arange(count, device=f.device),
                                         torch.arange(count, device=f.device), indexing='ij')

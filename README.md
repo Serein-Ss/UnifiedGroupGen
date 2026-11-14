@@ -5,6 +5,8 @@
 完整命令、任务特化、批量功能与验证边界见 [JOINT_FLOW_V2.md](docs/JOINT_FLOW_V2.md)。旧选择器保留兼容，下方旧版本相关介绍以新说明为准。
 
 当前代码支持 [完整生成轨迹保存](docs/GENERATION_TRAJECTORIES.md)，以及可选的 BF16＋融合 AdamW 执行配置 `runtime=joint_flow_fast`。
+训练、生成和评估遵循[输出规范](docs/OUTPUT_LAYOUT.md)：新联合模型使用原生`.ckpt`续训、最终`model.pt`导出，生成默认跟随检查点并补齐摘要与状态；显式旧路径、旧入口和已有结果保留。
+MP-20 DNG/CSP镜像与无边图修复后的恢复采用[独立续训入口](docs/REPAIRED_RESUME_20261114.md)，先检查原冻结配置、数据和检查点，再将副本放入新输出目录；原 `--retry` 不会切换到修复源码。
 正式训练前需要为相同配置执行数据审计；首次启动步骤、RTX 3060 隔离短计时、重计算的显存/速度折衷及尚未完成项见 [训练工程效率](docs/TRAINING_EFFICIENCY.md)。短测通过不等于完整训练收敛或材料质量已验证。
 
 本轮代码发布范围与验证边界见 [2026-11-13 更新说明](docs/RELEASE_20261113.md)。

@@ -1,0 +1,51 @@
+{
+  "date": "2026-11-14T11:32:25",
+  "scope": "Local release tests; no real training or scheduler submission",
+  "source_sha256": {
+    "submit_files/joint_flow5090_resume.py": "0bd1a991fddf169a32b3efc8b088599911704aa0dfc93f49bf08a56e5b17b747",
+    "submit_files/joint_flow5090_resume.sbatch": "643609942f649242af073c4e1d992dcae315745a6bcafca6033d60113cb1f280",
+    "unifiedgroupgen/tests/unit/test_joint_flow_repaired_resume.py": "92c381bdc8c4ceadff70a89f7e3de09926933c04a01a137ab9a5e9e9e7392be8"
+  },
+  "tests": [
+    {
+      "report": "intermediate/checks/resume_release_20261114/regression.xml",
+      "tests": 143,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "report": "intermediate/checks/resume_release_20261114/final.xml",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "passed": 155,
+  "checks": {
+    "read_only_original_compatibility": true,
+    "original_calibration_identity_retained": true,
+    "independent_checkpoint_copies": true,
+    "callback_paths_only_relocated": true,
+    "raw_audit_vs_fitted_training_config": true,
+    "epoch_and_pending_scheduler_consistency": true,
+    "mock_submission_idempotent": true,
+    "mismatch_refusal": true,
+    "original_source_configs_unchanged": true
+  },
+  "protection": {
+    "dataset_hashes_unchanged": 6,
+    "previous_output_artifact_metadata_unchanged": 103,
+    "previous_repair_source_hashes_unchanged": true,
+    "previous_output_contract_runtime_sources_unchanged": true,
+    "unrelated_uncommitted_files_not_in_release": true
+  },
+  "local_training_started": false,
+  "optimizer_updates": false,
+  "server_access": false,
+  "real_job_submissions": false,
+  "server_compatibility_verified": false,
+  "gpu_resume_verified": false,
+  "caveat": "Check and prepare must run against the actual server artifacts before submission; the server checkpoints are not present locally."
+}

@@ -98,6 +98,13 @@ def evaluation_directory(samples):
     return samples.parent.parent.parent/'evaluate'/samples.parent.name
 
 
+def sampling_files(output):
+    """Canonical task files, or distinct sidecars for an explicit legacy filename."""
+    output = Path(output)
+    prefix = '' if output.name == 'samples.jsonl' else output.name+'.'
+    return output.parent/(prefix+'summary.json'), output.parent/(prefix+'sampling.status.json')
+
+
 def load_yaml(path, root=None):
     value = OmegaConf.to_container(OmegaConf.load(resolve_path(path, root)), resolve=True)
     if not isinstance(value, dict):

@@ -3,6 +3,8 @@
 该功能只观察采样状态，不训练、不改变网络、积分器、事件核或采样概率。
 默认不启用，原来的最终结果 JSONL 不变。适用于 EquiformerV2 和 JointAtomGraph 的
 joint_flow_v2 检查点；旧生成器遇到轨迹参数会明确报错，不改变其采样方式。
+新v2入口同时写摘要和状态文件，命名与默认目录见[统一输出规范](OUTPUT_LAYOUT.md)。
+配套文件不改变账本行、轨迹帧或采样随机数，但输出目录会增加这些文件。
 
 ## 命令
 
@@ -37,6 +39,8 @@ MoS₂ 使用 `--kind layer --formula MoS2 --formula-units 1`。
 ```text
 outputs/trace_selected/
   samples.jsonl
+  summary.json
+  sampling.status.json
   trajectories/
     sample_000000.jsonl
     sample_000007.jsonl

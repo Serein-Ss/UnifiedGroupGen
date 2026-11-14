@@ -1,0 +1,73 @@
+{
+  "schema": "ugg_local_output_contract_validation_v1",
+  "base_commit": "c1552e9370db8f740093fce5bc37a2784d73ef6c",
+  "scope": "Local-only output paths, lifecycle metadata and compatibility; temporary fixtures and FakeTrainer, no real model training/inference",
+  "tests": [
+    {
+      "tests": 89,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "report": "regression.xml"
+    },
+    {
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "report": "trajectories.xml"
+    }
+  ],
+  "passed": 100,
+  "real_network_trajectory_tests_deselected": 6,
+  "local_training_executed": false,
+  "optimizer_steps_executed": false,
+  "real_neural_inference_executed": false,
+  "gpu_execution": false,
+  "github_pushed": false,
+  "server_updated": false,
+  "protection": {
+    "existing_training_artifact_metadata_unchanged": 83,
+    "data_split_sha256_unchanged": 6,
+    "private_file_sha256_unchanged": 4,
+    "core_probability_and_network_files_unchanged": [
+      "unifiedgroupgen/joint_flow/model.py",
+      "unifiedgroupgen/joint_flow/objective.py",
+      "unifiedgroupgen/joint_flow/path.py",
+      "unifiedgroupgen/joint_flow/sampling.py",
+      "unifiedgroupgen/joint_flow/state.py",
+      "unifiedgroupgen/joint_flow/periodic.py",
+      "unifiedgroupgen/joint_flow/trajectory.py",
+      "unifiedgroupgen/pl_data/joint_path.py",
+      "unifiedgroupgen/pl_data/operation_path.py",
+      "unifiedgroupgen/pl_data/task_path.py"
+    ]
+  },
+  "source_sha256": {
+    "unifiedgroupgen/common/configuration.py": "afd1577b0c3050c23af59b7ba2e44806e702c04c031676d2f93d7814186f8cb3",
+    "unifiedgroupgen/joint.py": "62e482db39ea26a6a4ffa98856845693b315d56142ede679d152f3e92eae5bdd",
+    "unifiedgroupgen/joint_flow/cli.py": "0657564d9ce99ce45c962a1fca7a5a35deb2366d9adcb21c7b2df897e84f9436",
+    "unifiedgroupgen/pl_modules/joint_training.py": "e0e9e3914134ae4d706b0c1439dfa8b9a4c45dd9d40e2465feba068a8ee0394c",
+    "unifiedgroupgen/evaluate.py": "47fb904a9661466b883c92b336361d1a89e2cc72dcd3b4cbda8b4359e63ccbcd",
+    "unifiedgroupgen/tests/unit/test_joint_output_contract.py": "e0ad988a5852d4d1d14c9441c5d41d4d68f12c3927e70df782261d458f69b756"
+  },
+  "test_report_sha256": {
+    "regression.xml": "1bb3e698e0ffa4d1072fdd0b36451e719ddefb68a6b576923dcdab4c0f332529",
+    "trajectories.xml": "ce2696c6dcc8b4ec97116169390f5f9825d97708fea4869724153926c5b5fb65"
+  },
+  "cli_help_passed": true,
+  "not_verified": [
+    "Real Lightning end-to-end training/resume and GPU inference",
+    "Material quality, convergence or throughput",
+    "Terminal status persistence after SIGKILL, power loss or disk failure"
+  ],
+  "documentation_updated": [
+    "README.md",
+    "docs/OUTPUT_LAYOUT.md",
+    "docs/JOINT_FLOW_V2.md",
+    "docs/GENERATION_TRAJECTORIES.md",
+    "docs/FULL_JOINT_FLOW_5090.md"
+  ],
+  "new_contract_test_cases": 33,
+  "verification_scope": "Existing training artifacts checked by size/mtime; six current data splits and four pre-existing private files checked by SHA256. No full training or real neural inference."
+}

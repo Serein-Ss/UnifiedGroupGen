@@ -194,8 +194,9 @@ def execute(cfg):
         raise ValueError('Completed metrics already exist; use the campaign to skip them or choose a new output directory')
     args.output.mkdir(parents=True,exist_ok=True)
     status=args.output/'metrics.status.json'
-    write_json(status,{'state':'running','pid':__import__('os').getpid(),'started':time.time(),
-                       'samples':str(args.samples),'scope':'Metrics only; no structure sampling'})
+    lifecycle={'pid':__import__('os').getpid(),'started':time.time(),
+               'samples':str(args.samples),'output':str(args.output),'scope':'Metrics only; no structure sampling'}
+    write_json(status,{**lifecycle,'state':'running','phase':'evaluating','updated':time.time()})
     started=time.perf_counter()
     try:
         if args.conditional_enabled and cfg.get('property_predictor',{}).get('enabled',False):
@@ -218,9 +219,12 @@ def execute(cfg):
             args.reference_assessments=predictor.output/'reference_predictions.csv'
         result=evaluate_task(args)
     except BaseException as error:
-        write_json(status,{'state':'failed','seconds':time.perf_counter()-started,'error':str(error)})
+        write_json(status,{**lifecycle,'state':'interrupted' if isinstance(error,(KeyboardInterrupt,SystemExit)) else 'failed',
+                          'phase':'evaluating','updated':time.time(),'seconds':time.perf_counter()-started,
+                          'error_type':type(error).__name__,'error':str(error)})
         raise
-    write_json(status,{'state':'complete','seconds':time.perf_counter()-started})
+    write_json(status,{**lifecycle,'state':'complete','phase':'finished','updated':time.time(),
+                      'seconds':time.perf_counter()-started})
     return result
 
 

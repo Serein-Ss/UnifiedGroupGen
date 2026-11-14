@@ -1,0 +1,104 @@
+{
+  "date": "2026-11-14T11:08:56",
+  "scope": "local CPU forward/autograd/load only",
+  "base_commit": "c1552e9370db8f740093fce5bc37a2784d73ef6c",
+  "server_original_revision": "a5079802bb089ee1290a1289db3241d20d85a01b",
+  "sources": {
+    "unifiedgroupgen/pl_modules/backbones/periodic_graph.py": "14ec6a90ee3f2178402f1cc4f91d6b2c8d3e4a8fa6e105cca50968cf3f1fb4fa",
+    "unifiedgroupgen/joint_flow/periodic.py": "3ed9f4127bace72ebb85d133bbae90093c13b6b138a453ea9a69f470378291a8",
+    "unifiedgroupgen/tests/unit/test_joint_periodic_repair.py": "6341d6c1200b740afacc0e0c4fc68dad4126de0e15e4b84b7874b3e50a814b6f"
+  },
+  "tests": [
+    {
+      "file": "intermediate/checks/periodic_repair_20261114_3569ef23/specialist_final_v2.xml",
+      "tests": 37,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "file": "intermediate/checks/periodic_repair_20261114_3569ef23/integration_selected.xml",
+      "tests": 31,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "file": "intermediate/checks/periodic_repair_20261114_3569ef23/compatibility.xml",
+      "tests": 89,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "total_passed": 157,
+  "checks": {
+    "parameter_names_shapes_unchanged": true,
+    "official_equiformer_core_unchanged": true,
+    "original_training_configs_and_submission_scripts_unchanged": true,
+    "dense_normal_outputs_and_parameter_gradients_bitwise_equal_in_test": true,
+    "fp32_fp64_overflow_vs_bruteforce": true,
+    "complete_tied_shells_and_nonperiodic_axes": true,
+    "multiple_active_graphs_mixed_with_empty_and_edgeless": true,
+    "space_layer_plane_full_model_dng_csp_consistent": true,
+    "activation_checkpoint_recomputation_and_cleanup": true
+  },
+  "protection": {
+    "manifest": "intermediate/checks/periodic_repair_20261114_3569ef23/protected_before.json",
+    "sha256_files_checked": 22,
+    "dataset_sha256_files_checked": 6,
+    "existing_output_files_size_and_mtime_checked": 103,
+    "changed_hashes": [],
+    "changed_metadata": []
+  },
+  "historical_local_checkpoints": [
+    {
+      "path": "intermediate/checks/joint_flow_v2_20261113/runs/mp_20/dng/equiformer_v2/last.ckpt",
+      "sha256": "7f493bb8b31887046f37f80d301a38a2a8113ebe312a630612be2ca652f9b087",
+      "strict_model_load": true,
+      "optimizer_load": true,
+      "cpu_rng_readable": true,
+      "unchanged_sha256_during_test": true
+    },
+    {
+      "path": "intermediate/checks/joint_flow_v2_20261113/runs/mp_20/csp/equiformer_v2/last.ckpt",
+      "sha256": "d7b366de2ff927739dab116691b4288566fa2f6603b2194076c8c6ef806aea99",
+      "strict_model_load": true,
+      "optimizer_load": true,
+      "cpu_rng_readable": true,
+      "unchanged_sha256_during_test": true
+    },
+    {
+      "path": "intermediate/checks/joint_flow_v2_20261113/runs/c2db_51/dng/equiformer_v2/last.ckpt",
+      "sha256": "93e30420e582dab0f5a8491e5e4b5bb325d935bb9f2e33c15acfad2aea193cc0",
+      "strict_model_load": true,
+      "optimizer_load": true,
+      "cpu_rng_readable": true,
+      "unchanged_sha256_during_test": true
+    },
+    {
+      "path": "intermediate/checks/joint_flow_v2_20261113/runs/c2db_51/csp/equiformer_v2/last.ckpt",
+      "sha256": "bb6d13e7308a2a31da2cda99669ead1b1bae5c1b54393fce9971455fc8e6a04a",
+      "strict_model_load": true,
+      "optimizer_load": true,
+      "cpu_rng_readable": true,
+      "unchanged_sha256_during_test": true
+    }
+  ],
+  "not_performed": [
+    "training",
+    "optimizer updates",
+    "server access or update",
+    "job submission",
+    "Git commit or push",
+    "formal server checkpoint local loading",
+    "CUDA RNG restore",
+    "GPU memory recalibration or resumed fit"
+  ],
+  "limits": [
+    "Exact enumeration assumes finite nonsingular cells and wrapped periodic fractional coordinates.",
+    "Chunking bounds search scratch, not total time or retained tied-shell size.",
+    "Edgeless mixed-batch repair intentionally changes that previously inconsistent branch.",
+    "Local historical checkpoint tests do not prove successful recovery of the two server jobs."
+  ]
+}

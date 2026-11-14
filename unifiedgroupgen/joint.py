@@ -131,7 +131,8 @@ def main(argv=None):
     sample.add_argument('--steps', type=int, default=128)
     sample.add_argument('--seed', type=int, default=42)
     sample.add_argument('--device', default='cpu')
-    sample.add_argument('--output', required=True)
+    sample.add_argument('--output', help='Explicit ledger path; v2 defaults beside the checkpoint')
+    sample.add_argument('--task-name', help='v2 generate/<task-name>; default: <kind>_<task>_seed<seed>')
     sample.add_argument('--exact-group', action='store_true', help='Require maximal group recovery, retaining rejected attempts in the ledger')
     sample.add_argument('--case-id', help='CSP evaluation identifier only; no reference geometry is read')
     assess = commands.add_parser('evaluate-csp', help='Match a completed CSP ledger to held-out references')
@@ -276,6 +277,12 @@ def main(argv=None):
     import math
     if any(value is None or not math.isfinite(float(value)) for value in properties.values()):
         parser.error('Requested target properties must be finite numbers')
+    if not args.output:
+        if getattr(model,'flow_version',None) != 'joint_flow_v2':
+            parser.error('Legacy joint sampling requires --output')
+        from unifiedgroupgen.common.configuration import model_result_directory
+        name = args.task_name or f'{args.kind or "mixed"}_{task or "dng"}_seed{args.seed}'
+        args.output = model_result_directory(args.checkpoint,'generate',name)/'samples.jsonl'
     output = artifact_path(args.output)
     if getattr(model, 'flow_version', None) == 'joint_flow_v2':
         if args.batch_size < 1 or args.count < 1: parser.error('count/batch-size must be positive')
