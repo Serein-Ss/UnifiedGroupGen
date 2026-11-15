@@ -9,6 +9,7 @@ import time
 import torch
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
+from pytorch_lightning.loggers import WandbLogger
 from lightning_fabric.utilities.seed import _collect_rng_states, _set_rng_states
 from unifiedgroupgen.common.configuration import RunSettings, project_root
 from unifiedgroupgen.common.source import file_hash
@@ -167,6 +168,10 @@ class JointGeneratorModule(pl.LightningModule):
         checkpoint['joint_state'] = dict(format=checkpoint_format(self.config), config=self.config, runtime=self.runtime,
                                         split_hashes=self.split_hashes, rng=_collect_rng_states(),
                                         epoch_boundary=boundary,pending_lr_metric=pending)
+        logger=getattr(self,'logger',None)
+        if isinstance(logger,WandbLogger):
+            checkpoint['joint_state'].update(wandb_id=logger.version,
+                wandb_run_directory=str(Path(self.trainer.default_root_dir).resolve()))
 
     def on_load_checkpoint(self, checkpoint):
         state = checkpoint.get('joint_state', {})

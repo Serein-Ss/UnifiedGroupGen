@@ -63,12 +63,21 @@ def build_loggers(args, output, settings, resume):
     if settings.wandb_mode != 'disabled':
         settings.wandb_dir.mkdir(parents=True, exist_ok=True)
         saved = torch.load(resume, map_location='cpu', weights_only=False) if resume else {}
-        run_id = saved.get('ugg_state', {}).get('wandb_id') or uuid.uuid4().hex
+        options = {}
+        if 'joint_state' in saved:
+            state = saved['joint_state']
+            same_directory = state.get('wandb_run_directory') == str(output.parent.resolve())
+            previous = state.get('wandb_id') if same_directory and settings.wandb_mode == 'online' else None
+            run_id = previous or uuid.uuid4().hex
+            # Offline sessions get separate IDs; old SDKs cannot reliably resume them.
+            options['resume'] = ('allow' if previous else 'never') if settings.wandb_mode == 'online' else None
+        else:
+            run_id = saved.get('ugg_state', {}).get('wandb_id') or uuid.uuid4().hex
         loggers.append(WandbLogger(project=getattr(args, 'wandb_project', None) or 'UnifiedGroupGen',
                                   name=getattr(args, 'experiment', None) or output.parent.parent.name,
                                   id=run_id, save_dir=str(settings.wandb_dir),
                                   offline=settings.wandb_mode == 'offline', mode=settings.wandb_mode,
-                                  log_model=False))
+                                  log_model=False, **options))
     return loggers
 
 

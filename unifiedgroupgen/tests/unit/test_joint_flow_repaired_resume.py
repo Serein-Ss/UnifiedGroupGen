@@ -147,7 +147,8 @@ def test_submit_is_mocked_idempotent_and_refuses_changed_copies(original,tmp_pat
     assert len(calls)==2
 
 
-def test_native_checkpoint_validation_without_fit_or_rng_mutation(tmp_path):
+@pytest.mark.parametrize('logging_metadata',[False,True])
+def test_native_checkpoint_validation_without_fit_or_rng_mutation(tmp_path,logging_metadata):
     from unifiedgroupgen.pl_modules.joint_training import JointGeneratorModule,joint_callbacks
     config=dict(model=dict(family='joint_flow_v2',backbone='joint_atom_graph',hidden=16,layers=1,heads=4,task_controls=True),
         allowed_elements=[8],properties={},lr_schedule=dict(patience=10,factor=.5),generation_task='dng')
@@ -162,6 +163,7 @@ def test_native_checkpoint_validation_without_fit_or_rng_mutation(tmp_path):
             'epoch_loop.automatic_optimization.optim_progress':{'optimizer':{'step':{'total':{'completed':30528}}}}}},callbacks=callbacks,
         epoch=9,global_step=30528,joint_state=dict(format='ugg_joint_flow_v2',config=config,runtime=runtime,split_hashes={},
             epoch_boundary=True,pending_lr_metric=2.,rng=dict(torch=torch.get_rng_state(),python=__import__('random').getstate(),numpy=__import__('numpy').random.get_state())))
+    if logging_metadata:saved['joint_state'].update(wandb_id='fixture-id',wandb_run_directory=str(tmp_path))
     rng=torch.get_rng_state().clone()
     report=resume.validate_checkpoint(saved,config,runtime,{})
     assert torch.equal(torch.get_rng_state(),rng)
@@ -170,13 +172,25 @@ def test_native_checkpoint_validation_without_fit_or_rng_mutation(tmp_path):
     with pytest.raises(ValueError,match='Nonfinite'):resume.validate_checkpoint(saved,config,runtime,{})
 
 
-def test_worker_uses_raw_data_gate_fitted_training_config_and_new_outputs(original,tmp_path,monkeypatch):
+@pytest.mark.parametrize('failure',[False,True])
+def test_worker_uses_raw_data_gate_fitted_training_config_and_new_outputs(original,tmp_path,monkeypatch,failure):
     from unifiedgroupgen.pl_data import dataset
     from unifiedgroupgen.pl_modules import joint_training
+    from unifiedgroupgen.common.configuration import RunSettings
+    from unifiedgroupgen import run
     manifest=prepared(original,tmp_path,monkeypatch);recovery=read(manifest);model=recovery['models'][0]
     monkeypatch.setattr(resume,'ROOT',Path(recovery['source']))
     monkeypatch.setattr(resume,'device_info',lambda:dict(gpu='mocked 5090'))
-    calls=[]
+    calls=[];finalized=[];logger=SimpleNamespace(finalize=finalized.append)
+    def settings(root,mode):
+        assert root==Path(recovery['root']) and mode=='offline'
+        return SimpleNamespace(wandb_mode=mode)
+    monkeypatch.setattr(RunSettings,'load',settings)
+    def loggers(args,output,settings,checkpoint):
+        assert args.experiment==model and args.wandb_project=='UnifiedGroupGen'
+        assert checkpoint==output.parent/'last.ckpt'
+        return [logger]
+    monkeypatch.setattr(run,'build_loggers',loggers)
     def load(config,root):
         assert 'allowed_elements' not in config  # Audit signs the pre-fitting definition.
         assert root==Path(original[1]['source'])
@@ -186,8 +200,13 @@ def test_worker_uses_raw_data_gate_fitted_training_config_and_new_outputs(origin
         assert output==Path(recovery['root'])/'outputs'/model/'repaired/model.pt'
         assert kwargs['resume']==output.parent/'last.ckpt'
         assert kwargs['runtime']['batch_size']==8 and kwargs['epochs']==1000
+        assert kwargs['logger']==[logger]
         calls.append(kwargs)
+        if failure:raise RuntimeError('Mock training error')
     monkeypatch.setattr(dataset,'load_training_splits',load)
     monkeypatch.setattr(joint_training,'fit_joint',fit)
-    resume.run(manifest,model)
+    if failure:
+        with pytest.raises(RuntimeError,match='Mock training error'):resume.run(manifest,model)
+    else:resume.run(manifest,model)
     assert len(calls)==1
+    assert finalized==['failed' if failure else 'success']

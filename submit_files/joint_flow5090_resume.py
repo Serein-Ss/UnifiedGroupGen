@@ -8,6 +8,7 @@ from pathlib import Path
 import re
 import subprocess
 import sys
+from types import SimpleNamespace
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
@@ -152,7 +153,7 @@ def relocate_checkpoint(saved,old_directory,new_directory):
     return result
 
 
-def prepare(original,name):
+def prepare(original,name,wandb_mode='offline',wandb_project='UnifiedGroupGen'):
     import torch
     if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]*',name):raise ValueError('Use a single campaign name')
     old=read(original)
@@ -190,7 +191,8 @@ def prepare(original,name):
             raise ValueError('Original best checkpoint changed while preparing recovery')
     recovery=dict(schema=SCHEMA,name=name,root=str(ROOT),source=str(source),revision=revision,
         original=str(Path(original).resolve()),original_manifest_sha256=digest(original),
-        compatibility=report,resources=old['resources'],models=list(outputs))
+        compatibility=report,resources=old['resources'],models=list(outputs),
+        logging=dict(mode=wandb_mode,project=wandb_project))
     write(folder/'campaign.json',recovery)
     print(json.dumps(recovery,ensure_ascii=False,indent=2))
 
@@ -256,19 +258,33 @@ def run(manifest,model):
         if (len(records),len(validation))!=(j['runtime']['train_records'],j['runtime']['val_records']):
             raise ValueError('Full training split counts differ')
         torch.set_num_threads(4)
-        fit_joint(j['config'],records,validation,output,device=j['runtime']['device'],epochs=j['config']['epochs'],
-            runtime=j['runtime'],split_hashes=j['split_hashes'],resume=resume,max_steps=j['config'].get('joint_max_steps',-1))
+        from unifiedgroupgen.common.configuration import RunSettings
+        from unifiedgroupgen.run import build_loggers
+        logging=recovery.get('logging',{})
+        settings=RunSettings.load(Path(recovery['root']),logging.get('mode','offline'))
+        loggers=build_loggers(SimpleNamespace(experiment=model,wandb_project=logging.get('project','UnifiedGroupGen')),
+                              output,settings,resume)
+        success=False
+        try:
+            fit_joint(j['config'],records,validation,output,device=j['runtime']['device'],epochs=j['config']['epochs'],
+                runtime=j['runtime'],split_hashes=j['split_hashes'],resume=resume,
+                max_steps=j['config'].get('joint_max_steps',-1),logger=loggers or False)
+            success=True
+        finally:
+            for logger in loggers:logger.finalize('success' if success else 'failed')
 
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__);sub=parser.add_subparsers(dest='action',required=True)
     p=sub.add_parser('check');p.add_argument('--original',required=True)
     p=sub.add_parser('prepare');p.add_argument('--original',required=True);p.add_argument('--name',required=True)
+    p.add_argument('--wandb-mode',choices=['offline','online','disabled'],default='offline')
+    p.add_argument('--wandb-project',default='UnifiedGroupGen')
     p=sub.add_parser('submit');p.add_argument('--campaign',required=True)
     p=sub.add_parser('run');p.add_argument('--campaign',required=True);p.add_argument('--model',required=True)
     args=parser.parse_args()
     if args.action=='check':print(json.dumps(check(args.original),ensure_ascii=False,indent=2))
-    elif args.action=='prepare':prepare(args.original,args.name)
+    elif args.action=='prepare':prepare(args.original,args.name,args.wandb_mode,args.wandb_project)
     elif args.action=='submit':submit(args.campaign)
     else:run(args.campaign,args.model)
 

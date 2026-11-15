@@ -1,0 +1,67 @@
+{
+  "schema": "ugg_wandb_repair_validation_v1",
+  "date": "2026-11-15",
+  "base_commit": "f4e009e19de8fb06a16497c7ccc2c24cf3af8e46",
+  "tested_staged_tree": "e6dd6cc6aafee1bd939c1460717b6f4513e591bf",
+  "release_regression": {
+    "passed": 111,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 132.043,
+    "source": "Exported staged tree with published environment handling retained",
+    "training_guard": "Real Trainer.fit and optimizer updates forbidden"
+  },
+  "coverage": [
+    "Recovery worker passes W&B logger and finalizes success/failure",
+    "Old and optional logging-metadata native checkpoints load",
+    "Checkpoint logging identity does not change parameter registrations or RNG",
+    "Same-directory online IDs; new IDs for detached or offline sessions; old two-stage identity preserved",
+    "Read-only plan without W&B/model imports",
+    "Completed JSONL prefixes, recovery cutoff and deduplication",
+    "Conflicting/nonfinite/malformed history rejected before upload",
+    "Missing epochs reported without interpolation",
+    "Snapshot source append and hash-tampering checks",
+    "Explicit online account, monotonic global steps, distinct run IDs and epoch axes",
+    "Idempotent receipts and failed-upload evidence",
+    "Existing progress clocks and output layout regressions"
+  ],
+  "sdk_offline_smoke": {
+    "passed": true,
+    "mode": "offline",
+    "sdk_version": "0.22.3",
+    "runs": 2,
+    "rows_per_run": 2,
+    "original_history_hashes_unchanged": true,
+    "training_started": false,
+    "cloud_upload": false
+  },
+  "pasted_server_format_smoke": {
+    "passed": true,
+    "pasted_history_records": 12,
+    "epoch_mean_mapping_exact": true,
+    "recorded_metric_precision_preserved": true,
+    "note": "Logged LR metrics have float32 precision; raw optimizer rates are float64 and agree within 1e-7 relative tolerance",
+    "input_modified": false,
+    "full_server_history_available": false,
+    "cloud_upload": false
+  },
+  "scope": {
+    "training_started": false,
+    "optimizer_updates": false,
+    "server_operations": false,
+    "cloud_upload": false,
+    "datasets_weights_results_modified": false,
+    "training_configs_modified": false,
+    "excluded_local_environment_web_and_manuscript_changes_preserved": true
+  },
+  "not_validated": [
+    "Live server full-history merge until server plan is run",
+    "W&B online network/authentication/account permissions",
+    "Full or resumed GPU training; existing jobs intentionally untouched"
+  ],
+  "warnings": [
+    "Cacheprovider disabled caused an unused cache_dir configuration warning",
+    "Existing torch_geometric distributed deprecation warning"
+  ]
+}
