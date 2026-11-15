@@ -205,7 +205,8 @@ class CompactProgressBar(TQDMProgressBar):
 class TrainingProgress(Callback):
     """Stateless callback: never changes checkpoint keys, RNG or optimization."""
     def __init__(self, output):
-        self.log = StepLog(output.with_suffix('.steps.jsonl'))
+        # Lightning binds callback.log/log_dict to the module during setup.
+        self._step_log = StepLog(output.with_suffix('.steps.jsonl'))
         self.train_clock,self.validation_clock=PhaseClock(),PhaseClock()
 
     def on_train_epoch_start(self, trainer, pl_module):
@@ -225,7 +226,7 @@ class TrainingProgress(Callback):
 
     def on_train_start(self, trainer, pl_module):
         if trainer.is_global_zero:
-            self.log.write('train', 'start', epoch=trainer.current_epoch, global_step=trainer.global_step,
+            self._step_log.write('train', 'start', epoch=trainer.current_epoch, global_step=trainer.global_step,
                            batch_size=_batch_size(pl_module))
 
     def on_train_batch_end(self, trainer, pl_module, outputs, batch, batch_idx):
@@ -234,7 +235,7 @@ class TrainingProgress(Callback):
             self.train_clock.pause()
         if trainer.is_global_zero:
             loss = outputs.get('loss') if isinstance(outputs, dict) else outputs
-            self.log.write('train', epoch=trainer.current_epoch, batch=batch_idx+1,
+            self._step_log.write('train', epoch=trainer.current_epoch, batch=batch_idx+1,
                            batches=trainer.num_training_batches, global_step=trainer.global_step,
                            loss=scalar(loss), lr=trainer.optimizers[0].param_groups[0]['lr'],
                            batch_size=_batch_size(pl_module), actual_batch_size=len(batch),
@@ -243,7 +244,7 @@ class TrainingProgress(Callback):
     def on_validation_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx=0):
         if trainer.is_global_zero and not trainer.sanity_checking:
             loss = outputs.get('loss') if isinstance(outputs, dict) else outputs
-            self.log.write('validation', epoch=trainer.current_epoch, batch=batch_idx+1,
+            self._step_log.write('validation', epoch=trainer.current_epoch, batch=batch_idx+1,
                            dataloader=dataloader_idx, global_step=trainer.global_step, loss=scalar(loss),
                            batch_size=_batch_size(pl_module), actual_batch_size=len(batch),
                            phase_seconds=self.validation_clock.elapsed, **_parts(pl_module,'validation'))
@@ -261,7 +262,7 @@ class TrainingProgress(Callback):
         best,stopping,monitor = _epoch_monitor(trainer)
         parts = {phase: {key: scalar(metrics.get(f'{phase}/{key}_epoch',metrics.get(f'{phase}/{key}')))
                          for key in PARTS} for phase in ('train','val')}
-        self.log.write('train', 'epoch_end', epoch=trainer.current_epoch, global_step=trainer.global_step,
+        self._step_log.write('train', 'epoch_end', epoch=trainer.current_epoch, global_step=trainer.global_step,
                        loss=train, validation_loss=val, lr=lr, batch_size=_batch_size(pl_module),
                        loss_parts=parts, best_validation_loss=best,early_stopping=stopping,validation_monitor=monitor,
                        train_seconds=self.train_clock.elapsed,validation_seconds=self.validation_clock.elapsed)
@@ -278,17 +279,17 @@ class TrainingProgress(Callback):
         self.train_clock.pause()
         self.validation_clock.pause()
         if trainer.is_global_zero:
-            self.log.write('train', 'complete', epoch=trainer.current_epoch, global_step=trainer.global_step)
-        self.log.close()
+            self._step_log.write('train', 'complete', epoch=trainer.current_epoch, global_step=trainer.global_step)
+        self._step_log.close()
 
     def on_exception(self, trainer, pl_module, exception):
         self.train_clock.pause()
         self.validation_clock.pause()
         if trainer.is_global_zero:
             state = 'interrupted' if isinstance(exception, (KeyboardInterrupt, SystemExit)) else 'failed'
-            self.log.write('train', state, epoch=trainer.current_epoch,
+            self._step_log.write('train', state, epoch=trainer.current_epoch,
                            global_step=trainer.global_step, error=str(exception))
-        self.log.close()
+        self._step_log.close()
 
 
 def progress_callbacks(output):

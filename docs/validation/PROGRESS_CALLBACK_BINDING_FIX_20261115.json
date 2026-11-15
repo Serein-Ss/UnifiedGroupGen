@@ -1,0 +1,66 @@
+{
+  "schema": "ugg_progress_callback_binding_fix_v1",
+  "date": "2026-11-15",
+  "base_commit": "413c5180aa38d6a95149db5d34f8103231c04486",
+  "tested_staged_tree": "c6e7a14d46b57cba7983ed9c14e73593c08de3a6",
+  "regression": {
+    "passed": 128,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 178.065,
+    "source": "Actual staged-tree export with existing environment policy"
+  },
+  "root_cause_reproduced": {
+    "before_fix_expected_failure": true,
+    "exception": "AttributeError: 'function' object has no attribute 'write'",
+    "native_connector_and_dispatch": true
+  },
+  "native_binding_tests": {
+    "passed": 5,
+    "lightning_version": "2.5.5",
+    "methods": [
+      "_CallbackConnector._attach_model_callbacks",
+      "_CallbackConnector._attach_model_logging_functions",
+      "_call_callback_hooks",
+      "_call_and_handle_interrupt"
+    ],
+    "real_cpu_trainer": true,
+    "training_step_called": false,
+    "trainer_fit_called": false,
+    "optimizer_step_called": false,
+    "synthetic_callback_outputs_only": true,
+    "tty_and_non_tty": true,
+    "original_exception_identity_preserved": true,
+    "writers_closed_and_append_history_kept": true,
+    "module_log_methods_still_bound": true,
+    "parameters_optimizer_counters_rng_unchanged": true,
+    "callback_state_dict_empty": true
+  },
+  "production_change": "Only StepLog attribute renamed to _step_log and its write/close references",
+  "continued_regressions": [
+    "Stage clocks and compact display",
+    "Output contract and source boundaries",
+    "Explicit patience=30 migration with wait_count and best_score preserved",
+    "Chained checkpoint validation and offline W&B worker wiring",
+    "History backfill and sampling observer RNG equivalence"
+  ],
+  "scope": {
+    "local_training_started": false,
+    "optimizer_updates": false,
+    "server_operations": false,
+    "server_tasks_submitted": false,
+    "cloud_upload": false,
+    "existing_data_weights_results_modified": false,
+    "model_architecture_or_checkpoint_schema_changed": false,
+    "training_configs_or_offline_mode_changed": false,
+    "excluded_environment_web_manuscript_files_preserved": true
+  },
+  "not_validated": [
+    "GPU training continuation after this fix; must be confirmed on the server"
+  ],
+  "warnings": [
+    "cache_dir option warning with cacheprovider disabled",
+    "Existing torch_geometric distributed deprecation warning"
+  ]
+}

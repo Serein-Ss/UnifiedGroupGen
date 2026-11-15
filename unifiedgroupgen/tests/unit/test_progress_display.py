@@ -484,6 +484,6 @@ def test_standalone_validation_logger_never_starts_training_clock(tmp_path,monke
     cb=TrainingProgress(tmp_path/'model.pt');t=trainer()
     cb.on_validation_start(t,None);now[0]+=3
     cb.on_validation_batch_end(t,None,torch.tensor(.5),[{}],0);cb.on_validation_end(t,None)
-    now[0]+=20;cb.log.close()
+    now[0]+=20;cb._step_log.close()
     assert cb.train_clock.elapsed==0. and cb.validation_clock.elapsed==3.
     assert rows(tmp_path/'model.steps.jsonl')[0]['phase_seconds']==3.
