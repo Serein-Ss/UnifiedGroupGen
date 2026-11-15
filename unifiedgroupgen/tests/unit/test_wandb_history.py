@@ -165,6 +165,22 @@ def test_missing_epochs_are_reported_without_interpolation(campaign):
     assert [json.loads(line)['epoch'] for line in files[model+'.jsonl'].splitlines()]==[0,1,4]
 
 
+def test_repeated_recovery_histories_merge_all_segments_without_duplicate_epochs(campaign,tmp_path):
+    previous=history.read(campaign);root=tmp_path/'next'
+    manifest=root/'intermediate/hpc_runs/offline30/campaign.json'
+    dump(manifest,dict(schema='ugg_joint_flow_repaired_resume_v1',root=str(root),name='offline30',
+        original=str(campaign),original_manifest_sha256=history.sha(campaign.read_bytes()),revision='policy-30',
+        models=previous['models'],compatibility={'models':{m:{'global_step':40} for m in previous['models']}}))
+    for model in previous['models']:
+        lines(root/'outputs'/model/'offline30/model.history.jsonl',[row(i,(i+1)*10) for i in range(5)])
+    report,files,_=history.collect(manifest)
+    for model,info in report['models'].items():
+        rows=[json.loads(line) for line in files[info['history']].splitlines()]
+        assert len(rows)==5 and info['duplicates_removed']==6
+        assert [r['segment'] for r in rows]==['original','original','resume1','resume1','resume']
+        assert len(info['sources'])==3
+
+
 def test_unterminated_valid_json_is_deferred_and_complete_corruption_rejected(tmp_path):
     path=tmp_path/'history.jsonl';lines(path,[row(0,10)],tail=json.dumps(row(1,20)).encode())
     data,rows,source=history.history(path)

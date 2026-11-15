@@ -1,0 +1,55 @@
+{
+  "schema": "ugg_offline30_chained_resume_validation_v1",
+  "date": "2026-11-15",
+  "base_commit": "cbfd5e0e4f77bf30bf48af93ddeca7698eb73264",
+  "tested_staged_tree": "fb0297a37ba063d857a37d3e205e0848127811b7",
+  "regression": {
+    "passed": 50,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 110.989,
+    "source": "Actual staged-tree export with existing published environment behavior"
+  },
+  "migration": {
+    "explicit_target_patience": 30,
+    "config_and_hyperparameters_and_callback_patched": true,
+    "wait_counts_tested": [
+      12,
+      1
+    ],
+    "remaining_nonimproving_checks_verified": [
+      18,
+      29
+    ],
+    "best_scores_and_stopped_epoch_preserved": true,
+    "model_optimizer_scheduler_rng_loop_states_preserved": true,
+    "source_hashes_unchanged": true,
+    "ModelCheckpoint_paths_relocated_in_copies_only": true
+  },
+  "checks": [
+    "Original calibration/data audit retained across SHA256-linked recovery manifests",
+    "Only declared patience changes accepted; unrelated configuration changes rejected",
+    "Old first-resume path remains compatible",
+    "Real small joint_atom_graph native model/optimizer/scheduler checkpoint loads before and after migration",
+    "Torch RNG unchanged by native validation",
+    "Two mocked workers use original data definition, migrated policy and offline logger",
+    "Multiple recovery history segments deduplicate without losing epochs"
+  ],
+  "scope": {
+    "training_started": false,
+    "optimizer_updates": false,
+    "scheduler_commands_executed": false,
+    "server_operations": false,
+    "cloud_upload": false,
+    "global_training_yaml_changed": false,
+    "unrelated_environment_web_manuscript_changes_preserved": true
+  },
+  "not_validated": [
+    "Actual server checkpoints must pass the new CPU check on the server",
+    "GPU restoration and resumed training have not been executed locally"
+  ],
+  "warnings": [
+    "Unused cache_dir warning because cacheprovider is explicitly disabled"
+  ]
+}

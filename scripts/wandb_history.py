@@ -82,31 +82,37 @@ def collect(campaign):
     campaign=Path(campaign).resolve();recovery=read(campaign)
     if recovery.get('schema')!='ugg_joint_flow_repaired_resume_v1':
         raise ValueError('Expected a repaired-resume campaign')
-    original=Path(recovery['original']).resolve();old=read(original)
+    chain=[(campaign,recovery)];seen={campaign}
+    while chain[-1][1].get('schema')=='ugg_joint_flow_repaired_resume_v1':
+        child=chain[-1][1];original=Path(child['original']).resolve()
+        if original in seen:raise ValueError('Recovery ancestry contains a cycle')
+        seen.add(original)
+        if sha(original.read_bytes())!=child['original_manifest_sha256']:raise ValueError('Original campaign hash changed')
+        chain.append((original,read(original)))
+    chain.reverse();old=chain[0][1]
     if old.get('schema')!='ugg_joint_flow_full_5090_v2':raise ValueError('Unexpected original campaign')
-    if sha(original.read_bytes())!=recovery['original_manifest_sha256']:
-        raise ValueError('Original campaign hash changed')
     report=dict(schema=SCHEMA,campaign=str(campaign),campaign_sha256=sha(campaign.read_bytes()),
         original_revision=old['revision'],resume_revision=recovery['revision'],
         campaign_name=recovery['name'],models={},training_started=False)
-    files={};protected=[campaign.parent,original.parent]
+    files={};protected=[path.parent for path,_ in chain]
     for model in recovery['models']:
         if not model or Path(model).name!=model or any(c in model for c in '/\\:'):
             raise ValueError('Unsafe model name')
         if model not in old['models']:raise ValueError('Model missing from original campaign')
-        boundary=recovery['compatibility']['models'][model]['global_step']
+        boundaries=[child['compatibility']['models'][model]['global_step'] for _,child in chain[1:]]
+        labels=['original']+['resume'+str(i) for i in range(1,len(chain)-1)]+['resume']
         merged={};sources=[];duplicates=0
-        paths=[('original',Path(old['root'])/'outputs'/model/old['name']),
-               ('resume',Path(recovery['root'])/'outputs'/model/recovery['name'])]
-        for segment,directory in paths:
+        for index,(_,source_campaign) in enumerate(chain):
+            segment=labels[index]
+            directory=Path(source_campaign['root'])/'outputs'/model/source_campaign['name']
             protected.append(directory.resolve())
             data,rows,source=history(directory/'model.history.jsonl')
             source['excluded_after_checkpoint']=0
             for row in rows:
-                if segment=='original' and row['global_step']>boundary:
+                if index<len(boundaries) and row['global_step']>boundaries[index]:
                     source['excluded_after_checkpoint']+=1;continue
                 epoch=row['epoch']
-                row['segment']='original' if row['global_step']<=boundary else 'resume'
+                row['segment']=next((labels[i] for i,limit in enumerate(boundaries) if row['global_step']<=limit),labels[-1])
                 if epoch in merged:
                     if merged[epoch]!=row:raise ValueError(f'Conflicting epoch {epoch} for {model}')
                     duplicates+=1

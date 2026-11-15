@@ -35,6 +35,44 @@ def original_output(campaign,model):
     return Path(campaign['root'])/'outputs'/model/campaign['name']
 
 
+def ancestry(original):
+    """Resolve signed recovery links back to the original data/calibration audit."""
+    path=Path(original).resolve();chain=[];seen=set()
+    while True:
+        if path in seen:raise ValueError('Recovery ancestry contains a cycle')
+        seen.add(path);campaign=read(path);chain.append((path,campaign))
+        if campaign.get('schema')=='ugg_joint_flow_full_5090_v2':return list(reversed(chain))
+        if campaign.get('schema')!=SCHEMA:raise ValueError('Expected an original or repaired FP32 campaign')
+        parent=Path(campaign['original']).resolve()
+        if digest(parent)!=campaign['original_manifest_sha256']:raise ValueError('Ancestor manifest changed')
+        path=parent
+
+
+def patience_config(config,patience):
+    result=copy.deepcopy(config)
+    if patience is not None:
+        if type(patience) is not int or patience<1:raise ValueError('Early-stopping patience must be a positive integer')
+        if not result.get('early_stopping'):raise ValueError('Cannot override absent early-stopping policy')
+        result['early_stopping']['patience']=patience
+    return result
+
+
+def migrate_patience(saved,patience):
+    """Edit only an already detached checkpoint copy; retain best and wait_count."""
+    if patience is None:return saved
+    config=saved['joint_state']['config']
+    replacement=patience_config(config,patience)
+    callbacks=[v for k,v in saved['callbacks'].items() if k.startswith('EarlyStopping')]
+    if len(callbacks)!=1 or callbacks[0].get('patience')!=config['early_stopping']['patience']:
+        raise ValueError('Checkpoint early-stopping callback/config disagree')
+    hyper=saved.get('hyper_parameters',{})
+    if 'config' in hyper and hyper['config']!=config:raise ValueError('Checkpoint hyperparameter config differs')
+    saved['joint_state']['config']=replacement
+    if 'config' in hyper:hyper['config']=copy.deepcopy(replacement)
+    callbacks[0]['patience']=patience
+    return saved
+
+
 def original_definition(campaign,model):
     from unifiedgroupgen.common.configuration import compose_experiment,training_definition
     override='data.data_audit=intermediate/hpc_runs/'+campaign['name']+'/audits/'+model+'.json'
@@ -51,6 +89,10 @@ def validate_checkpoint(saved,config,runtime,hashes):
         if not saved.get(name):raise ValueError('Missing native training state: '+name)
     if not saved['joint_state'].get('epoch_boundary'):
         raise ValueError('This recovery requires a completed epoch boundary')
+    if config.get('early_stopping'):
+        callbacks=[v for k,v in saved['callbacks'].items() if k.startswith('EarlyStopping')]
+        if len(callbacks)!=1 or callbacks[0].get('patience')!=config['early_stopping']['patience']:
+            raise ValueError('Checkpoint early-stopping callback/config disagree')
     loop=saved['loops']['fit_loop']
     batch=loop['epoch_loop.batch_progress']
     progress=loop['epoch_loop.automatic_optimization.optim_progress']['optimizer']['step']
@@ -86,31 +128,31 @@ def validate_checkpoint(saved,config,runtime,hashes):
                 pending_lr_metric=saved['joint_state'].get('pending_lr_metric'),strict_load=True)
 
 
-def check(original,models=None):
+def check(original,models=None,early_stopping_patience=None):
     import torch
     torch.set_num_threads(2)
-    campaign=read(original)
-    if campaign.get('schema')!='ugg_joint_flow_full_5090_v2':
-        raise ValueError('Expected an original FP32 calibrated campaign')
+    chain=ancestry(original);base_path,baseline=chain[0];_,campaign=chain[-1]
     chosen=selection(catalog(),models)
     if set(chosen)-set(campaign['models']):raise ValueError('Model missing from original campaign')
     results={}
     for model in chosen:
-        base=Path(original).resolve().parent
+        base=base_path.parent
         audit=read(base/'audits'/(model+'.json'));profile=read(base/'profiles'/(model+'.json'))
         if not audit.get('passed'):raise ValueError('Original audit did not pass')
-        selected=validate_profile(profile,identity(campaign,model,audit))
-        resolved,definition=original_definition(campaign,model)
+        selected=validate_profile(profile,identity(baseline,model,audit))
+        resolved,definition=original_definition(baseline,model)
         if hashlib.sha256(json.dumps(definition,sort_keys=True).encode()).hexdigest()!=audit['config_sha256']:
             raise ValueError('Original frozen configuration hash differs')
         for rows in audit['inputs'].values():
             for row in rows:
-                if digest(original_path(campaign,row['path']))!=row['sha256']:
+                if digest(original_path(baseline,row['path']))!=row['sha256']:
                     raise ValueError('Dataset hash differs: '+row['path'])
         path=original_output(campaign,model)/'last.ckpt';before=digest(path)
         saved=torch.load(path,map_location='cpu',weights_only=False);state=saved['joint_state']
-        trial=read(original_path(campaign,profile['trial_directory'])/'inputs.json')
-        if json.dumps(state['config'],sort_keys=True)!=json.dumps(trial['config'],sort_keys=True):
+        trial=read(original_path(baseline,profile['trial_directory'])/'inputs.json')
+        expected_config=trial['config']
+        for _,ancestor in chain[1:]:expected_config=patience_config(expected_config,ancestor.get('early_stopping_patience'))
+        if json.dumps(state['config'],sort_keys=True)!=json.dumps(expected_config,sort_keys=True):
             raise ValueError('Checkpoint differs from original fitted configuration')
         expected={k:{r['path']:r['sha256'] for r in audit['inputs'][k]} for k in ('train','val')}
         if state['split_hashes']!=expected:raise ValueError('Checkpoint split hashes differ')
@@ -120,12 +162,20 @@ def check(original,models=None):
         if any(runtime.get(k)!=resolved.runtime[k] for k in ('fused_adamw','log_every_n_steps','strict_fp32')):
             raise ValueError('Checkpoint execution policy differs')
         result=validate_checkpoint(saved,state['config'],runtime,expected)
+        if early_stopping_patience is not None:
+            migrated=migrate_patience(copy.deepcopy(saved),early_stopping_patience)
+            validate_checkpoint(migrated,migrated['joint_state']['config'],runtime,expected)
+            early=next(v for k,v in migrated['callbacks'].items() if k.startswith('EarlyStopping'))
+            result['early_stopping']=dict(source_patience=state['config']['early_stopping']['patience'],
+                target_patience=early['patience'],wait_count=early['wait_count'],best_score=float(early['best_score']),
+                further_no_improvement_checks=max(0,early['patience']-early['wait_count']))
         if digest(path)!=before:raise ValueError('Checkpoint changed during read-only check')
         results[model]={**result,'checkpoint':str(path),'sha256':before,
             'best_sha256':digest(path.parent/'best.ckpt'),
             'audit_sha256':digest(base/'audits'/(model+'.json')),
             'profile_sha256':digest(base/'profiles'/(model+'.json'))}
     return dict(passed=True,original=str(Path(original).resolve()),original_revision=campaign['revision'],
+                audit_origin=str(base_path),early_stopping_patience=early_stopping_patience,
                 models=results,training_started=False,submitted=False,
                 calibration_scope='Original revision calibration inherited; repaired GPU behavior not yet measured')
 
@@ -153,7 +203,7 @@ def relocate_checkpoint(saved,old_directory,new_directory):
     return result
 
 
-def prepare(original,name,wandb_mode='offline',wandb_project='UnifiedGroupGen'):
+def prepare(original,name,wandb_mode='offline',wandb_project='UnifiedGroupGen',early_stopping_patience=None):
     import torch
     if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]*',name):raise ValueError('Use a single campaign name')
     old=read(original)
@@ -165,7 +215,7 @@ def prepare(original,name,wandb_mode='offline',wandb_project='UnifiedGroupGen'):
     subprocess.run(['git','diff','--quiet','HEAD','--','unifiedgroupgen','configs','scripts','submit_files'],cwd=ROOT,check=True)
     extra=subprocess.check_output(['git','ls-files','--others','--exclude-standard','--','unifiedgroupgen','configs','scripts','submit_files'],cwd=ROOT,text=True)
     if extra.strip():raise ValueError('Commit runtime source before preparing recovery')
-    report=check(original)
+    report=check(original,early_stopping_patience=early_stopping_patience)
     revision=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
     folder.mkdir(parents=True)
     source=snapshot(ROOT,folder,revision)
@@ -176,6 +226,9 @@ def prepare(original,name,wandb_mode='offline',wandb_project='UnifiedGroupGen'):
             path=origin/filename
             saved=torch.load(path,map_location='cpu',weights_only=False)
             converted=relocate_checkpoint(saved,origin,target)
+            migrate_patience(converted,early_stopping_patience)
+            validate_checkpoint(converted,converted['joint_state']['config'],converted['joint_state']['runtime'],
+                                converted['joint_state']['split_hashes'])
             torch.save(converted,target/filename)
         history=origin/'model.history.jsonl'
         if history.is_file():
@@ -192,7 +245,7 @@ def prepare(original,name,wandb_mode='offline',wandb_project='UnifiedGroupGen'):
     recovery=dict(schema=SCHEMA,name=name,root=str(ROOT),source=str(source),revision=revision,
         original=str(Path(original).resolve()),original_manifest_sha256=digest(original),
         compatibility=report,resources=old['resources'],models=list(outputs),
-        logging=dict(mode=wandb_mode,project=wandb_project))
+        logging=dict(mode=wandb_mode,project=wandb_project),early_stopping_patience=early_stopping_patience)
     write(folder/'campaign.json',recovery)
     print(json.dumps(recovery,ensure_ascii=False,indent=2))
 
@@ -222,6 +275,8 @@ def submit(manifest):
 
 def verify_recovery(recovery):
     if digest(recovery['original'])!=recovery['original_manifest_sha256']:raise ValueError('Original manifest changed')
+    if recovery.get('early_stopping_patience')!=recovery['compatibility'].get('early_stopping_patience'):
+        raise ValueError('Declared early-stopping migration differs from compatibility report')
     report=check(recovery['original'],recovery['models'])
     for model in recovery['models']:
         expected=recovery['compatibility']['models'][model]
@@ -253,8 +308,9 @@ def run(manifest,model):
             original_revision=old['revision'],hardware=device_info(),epoch=saved['epoch'],global_step=saved['global_step']),ensure_ascii=False),flush=True)
         # The audit signs the raw frozen definition, before TRAIN vocabulary and
         # group-prior fitting. Keep that gate; fit_joint restores the fitted one.
-        _,definition=original_definition(old,model)
-        records,validation,_=load_training_splits(definition,Path(old['source']))
+        _,baseline=ancestry(recovery['original'])[0]
+        _,definition=original_definition(baseline,model)
+        records,validation,_=load_training_splits(definition,Path(baseline['source']))
         if (len(records),len(validation))!=(j['runtime']['train_records'],j['runtime']['val_records']):
             raise ValueError('Full training split counts differ')
         torch.set_num_threads(4)
@@ -277,14 +333,16 @@ def run(manifest,model):
 def main():
     parser=argparse.ArgumentParser(description=__doc__);sub=parser.add_subparsers(dest='action',required=True)
     p=sub.add_parser('check');p.add_argument('--original',required=True)
+    p.add_argument('--early-stopping-patience',type=int)
     p=sub.add_parser('prepare');p.add_argument('--original',required=True);p.add_argument('--name',required=True)
     p.add_argument('--wandb-mode',choices=['offline','online','disabled'],default='offline')
     p.add_argument('--wandb-project',default='UnifiedGroupGen')
+    p.add_argument('--early-stopping-patience',type=int)
     p=sub.add_parser('submit');p.add_argument('--campaign',required=True)
     p=sub.add_parser('run');p.add_argument('--campaign',required=True);p.add_argument('--model',required=True)
     args=parser.parse_args()
-    if args.action=='check':print(json.dumps(check(args.original),ensure_ascii=False,indent=2))
-    elif args.action=='prepare':prepare(args.original,args.name,args.wandb_mode,args.wandb_project)
+    if args.action=='check':print(json.dumps(check(args.original,early_stopping_patience=args.early_stopping_patience),ensure_ascii=False,indent=2))
+    elif args.action=='prepare':prepare(args.original,args.name,args.wandb_mode,args.wandb_project,args.early_stopping_patience)
     elif args.action=='submit':submit(args.campaign)
     else:run(args.campaign,args.model)
 
