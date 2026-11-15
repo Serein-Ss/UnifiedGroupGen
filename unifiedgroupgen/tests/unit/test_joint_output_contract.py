@@ -91,7 +91,7 @@ def test_no_feasible_group_is_a_recorded_failure_not_a_dropped_attempt(tmp_path,
     assert result['attempted']==4 and result['failed']==1 and result['state']=='complete'
 
 
-@pytest.mark.parametrize('existing',['samples.jsonl','summary.json','sampling.status.json'])
+@pytest.mark.parametrize('existing',['samples.jsonl','summary.json','sampling.status.json','sampling.progress.jsonl'])
 def test_existing_generation_files_are_preserved(tmp_path,generation,existing,monkeypatch):
     path=tmp_path/existing;path.write_bytes(b'existing result')
     before={p.name:p.read_bytes() for p in tmp_path.iterdir()}
@@ -273,7 +273,7 @@ def test_training_initialization_failure_is_visible_without_training(tmp_path,mo
     assert not output.exists() and not list(tmp_path.glob('*.ckpt'))
 
 
-@pytest.mark.parametrize('name',['best.ckpt','best-v1.ckpt','last.ckpt','model.history.jsonl','model.status.json'])
+@pytest.mark.parametrize('name',['best.ckpt','best-v1.ckpt','last.ckpt','model.history.jsonl','model.status.json','model.steps.jsonl'])
 def test_training_refuses_an_existing_run_before_any_model_construction(tmp_path,monkeypatch,name):
     (tmp_path/name).write_bytes(b'existing result')
     monkeypatch.setattr(training,'JointGeneratorModule',lambda *a:pytest.fail('No model construction'))

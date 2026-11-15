@@ -43,6 +43,7 @@ outputs/<实验名>/<运行名>/
 |---|---|
 | `model.status.json` | 初始化、训练、验证、保存及结束状态，JSON 更新采用临时文件原子替换 |
 | `model.history.jsonl` | 每轮结束追加一行，含 epoch、global_step、训练/验证分项损失；启用时还有学习率和早停状态 |
+| `model.steps.jsonl` | 每个训练/验证 batch 追加结构化记录：时间、epoch、batch、global_step、loss，以及训练学习率；续训追加 start 标记 |
 | `best.ckpt` | 按验证监控指标选择的原生 Lightning 检查点 |
 | `last.ckpt` | 原生续训检查点，含优化器、调度器、早停、循环及必要随机状态，按现有 epoch 策略及正常结束时保存 |
 | `model.pt` | 正常结束或早停完成后的最终权重导出，含配置、运行参数、数据哈希、epoch、global_step，不含完整优化器恢复状态 |
@@ -70,6 +71,26 @@ building_model → preparing_targets → trainer_setup → waiting_for_first_bat
 显式恢复仍追加历史并更新同一运行状态及检查点，不自动复制或删除旧结果。
 训练不会自动启动结构生成、材料质量评估或 DFT。
 W&B 继续使用 `WANDB_DIR`；新联合入口不强制创建 `train.log`，终端/调度输出由调用方保留。
+
+交互终端使用 Lightning 原生进度条原地刷新，只显示 loss、验证 loss、学习率、计数、速度和 ETA。非交互重定向（包括 Slurm `.out`）不写回车或 ANSI 刷新码，仅保留简洁的轮次摘要和原有异常信息；普通文件本身不能提供原地动画。旧两阶段入口使用相同显示和步骤记录，原 `train.log` 保留。
+
+训练终端固定显示两行：第一行 `Epoch 54/1000 (bs=8)` 汇总，第二行 `Train`。只有启动验证时，才在第三行显示 `Validate`；验证期间上面两行保持显示，验证结束后第三行收起。训练、验证、生成、评估共用固定宽度的标题、条形和计数列，后续字段统一以 ` | ` 分隔。两条进度条的列相同，但 `loss` 和三项分量分别来自训练、验证各自的当前 batch；验证行不复用训练 loss。顶部汇总的 `loss`/`val` 分别表示训练和验证均值。显示这些指标不改变损失计算或验证聚合。
+
+`bs` 在顶部 Epoch 计数后用括号显示，是当前运行配置的 batch size 上限，实际批次数量可能受原子/边预算或最后一批影响。新联合模型显示当前阶段当前 batch 的 `geom`（连续几何）、`elem`（元素）、`jump`（轨道跳转）原始损失分项，权重仍由原目标函数处理，不在显示层重新计算。旧架构未单独定义的分项显示 `-`，不伪造拆分值。未启动或未安排验证时不创建第三行，也不显示等待或 skipped 占位行；完成的验证指标仍保存到原日志和 Epoch 汇总。单独运行验证时仍显示带 Epoch/bs 的验证标题。
+
+每轮结束在顶部原地更新汇总的 `loss`、`val`、`best`（包含本轮在内的最佳验证监控值）和 `early=等待计数/耐心值`，未启用早停时为 `off`。不另在进度条下方追加一条 Epoch 摘要；重定向日志仍保留每轮文本摘要。最佳值同时参考检查点已有最佳值和本轮指标，避免 ModelCheckpoint 在摘要之后执行时显示上一轮最佳值；读取这些信息不会修改检查点或早停回调状态。`model.steps.jsonl` 追加配置/实际 batch size、训练和验证 batch 分项，以及轮次平均分项、最佳值和早停状态；原 `model.history.jsonl` 保持原样。
+
+顶部的 `step | loss | val | best | early | lr` 列在训练中、验证中和轮末均保留固定位置；本轮均值尚未汇总时 `loss/val` 显示 `-`，轮末再填入数值，不挤动后面的最佳值和早停计数。
+
+Train 与 Validate 使用独立的单调阶段时钟。进入验证时暂停 Train，验证期间其 time、速度和 ETA 保持不变；若轮内验证结束后继续训练，再恢复 Train 的时钟。训练批次全部完成或轮次结束后保持冻结，下一轮重新计时。Validate 的计数、time、平均速度及 ETA 只使用当前验证阶段（多 dataloader 时按当前 loader）的时间，不计训练耗时。速度按已处理 batch 数/本阶段有效耗时计算，ETA 仅估计本阶段剩余 batch。此处为主机墙钟阶段时间，不是 CUDA kernel profiling。
+
+Train/Validate 的标题、计数、速度及数值列采用较紧凑的固定宽度，保持两条进度条的竖线同列，Epoch 汇总仍独立放在上方。JSONL 详细数值不受显示精度或列宽影响。每个 batch 的 `phase_seconds` 和轮末的 `train_seconds`/`validation_seconds` 记录本轮累计阶段耗时；多次轮内验证累计到 validation_seconds，非交互日志也记录这些信息。
+
+新联合生成在标准任务目录追加 `sampling.progress.jsonl`，包含已提交连续/跳转采样步和每个结构的完成记录；自定义 ledger 文件名使用前缀隔离。旧生成入口也记录样本或批次进度。评估的参考结构及生成结构处理写入 `metrics.progress.jsonl`，可选性质预测写入 `prediction.progress.jsonl`。进度文件不保存完整原子轨迹，轨迹仍由独立的 trajectory 设置控制。
+
+这些 JSONL 记录使用缓冲写入，至少每秒（有新记录时）、阶段结束和可捕获异常时刷新；强制杀进程可能丢失缓冲区尾部。显示与记录不调用随机数、不改优化器、采样器或检查点参数。已运行的冻结服务器任务不会自动切换到新版显示。
+
+已有任务可以用新版的只读查看器展示总体 epoch 进度、阶段、global_step、loss、验证 loss 和状态更新时间间隔：`python -m unifiedgroupgen.common.progress <DNG的model.status.json> <CSP的model.status.json>`。它每两秒读取文件，Ctrl-C 只退出查看器，不修改文件、不停止训练。旧状态文件没有 batch 总数时只展示总体 epoch 进度，不猜测轮内百分比或 ETA。查看器也可直接作为单文件运行，不需要替换原冻结训练代码。
 
 ## 新联合模型生成
 

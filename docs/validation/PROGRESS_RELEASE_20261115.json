@@ -1,0 +1,61 @@
+{
+  "schema": "ugg_progress_release_validation_v1",
+  "date": "2026-11-15",
+  "base_commit": "cc7b29de90c37be7fd752f01644d75bab45228f4",
+  "tested_staged_tree": "301ac3ad95d54529cabc97255ba7db442c370667",
+  "source": "Exported staged tree with previous configuration.py retained; CPU only",
+  "regression": {
+    "passed": 190,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "deselected": 54,
+    "seconds": 510.605,
+    "selection": "progress display, joint training controls, output contract, trajectories, evaluation, predictors, code boundaries, core aliases; -k not existing_",
+    "training_guard": "Trainer.fit and AdamW/Adam/SGD.step forbidden"
+  },
+  "checkpoint_compatibility": {
+    "strict_loads": 37,
+    "joint_flow": 18,
+    "two_stage": 19,
+    "existing_file_sizes_and_mtimes_unchanged": true,
+    "note": "Historical local CPU-load checks; running server checkpoints were not touched",
+    "joint_flow_parameters_finite": true
+  },
+  "wheel": {
+    "built": true,
+    "isolated_install": true,
+    "legacy_module_aliases": 39,
+    "sha256": "9cdf6f817561c682ba0043e2c6d5063d01c9a58e6f6adbbcd96e520925039446",
+    "progress_components_and_predictor_resources": true
+  },
+  "checked_behaviors": [
+    "Train and Validate active-stage clocks exclude each other",
+    "Train elapsed, rate and ETA freeze during validation",
+    "Clock reset and mid-epoch resume",
+    "Matching pipe columns and transient Validate row",
+    "Per-phase loss components and current best/early-stop summary",
+    "TTY refresh and clean non-TTY summaries",
+    "Buffered per-batch JSONL, exception close and append behavior",
+    "Sampling observer leaves samples and RNG unchanged",
+    "Legacy imports, serialization globals and parameter structure"
+  ],
+  "scope": {
+    "includes": "Progress display, phase timing, structured logs, prerequisite core layout with legacy aliases",
+    "excluded": [
+      "strict .env policy",
+      "private website and manuscript changes",
+      "datasets, model weights and training results"
+    ],
+    "training_started": false,
+    "optimizer_updates": false,
+    "server_operations": false,
+    "github_push": "Performed after verification",
+    "gpu_training_or_performance_validated": false
+  },
+  "notes": [
+    "Pytest cache_dir warning caused by disabling cacheprovider; no test failures",
+    "Existing torch_geometric distributed deprecation warning",
+    "Running frozen jobs keep their existing display; new display applies to subsequently started jobs"
+  ]
+}

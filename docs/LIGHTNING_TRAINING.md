@@ -27,9 +27,9 @@ run.py使用原生ModelCheckpoint直接保存model.best.pt与model.pt；文件�
 
 ## 路径与日志
 
-.env中的HYDRA_JOBS指定输出根目录，WANDB_DIR指定W&B日志位置，USE_WANDB_LOGGING=1在线、0离线；logging.mode=disabled只保留五个本地训练文件。在线模式需要用户自己的W&B登录，模型不自动上传W&B。
+.env中的HYDRA_JOBS指定输出根目录，WANDB_DIR指定W&B日志位置，USE_WANDB_LOGGING=1在线、0离线；logging.mode=disabled保留本地训练文件，不创建W&B日志。在线模式需要用户自己的W&B登录，模型不自动上传W&B。
 
-默认目录为HYDRA_JOBS/实验名/真实开始时间，只保留model.pt、model.best.pt、model.history.jsonl、model.status.json、train.log。配置与监督记录交给WANDB_DIR下的W&B；不再写run.json、.hydra、CSV日志目录或profiler文件。生成与指标见[结果目录规则](OUTPUT_LAYOUT.md)。
+默认目录为HYDRA_JOBS/实验名/真实开始时间，保留model.pt、model.best.pt、model.history.jsonl、model.status.json、model.steps.jsonl、train.log。交互终端显示原生进度条；每个训练/验证batch写入model.steps.jsonl，非交互日志只打印简洁的轮次摘要。配置与监督记录交给WANDB_DIR下的W&B；不再写run.json、.hydra、CSV日志目录或profiler文件。生成与指标见[结果目录规则](OUTPUT_LAYOUT.md)。
 
 训练和验证秒数、损失、梯度裁剪比例及显存峰值写入history/W&B；保存耗时交给原生SimpleProfiler记录，不伪造每轮保存秒数，history中的checkpoint_seconds因此为null并注明来源。
 

@@ -4,6 +4,7 @@ import itertools
 import json
 from pathlib import Path
 import torch
+from unifiedgroupgen.common.progress import track
 from unifiedgroupgen.common.configuration import (
     project_root, resolve_path, artifact_path, compose_experiment, training_definition,
 )
@@ -287,11 +288,12 @@ def main(argv=None):
     if getattr(model, 'flow_version', None) == 'joint_flow_v2':
         if args.batch_size < 1 or args.count < 1: parser.error('count/batch-size must be positive')
         from unifiedgroupgen.joint_flow.cli import generate
-        print(json.dumps(generate(args,checkpoint,model,provided_spec,chemistry,properties,output)))
+        generate(args,checkpoint,model,provided_spec,chemistry,properties,output)
+        print(f'Output: {output}')
         return
     outcomes = {}
     with output.open('x', encoding='utf-8') as stream:
-        for index in range(args.count):
+        for index in track(range(args.count),'Generate',log=output.with_name(output.name+'.progress.jsonl'),unit='structure'):
             generator = torch.Generator(device=args.device).manual_seed(args.seed+index)
             try:
                 spec = provided_spec or sample_group(checkpoint['config']['group_prior'], generator,
@@ -318,7 +320,7 @@ def main(argv=None):
             row['candidate'] = index
             outcomes[row['status']] = outcomes.get(row['status'],0)+1
             stream.write(json.dumps(row, ensure_ascii=False, allow_nan=False)+'\n')
-    print(json.dumps({'samples': str(output), 'attempts': args.count, 'outcomes': outcomes}))
+    print(f'Generated | attempts={args.count} | outcomes={outcomes} | output={output}')
 
 
 if __name__ == '__main__':

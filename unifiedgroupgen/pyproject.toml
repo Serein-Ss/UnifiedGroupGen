@@ -31,4 +31,4 @@ ugg = "unifiedgroupgen.run:main"
 package-dir = {unifiedgroupgen = "."}
 
 [tool.setuptools.package-data]
-unifiedgroupgen = ["README.md", "environment.yml", "evaluation/resources/*.json", "common/predictors/*.json", "tests/unit/web/*.cjs", "tests/legacy/generation_before_entry/math_sources.json", "pl_modules/backbones/official/**/*.json", "pl_modules/backbones/official/**/*.pt", "pl_modules/backbones/official/*.json", "pl_modules/backbones/official/*.LICENSE"]
+unifiedgroupgen = ["README.md", "environment.yml", "evaluation/resources/*.json", "common/predictors/*.json", "evaluation/predictors/*.json", "CORE_LAYOUT.md", "core_layout.json", "tests/unit/web/*.cjs", "tests/legacy/generation_before_entry/math_sources.json", "pl_modules/backbones/official/**/*.json", "pl_modules/backbones/official/**/*.pt", "pl_modules/backbones/official/*.json", "pl_modules/backbones/official/*.LICENSE"]

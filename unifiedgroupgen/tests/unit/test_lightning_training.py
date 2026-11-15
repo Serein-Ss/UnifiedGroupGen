@@ -125,7 +125,7 @@ def test_native_resume_and_native_inference_loading(tmp_path):
     assert not (tmp_path/'resumed/run.json').exists()
     assert not (tmp_path/'resumed/.hydra').exists()
     assert {p.name for p in (tmp_path/'resumed').iterdir() if p.name not in ('train.jsonl','val.jsonl')} == {
-        'model.pt','model.best.pt','model.history.jsonl','model.status.json','train.log'}
+        'model.pt','model.best.pt','model.history.jsonl','model.status.json','model.steps.jsonl','train.log'}
     assert (tmp_path/'resumed/train.log').is_file()
     native_full = torch.load(tmp_path/'full/model.pt', weights_only=False)
     native_resumed = torch.load(tmp_path/'resumed/model.pt', weights_only=False)

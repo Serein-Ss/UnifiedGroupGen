@@ -1,17 +1,17 @@
 import torch
 from unifiedgroupgen.common.configuration import resolve_path
-from unifiedgroupgen.pl_modules.orbitflow import OrbitFlow
-from unifiedgroupgen.pl_modules.descriptor import DescriptorTransformer
+from unifiedgroupgen.pl_modules.two_stage.orbitflow import OrbitFlow
+from unifiedgroupgen.pl_modules.two_stage.descriptor import DescriptorTransformer
 
 
 def build_joint_model(config, device='cpu'):
     """Explicit opt-in factory; the legacy two-stage model and weight names are unchanged."""
-    from unifiedgroupgen.pl_modules.joint_graph import JointAtomGraph
+    from unifiedgroupgen.pl_modules.unified.joint_graph import JointAtomGraph
     from unifiedgroupgen.pl_data.task_path import validate_task_config
     validate_task_config(config)
     architecture = config.get('model', {})
     if architecture.get('family') == 'joint_flow_v2':
-        from unifiedgroupgen.joint_flow.model import JointFlow
+        from unifiedgroupgen.pl_modules.unified.model import JointFlow
         return JointFlow(config).to(device)
     if architecture.get('family') != 'joint_symmetry_v1':
         raise ValueError('The joint model requires model.family=joint_symmetry_v1')

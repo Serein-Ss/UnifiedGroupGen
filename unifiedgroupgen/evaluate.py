@@ -15,6 +15,7 @@ from filelock import FileLock
 from omegaconf import OmegaConf
 from unifiedgroupgen.common.configuration import project_root, resolve_path, source_key, task_options, evaluation_directory
 from unifiedgroupgen.common.structures import ReferenceBank, counts_of, load_structure, read_records, sha256, write_json
+from unifiedgroupgen.common.progress import track
 from unifiedgroupgen.evaluation.common import EvaluationContext, evaluate_records, build_summary, geometry, descriptor_metadata, operation_check
 from unifiedgroupgen.evaluation.utils import numeric, logical_and, composition_validity, fingerprints
 from unifiedgroupgen.evaluation.conditional import evaluate_properties
@@ -35,7 +36,7 @@ def metric_versions():
     return {name:importlib.metadata.version(name) for name in
             ('numpy','scipy','pymatgen','matminer','smact','pyxtal','spglib')}
 
-def reference_metrics(bank, kind, use_fingerprints, cache):
+def reference_metrics(bank, kind, use_fingerprints, cache, progress_log=None):
     versions = {name: importlib.metadata.version(name) for name in ('numpy', 'scipy', 'pymatgen', 'matminer', 'smact', 'pyxtal', 'spglib')}
     identity = {'files': bank.identity(), 'kind': kind, 'fingerprints': use_fingerprints, 'versions': versions,
         'code': {Path(p).name: sha256(p) for p in (
@@ -46,17 +47,17 @@ def reference_metrics(bank, kind, use_fingerprints, cache):
     path = Path(cache)/(key+'.json')
     path.parent.mkdir(parents=True, exist_ok=True)
     with FileLock(str(path)+'.lock'):
-        return _reference_metrics_locked(bank, kind, use_fingerprints, path, identity)
+        return _reference_metrics_locked(bank, kind, use_fingerprints, path, identity, progress_log)
 
 
-def _reference_metrics_locked(bank, kind, use_fingerprints, path, identity):
+def _reference_metrics_locked(bank, kind, use_fingerprints, path, identity, progress_log=None):
     if path.exists():
         saved = json.loads(path.read_text(encoding='utf-8'))
         if saved['identity'] != identity:
             raise ValueError('Reference cache identity mismatch')
         return saved
     rows, features = [], []
-    for index, (record, base) in enumerate(bank.rows):
+    for index, (record, base) in enumerate(track(bank.rows,'Reference metrics',log=progress_log,unit='structure')):
         row = {'id': str(record.get('id', index)), **descriptor_metadata(record, kind)}
         row['recovered_group'] = row.get('declared_group')  # Audited reference label, explicitly identified in protocol.
         try:
@@ -71,8 +72,6 @@ def _reference_metrics_locked(bank, kind, use_fingerprints, path, identity):
         except (ValueError, TypeError, KeyError, OSError, RuntimeError, ZeroDivisionError, np.linalg.LinAlgError) as error:
             row['evaluation_error'] = str(error)
         rows.append(row)
-        if (index+1)%100==0:
-            print(json.dumps({'phase': 'reference', 'completed': index+1, 'requested': len(bank.rows)}), flush=True)
     saved = {'identity': identity, 'rows': rows, 'fingerprints': features}
     write_json(path, saved)
     return saved
@@ -96,13 +95,13 @@ def evaluate(samples, task, kind, output, reference_files=(), novelty_files=(), 
         raise ValueError('Independent assessments require evaluator identity and matching samples_sha256')
     if reference_assessments and metadata.get('reference_sha256')!=refs.identity():
         raise ValueError('Reference predictions do not bind the exact reference files')
-    reference = reference_metrics(refs, kind, use_fingerprints, cache or output/'reference_cache') if refs.rows else {'rows': [], 'fingerprints': []}
+    reference = reference_metrics(refs, kind, use_fingerprints, cache or output/'reference_cache',output/'metrics.progress.jsonl') if refs.rows else {'rows': [], 'fingerprints': []}
     if task=='csp' and any(str(r.get('case_id', r.get('reference_id'))) not in refs.by_id for r in records):
         raise ValueError('Each CSP attempt must name an existing reference case, including failures')
     context = EvaluationContext(task, kind, dataset, request, refs, train, use_fingerprints, reidentify, novelty_files, samples)
     tolerances = request.get('property_tolerances', {'formation_energy': .1, 'band_gap': .2, 'energy_above_hull': .05})
     started = time.perf_counter()
-    rows, features = evaluate_records(records, context)
+    rows, features = evaluate_records(records, context,progress_log=output/'metrics.progress.jsonl')
     properties = evaluate_properties(rows, predictions, metadata, tolerances, reference_assessments, enabled=conditional_enabled)
     embedding_data = json.loads(Path(embeddings).read_text(encoding='utf-8')) if embeddings else None
     report = build_summary(rows, features, reference, properties, context, embedding_data)
@@ -174,7 +173,7 @@ def evaluate_task(args):
     figures(rows,report,refs,args.output)
     outputs=[p for p in args.output.iterdir() if p.suffix in ('.csv','.json','.png') and p.name not in ('manifest.json','metrics.status.json')]
     write_json(manifest,{'identity':identity,'outputs':{p.name:sha256(p) for p in outputs},'state':'complete'})
-    print(json.dumps({'state':'complete','requested':len(rows),'generated':report['generation']['generated'],'output':str(args.output)},ensure_ascii=False))
+    print(f'Metrics | structures={len(rows)} | generated={report["generation"]["generated"]} | output={args.output}')
 
 
 def execute(cfg):

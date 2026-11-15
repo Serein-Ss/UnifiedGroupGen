@@ -12,6 +12,7 @@ def package_sources():
              and p != root/'tests/reference_training.py' and p.name != 'setup.py']
     return sorted(files + list((root/'evaluation/resources').glob('*.json'))
                   + list((root/'common/predictors').glob('*.json'))
+                  + list((root/'evaluation/predictors').glob('*.json'))
                   + list((root/'pl_modules/backbones/official').glob('*.json')))
 
 

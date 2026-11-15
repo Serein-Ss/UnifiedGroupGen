@@ -9,6 +9,7 @@ from pathlib import Path
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 from unifiedgroupgen.common.structures import ReferenceBank, counts_of, formula_key, load_structure, sha256
+from unifiedgroupgen.common.progress import track
 from .utils import (geometry_metrics, layer_structure, PROFILES, PROFILE_LABELS, numeric, rate, frechet_distance, logical_and, composition_validity, fingerprints, structure_match)
 from .csp import csp_summary, check_reconstruction
 from .dng import dng_summary
@@ -285,12 +286,12 @@ def build_summary(rows, features, reference, properties, context, embeddings):
     report['embedding_distance'] = embedding_summary(rows, reference, refs, samples, embeddings)
     return report
 
-def evaluate_records(records, context):
+def evaluate_records(records, context, *, progress_log=None):
     task, kind, dataset, request = context.task, context.kind, context.dataset, context.request
     refs, train, use_fingerprints = context.refs, context.train, context.use_fingerprints
     reidentify, novelty_files, samples = context.reidentify, context.novelty_files, context.samples
     rows, features, unique = [], [], defaultdict(list)
-    for record in records:
+    for record in track(records,'Evaluate structures',log=progress_log,unit='structure'):
         index = record['index']
         row = {'index': index, 'case_id': str(record.get('case_id', record.get('reference_id'))) if record.get('case_id', record.get('reference_id')) is not None else None,
                'generation_success': record.get('status', 'generated')=='generated', 'parse_success': None,
@@ -359,8 +360,6 @@ def evaluate_records(records, context):
                 row.update(generation_success=False,basic_valid=False,legacy_joint_valid=False,unique=False,
                            failure_stage='structure_readback',error_type=type(error).__name__)
         rows.append(row)
-        if len(rows)%25==0:
-            print(json.dumps({'phase': 'unified_metrics', 'completed':len(rows), 'requested':len(records)}), flush=True)
     return rows, features
 
 def summarize_attempts(records):

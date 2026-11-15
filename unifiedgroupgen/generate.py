@@ -16,6 +16,7 @@ from unifiedgroupgen.common.configuration import project_root, resolve_path, sou
 from unifiedgroupgen.common.structures import (sha256, write_json, export_cif, inline_cif_bytes,
     read_records, record_counts, verified_prior_records, composition_of, load_structure, counts_of)
 from unifiedgroupgen.common.source import package_sources
+from unifiedgroupgen.common.progress import track
 from unifiedgroupgen.common.precision import resolve_precision
 from unifiedgroupgen.conditional.chemistry import ChemicalRules, integer_composition, feasible_formula_counts
 from unifiedgroupgen.conditional.structure import Scaffold
@@ -197,7 +198,7 @@ def sample(args, root=None):
         temporary.replace(output/'sampling.status.json')
     progress('running')
     generator = torch.Generator(device=args.device).manual_seed(args.seed)
-    for index in range(args.count):
+    for index in track(range(args.count),'Generate',log=output/'sampling.progress.jsonl',unit='structure'):
         try:
             records.append(generate_one(args, proposal, flow, config, request, generator, index, output, root_path))
             records[-1]['precision'] = flow.inference_precision
@@ -207,13 +208,9 @@ def sample(args, root=None):
         with attempts_path.open('a', encoding='utf-8') as stream:
             stream.write(json.dumps(records[-1], allow_nan=False)+'\n')
         progress('running')
-        if (index+1) % 10 == 0 or index+1 == args.count:
-            print(json.dumps({'event': 'sampling_progress', 'attempted': index+1,
-                              'requested': args.count, 'seconds': time.monotonic()-started}), flush=True)
     (output/'summary.json').write_text(json.dumps(summarize_attempts(records), indent=2), encoding='utf-8')
     progress('complete')
-    print(json.dumps({'requested': args.count, 'generated': sum(r['status']=='generated' for r in records),
-                      'output': str(output), 'all_attempts_recorded': True}))
+    print(f'Generated | accepted={sum(r["status"]=="generated" for r in records)}/{args.count} | output={output}')
 
 
 def check_record_precision(records, flow):
@@ -260,7 +257,8 @@ def generate_records(proposal,flow,config,job,output,device,seed,steps,guidance,
             elif sha256(output/r['cif_path'])!=r['cif_sha256']:
                 raise ValueError('Existing CIF no longer matches its receipt')
     with torch.inference_mode():
-        for index,(case,candidate) in enumerate(attempts):
+        for index,(case,candidate) in track(enumerate(attempts),'Generate',total=len(attempts),
+                                           log=output/'sampling.progress.jsonl',unit='structure'):
             if index<len(previous): continue
             started=time.perf_counter()
             # Per-attempt seeds make interrupted/resumed generation identical.
@@ -324,8 +322,6 @@ def generate_records(proposal,flow,config,job,output,device,seed,steps,guidance,
                 'last_attempt_seconds':row['wall_seconds'],'sampling_seconds':sampling_seconds,
                 'reused':reused_count,'new_attempts':index+1-reused_count,
                 'generated':generated_count,'failed':index+1-generated_count})
-            if (index+1)%10==0 or index+1==len(attempts):
-                print(json.dumps({'phase':'sample','attempted':index+1,'requested':len(attempts),'sampling_seconds':sampling_seconds}),flush=True)
     write_json(output/'sampling.status.json',{'state':'complete','attempted':len(attempts),'requested':len(attempts),
         'reused':reused_count,'new_attempts':len(attempts)-reused_count,'sampling_seconds':sampling_seconds,
         'generated':generated_count,'failed':len(attempts)-generated_count})
@@ -389,7 +385,8 @@ def generate_records_batched(proposal,flow,config,job,output,device,seed,steps,g
     elapsed = sum(r.get('wall_seconds',0.) or 0. for r in previous)
     success = sum(r['status']=='generated' for r in previous)
     reused_count = sum(bool(r.get('reused_from')) for r in previous)
-    for start in range(len(previous),len(attempts),batch_size):
+    for start in track(range(len(previous),len(attempts),batch_size),'Generate batches',
+                       log=output/'sampling.progress.jsonl',unit='batch'):
         started = time.perf_counter(); rows,candidates,positions = [],[],[]
         for index in range(start,min(start+batch_size,len(attempts))):
             case,k = attempts[index];attempt_seed=seed+index
@@ -444,8 +441,6 @@ def generate_records_batched(proposal,flow,config,job,output,device,seed,steps,g
             'attempted':completed,'requested':len(attempts),'generated':success,'failed':completed-success,
             'sampling_seconds':elapsed,'sampling_backend':'packed','batch_size':batch_size,
             'reused':reused_count,'new_attempts':completed-reused_count})
-        print(json.dumps({'event':'sampling_progress','attempted':completed,'requested':len(attempts),
-                          'sampling_seconds':elapsed,'batch_size':batch_size}),flush=True)
 
 
 def sample_batched(args):
@@ -460,7 +455,8 @@ def sample_batched(args):
     ledger=output/'samples.jsonl'
     if ledger.exists(): raise FileExistsError('Use a new output; existing samples preserved')
     elapsed=0.;success=0
-    for start in range(0,args.count,args.batch_size):
+    for start in track(range(0,args.count,args.batch_size),'Generate batches',
+                       log=output/'sampling.progress.jsonl',unit='batch'):
         started=time.perf_counter();rows,candidates,positions=[],[],[]
         for index in range(start,min(start+args.batch_size,args.count)):
             attempt_seed=args.seed+index;generator=torch.Generator(device=args.device).manual_seed(attempt_seed)
