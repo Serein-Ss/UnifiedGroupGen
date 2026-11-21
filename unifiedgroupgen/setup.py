@@ -3,4 +3,5 @@ from pathlib import Path
 from setuptools import find_packages, setup
 
 root = Path(__file__).resolve().parent
-setup(packages=['unifiedgroupgen', *('unifiedgroupgen.'+name for name in find_packages(where=str(root)))])
+packages = find_packages(where=str(root), exclude=('tests', 'tests.*'))
+setup(packages=['unifiedgroupgen', *(f'unifiedgroupgen.{name}' for name in packages)])

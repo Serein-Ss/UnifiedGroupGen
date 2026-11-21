@@ -1,0 +1,12 @@
+defaults:
+- joint_flow_5090
+- _self_
+
+# Select with runtime=joint_flow_debug. For a CPU run set runtime.fused_adamw=false.
+# The edge budget bounds the endpoint atom-pair estimate for packing.
+batch_size: 4
+joint_train_limit: 8
+joint_val_limit: 8
+lightning_debug:
+  fast_dev_run: 2
+  detect_anomaly: false

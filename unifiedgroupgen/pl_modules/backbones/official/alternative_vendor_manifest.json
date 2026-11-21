@@ -1,0 +1,147 @@
+{
+  "equiformer_v3/input_block.py": {
+    "source": "equiformer_v3",
+    "upstream_sha256": "eb1ce58d6d3d24f2cd234c1a0177567df31d41faf803f0796422ccc363a08f42",
+    "normalized_local_sha256": "1e6faac21826165ba2c0a4529fc03c7ee78e1b5101bda31329348f6d17d20487"
+  },
+  "equiformer_v3/envelope.py": {
+    "source": "equiformer_v3",
+    "upstream_sha256": "ae487269f878dd9125d16a3f6b77c4613baf7e32cd66ff910f5a853534ce5d76",
+    "normalized_local_sha256": "68bd2a736d647c223cd74deeea031f586e268c0ebd38ddcfca4823d3a1aea54b"
+  },
+  "equiformer_v3/drop.py": {
+    "source": "equiformer_v3",
+    "upstream_sha256": "293b128aa1b407154aae2e1a8c77c16d6957161c1a65a4396d3d91f6f35a4b3f",
+    "normalized_local_sha256": "918a6760840331ad7699e8364a90e254ecb2a184d0af976810d2fad4dadacb99"
+  },
+  "equiformer_v3/layer_norm.py": {
+    "source": "equiformer_v3",
+    "upstream_sha256": "41e00b377cbacef4713d88697c06e419f3b8c208d9fcc55be78b53fd5a23c2c6",
+    "normalized_local_sha256": "41e00b377cbacef4713d88697c06e419f3b8c208d9fcc55be78b53fd5a23c2c6"
+  },
+  "equiformer_v3/activation.py": {
+    "source": "equiformer_v3",
+    "upstream_sha256": "88d98a77849f479131cb4991a5a4124a44ecc03e46ed7f2e2d8e773ef826fdf7",
+    "normalized_local_sha256": "f2c1cb696f946dcf2c5a7ee75bf4c5a3b36b9551b63da530af2c7adccb81696d"
+  },
+  "equiformer_v3/edge_rot_mat.py": {
+    "source": "equiformer_v3",
+    "upstream_sha256": "a836bb183f62e6627386d2c48e27f46cda6d18442425011eb600d68f1c5d5411",
+    "normalized_local_sha256": "02230562005fe12d615caa1d310fb21ed6975bb49ef44c9a7aa7d82e782174e2"
+  },
+  "equiformer_v3/equiformer_v3.py": {
+    "source": "equiformer_v3",
+    "upstream_sha256": "11795ac82ff2cdfc703e1eabb324f6c7964a23804fdf114c47a02680d03bda09",
+    "normalized_local_sha256": "c95cacaa63ac6cc93f0bc59ffcc4c3cb82ff63fe4461eceac01378a044d4760e"
+  },
+  "equiformer_v3/output_block.py": {
+    "source": "equiformer_v3",
+    "upstream_sha256": "32ef202cfaae147489a336d03acff982c62ee41b352da2211035ae426ef352d0",
+    "normalized_local_sha256": "32ef202cfaae147489a336d03acff982c62ee41b352da2211035ae426ef352d0"
+  },
+  "equiformer_v3/radial_function.py": {
+    "source": "equiformer_v3",
+    "upstream_sha256": "aa2180f5da10fd153de905e241593ab9a03ccc3c1c8e4550a735d0e4333bd4e6",
+    "normalized_local_sha256": "1414886a6d386af6758f57bf8c02e56f023a741d054ecd885eb63de59c7ac772"
+  },
+  "equiformer_v3/so2_ops.py": {
+    "source": "equiformer_v3",
+    "upstream_sha256": "215d7e9dc5818dccd62791ad741ad0ab7fe20f0d237b49100a57a3bb84643159",
+    "normalized_local_sha256": "eb912b17983407daadcd466a56f817a207a05b992306f707d47621d6e6b500d1"
+  },
+  "equiformer_v3/softmax.py": {
+    "source": "equiformer_v3",
+    "upstream_sha256": "643467db97b6168f387c1d63bcc4af88af5ea5aed979325ce37ecd4c906b17b9",
+    "normalized_local_sha256": "cf10c037627096c67d465ede541ca4cf749d2bfc0f19709196a1e39eb8c70d5c"
+  },
+  "equiformer_v3/utils.py": {
+    "source": "equiformer_v3",
+    "upstream_sha256": "0b5605dbcf8c6d260cfadb4f49c18136642cdbe16f2f5691d0493f7736b89512",
+    "normalized_local_sha256": "c5bcb94f186625f951e8a9e5f337190e5a43f23306169b73b9ebee8ab3e4421d"
+  },
+  "equiformer_v3/LICENSE": {
+    "source": "equiformer_v3",
+    "upstream_sha256": "f2d3c892651d8fa0dc6957a74cdd0ff016bd73968a5e127c421919636b4a35be",
+    "normalized_local_sha256": "f2d3c892651d8fa0dc6957a74cdd0ff016bd73968a5e127c421919636b4a35be"
+  },
+  "equiformer_v3/so3.py": {
+    "source": "equiformer_v3",
+    "upstream_sha256": "af0910b9cbb035b942168179d130ca08e6ae9c4dab1693e72533a517cefeab97",
+    "normalized_local_sha256": "df6a47ff7eb373d00e54656683faf803dfacd556082b5e2feed4aac513040965"
+  },
+  "equiformer_v3/transformer_block.py": {
+    "source": "equiformer_v3",
+    "upstream_sha256": "aa162e86b466010fc22c9007108fb94a7fb4e1c816a84a989ee67183cb89177b",
+    "normalized_local_sha256": "de46735ea9ce6ad51d4ef286f3e83a7a65db33206023b0006e2ff2581412012d"
+  },
+  "equiformer_v3/wigner.py": {
+    "source": "equiformer_v3",
+    "upstream_sha256": "ce4f3bf9aa9fc51e659bcfc2545a88a50bb41fa2ac71eb9e5f4289ae38225b49",
+    "normalized_local_sha256": "79559afb142082275d1082773aa37aca56f42c5a58627bb0b2bf877c109daaf0"
+  },
+  "fairchem/core/models/esen/esen.py": {
+    "source": "esen",
+    "upstream_sha256": "7b6d2860f76ae62a674f7b45fd008f38d0d8216d4eed033c1b7798135ead0549",
+    "normalized_local_sha256": "4f2098a4b3804456539b192a40a7d5522d62a51fc124b5429489d2a895972972"
+  },
+  "fairchem/core/models/esen/esen_block.py": {
+    "source": "esen",
+    "upstream_sha256": "65d25144389ef5660485cdae6e3d3e1cf336bf5bd5de077a3e65c76b9918f109",
+    "normalized_local_sha256": "65d25144389ef5660485cdae6e3d3e1cf336bf5bd5de077a3e65c76b9918f109"
+  },
+  "fairchem/core/models/esen/common/rotation.py": {
+    "source": "esen",
+    "upstream_sha256": "934b0b3e00a83c2bd0593dceb394ea7fa868dcde3cca574ef5cd523165ec2878",
+    "normalized_local_sha256": "934b0b3e00a83c2bd0593dceb394ea7fa868dcde3cca574ef5cd523165ec2878"
+  },
+  "fairchem/core/models/esen/common/so3.py": {
+    "source": "esen",
+    "upstream_sha256": "10e683b5a3b4a6f7360c5267c41ef52bfb01925d75662810c6599d5dfb47fb2d",
+    "normalized_local_sha256": "10e683b5a3b4a6f7360c5267c41ef52bfb01925d75662810c6599d5dfb47fb2d"
+  },
+  "fairchem/core/models/esen/nn/activation.py": {
+    "source": "esen",
+    "upstream_sha256": "6fab9c3a2f10408e4e55d2c54b28df07569c29420d0b9c266b53818f0bf8c709",
+    "normalized_local_sha256": "6fab9c3a2f10408e4e55d2c54b28df07569c29420d0b9c266b53818f0bf8c709"
+  },
+  "fairchem/core/models/esen/nn/embedding.py": {
+    "source": "esen",
+    "upstream_sha256": "cc18b7a840530f109008dda94c6aa0499fadfda6ab347b6fb6d33c4a07df7f47",
+    "normalized_local_sha256": "cc18b7a840530f109008dda94c6aa0499fadfda6ab347b6fb6d33c4a07df7f47"
+  },
+  "fairchem/core/models/esen/nn/layer_norm.py": {
+    "source": "esen",
+    "upstream_sha256": "a6a453a9ad4bf820b1f9ddc00c72509b44b90b7c5e29af6571116bcff6e1de58",
+    "normalized_local_sha256": "a6a453a9ad4bf820b1f9ddc00c72509b44b90b7c5e29af6571116bcff6e1de58"
+  },
+  "fairchem/core/models/esen/nn/radial.py": {
+    "source": "esen",
+    "upstream_sha256": "1570e88b7668fac03f2c29e53dfea136f4b6ba5dc025ba5e7bc6cd711dc89a51",
+    "normalized_local_sha256": "078c4ea407f9ea58325647035989a3e9f86101cd399cc1913445443668d84eca"
+  },
+  "fairchem/core/models/esen/nn/so2_layers.py": {
+    "source": "esen",
+    "upstream_sha256": "b7eee86608a8b2bc8a1b624d1f2d82c8fc9dd34d55f68777fe50cbcbc88de183",
+    "normalized_local_sha256": "b7eee86608a8b2bc8a1b624d1f2d82c8fc9dd34d55f68777fe50cbcbc88de183"
+  },
+  "fairchem/core/models/esen/nn/so3_layers.py": {
+    "source": "esen",
+    "upstream_sha256": "59d3ad115a564faa0d518a5ab2822d039b73ed0fea4ca840c3f9af5bdbbfd264",
+    "normalized_local_sha256": "59d3ad115a564faa0d518a5ab2822d039b73ed0fea4ca840c3f9af5bdbbfd264"
+  },
+  "mace/LICENSE.md": {
+    "source": "mace",
+    "upstream_sha256": "42137790f854ae2b9d29a0a72a4da3f6fb9a21d820b3f276f23b0575af72e86e",
+    "normalized_local_sha256": "42137790f854ae2b9d29a0a72a4da3f6fb9a21d820b3f276f23b0575af72e86e"
+  },
+  "mace/cg.py": {
+    "source": "mace",
+    "upstream_sha256": "61741611a82d5424a6962a190156a0d436074256496405bfebeb48b1f1905262",
+    "normalized_local_sha256": "5594864f4f3376b3778ec85c4e6c370e3429f3a62eccbf12150329c8448d99a4"
+  },
+  "mace/symmetric_contraction.py": {
+    "source": "mace",
+    "upstream_sha256": "b560b9118fb3b506a93b1372ebddd6fb1bcd9377bff25ec7442dbe813df0e023",
+    "normalized_local_sha256": "0d2d8b98c25d0ac1de7e97a909f98f6b9d07555e1a089ba18fc2a1f53cdf551a"
+  }
+}

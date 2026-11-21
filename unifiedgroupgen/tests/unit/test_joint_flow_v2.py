@@ -5,12 +5,12 @@ from pathlib import Path
 import pytest
 import torch
 from unifiedgroupgen.pl_modules.factory import build_joint_model
-from unifiedgroupgen.pl_data.joint_path import target_from_record
-from unifiedgroupgen.pl_data.task_path import task_target
-from unifiedgroupgen.joint_flow.path import sample_path
-from unifiedgroupgen.joint_flow.state import initial,apply,assign,actions,JointAction,coordinate_tangent
-from unifiedgroupgen.joint_flow.objective import loss
-from unifiedgroupgen.joint_flow.sampling import sample_batch
+from unifiedgroupgen.common.data_utils import target_from_record
+from unifiedgroupgen.pl_data.unified.tasks import task_target
+from unifiedgroupgen.pl_data.unified.path import sample_path
+from unifiedgroupgen.group_constraints.flow_state import initial,apply,assign,actions,JointAction,coordinate_tangent
+from unifiedgroupgen.pl_modules.unified.objectives import loss
+from unifiedgroupgen.generation.unified.sampling import sample_batch
 from unifiedgroupgen.group_constraints.unified import catalog_spec
 
 ROOT=Path(__file__).resolve().parents[3]
@@ -21,17 +21,16 @@ def threads():
     yield
     torch.set_num_threads(old)
 
-def config(backend='equiformer_v2',task='dng'):
+def config(backend='equiformer_v2',task='dng',property_conditioning=False):
     return dict(model=dict(family='joint_flow_v2',backbone=backend,hidden=16,layers=1,channels=16,
         heads=4,lmax=2,mmax=1,cutoff=4.,max_neighbors=32,use_gate_act=True,task_controls=True),
-        allowed_elements=list(range(1,119)),properties={'band_gap':dict(type='scalar')} if task=='property' else {},
+        allowed_elements=list(range(1,119)),properties={'band_gap':dict(type='scalar')} if property_conditioning else {},
         generation_task=task,chemical_set_probability=0.,cond_dropout=0.,max_atoms=40,max_orbits=12,event_budget=24,
         birth_scale=.2,learning_rate=1e-3)
 
 def record(dataset,split='train'):
-    path=ROOT/'data/dataset/full_verified_v1'/dataset/(split+'.jsonl')
-    with path.open(encoding='utf-8') as f:
-        return next(json.loads(line) for line in f if json.loads(line).get('properties',{}).get('band_gap') is not None)
+    path=ROOT/'unifiedgroupgen/tests/fixtures/current_training_records.json'
+    return json.loads(path.read_text(encoding='utf-8'))[dataset][split]
 
 def populated(kind='space',number=1):
     s=initial(catalog_spec(kind,number),budget=24)
@@ -41,9 +40,9 @@ def populated(kind='space',number=1):
 
 @pytest.mark.parametrize('backend',['equiformer_v2','joint_atom_graph'])
 @pytest.mark.parametrize('dataset',['mp_20','c2db_51'])
-@pytest.mark.parametrize('task',['dng','property','csp'])
-def test_real_tasks_finite_backward(backend,dataset,task):
-    cfg=config(backend,task);model=build_joint_model(cfg)
+@pytest.mark.parametrize('task,conditioned',[('dng',False),('csp',False),('dng',True),('csp',True)])
+def test_real_tasks_finite_backward(backend,dataset,task,conditioned):
+    cfg=config(backend,task,conditioned);model=build_joint_model(cfg)
     target=task_target(target_from_record(record(dataset)),cfg,12)
     samples=[sample_path(target,k,time=t,allowed_elements=cfg['allowed_elements'],budget=24,max_atoms=40,max_orbits=12)
              for k,t in [(3,.2),(4,.67),(5,.92)]]
@@ -51,22 +50,24 @@ def test_real_tasks_finite_backward(backend,dataset,task):
     assert model.last_packed_graphs==3
     assert all(torch.isfinite(p.grad).all() for p in model.parameters() if p.grad is not None)
     assert model.metric_head.weight.grad is not None
+    if conditioned:
+        assert model.property_encoder.encoders['band_gap'][0].weight.grad is not None
 
 @pytest.mark.parametrize('backend',['equiformer_v2','joint_atom_graph'])
 def test_packed_matches_single_and_does_not_cross_graphs(backend):
     torch.manual_seed(2);m=build_joint_model(config(backend)).eval()
-    states=[initial(catalog_spec('space',2),budget=24),populated('space',1),populated('layer',1),populated('plane',1)]
+    states=[initial(catalog_spec('space',2),budget=24),populated('space',1),populated('layer',1),populated('plane',1),populated('rod',54)]
     with torch.no_grad():
-        batch=m.forward_batch(states,[.3]*4)
+        batch=m.forward_batch(states,[.3]*len(states))
         single=[m(s,.3) for s in states]
     for a,b in zip(batch,single):
         for key in ['metric_velocity_scaled','coordinate_velocity_scaled','element_logits','remaining','action_logits']:
             torch.testing.assert_close(a[key],b[key],atol=2e-5,rtol=2e-4)
 
-@pytest.mark.parametrize('kind,number',[('space',2),('layer',78),('plane',17)])
+@pytest.mark.parametrize('kind,number',[('space',2),('layer',78),('plane',17),('rod',75)])
 def test_orbit_path_endpoint_and_empty_source(kind,number):
     s=populated(kind,number);s=assign(s,0,8)
-    from unifiedgroupgen.pl_data.joint_path import JointTarget
+    from unifiedgroupgen.common.data_utils import JointTarget
     target=JointTarget(s,'fixture',{})
     start=sample_path(target,31,time=0,allowed_elements=[8],budget=24)
     end=sample_path(target,31,time=1,allowed_elements=[8],budget=24)
@@ -75,9 +76,10 @@ def test_orbit_path_endpoint_and_empty_source(kind,number):
     torch.testing.assert_close(end.state.coordinates,s.coordinates)
     assert end.state.compiled.residuals(end.state.coordinates,end.state.decoded()['atomic_numbers'],end.state.decoded()['lattice'])['elements']
 
-def test_equiformer_rotation_and_tangent_covariance():
-    torch.manual_seed(9);m=build_joint_model(config()).eval();s=populated('space',1)
-    # N=1 retains periodic self-images and a nonzero periodic graph.
+@pytest.mark.parametrize('kind,number',[('space',1),('rod',43)])
+def test_equiformer_rotation_and_tangent_covariance(kind,number):
+    torch.manual_seed(9);m=build_joint_model(config()).eval();s=populated(kind,number)
+    # Periodic self-images contribute even for a single isolated site.
     q,_=torch.linalg.qr(torch.tensor([[1.,2.,3.],[2.,-1.,.4],[.2,.8,-2.]]))
     if torch.det(q)<0:q[:,0]*=-1
     rotated=replace(s,frame=q)
@@ -99,21 +101,56 @@ def test_batch_sampling_from_empty_retains_attempts_and_symmetry():
             assert not any(z==0 for z in r.state.elements)
 
 def test_shell_selection_keeps_symmetry_related_neighbors():
-    from unifiedgroupgen.pl_modules.backbones.periodic_graph import radius_graph
+    from unifiedgroupgen.common.data_utils import radius_graph
     f=torch.zeros((1,3));cell=torch.eye(3)[None]*3
     e,n,_,v=radius_graph(f,cell,torch.tensor([1]),torch.tensor([[True]*3]),3.1,1,16,keep_shells=True)
     assert len(v)==6
 
 def test_new_config_selectors():
-    from unifiedgroupgen.common.configuration import compose_experiment,training_definition
+    from unifiedgroupgen.experiment_config import compose_experiment,training_definition
     for dataset in ['mp20','c2db51']:
         for task in ['dng','property','csp']:
             c=training_definition(compose_experiment(f'flow_{dataset}_{task}'))
             assert c['model']['family']=='joint_flow_v2' and c['model']['operation_compiler']
+            assert c['generation_task']==('dng' if task=='property' else task)
+        for task in ('dng','csp'):
+            c=training_definition(compose_experiment(f'full_{dataset}_eqv2_{task}',
+                                                     overrides=['conditioning=formation_energy']))
+            assert c['generation_task']==task and set(c['properties'])=={'formation_energy'}
+            assert c['cond_dropout']==.1
+
+
+@pytest.mark.parametrize('task',['dng','csp'])
+@pytest.mark.parametrize('dataset',['mp_20','c2db_51'])
+def test_property_condition_does_not_change_the_chemical_path(task,dataset):
+    from unifiedgroupgen.conditional.tasks import eligible_records
+    row=record(dataset)
+    endpoint=target_from_record(row)
+    unconditioned=config(task=task)
+    conditioned=config(task=task,property_conditioning=True)
+    a=task_target(endpoint,unconditioned,7)
+    b=task_target(endpoint,conditioned,7)
+    assert a.properties=={} and b.properties=={'band_gap':row['properties']['band_gap']}
+    assert a.state.chemistry==b.state.chemistry
+    assert bool(b.state.chemistry.counts)==(task=='csp')
+    assert eligible_records([row,dict(properties={'band_gap':None})],conditioned)==[row]
+    for time in (0.,.45,.8,1.):
+        first=sample_path(a,7,time=time,allowed_elements=unconditioned['allowed_elements'])
+        second=sample_path(b,7,time=time,allowed_elements=conditioned['allowed_elements'])
+        assert first.trajectory==second.trajectory
+        assert first.state.elements==second.state.elements
+        torch.testing.assert_close(first.state.metric,second.state.metric,rtol=0,atol=0)
+        torch.testing.assert_close(first.state.coordinates,second.state.coordinates,rtol=0,atol=0)
+
+
+def test_property_is_a_conditioning_option_not_a_generation_mode():
+    invalid = config(task='property', property_conditioning=True)
+    with pytest.raises(ValueError, match='independent task'):
+        build_joint_model(invalid)
 
 
 def test_nontrivial_rotation_translation_and_atom_permutation():
-    from unifiedgroupgen.joint_flow.state import from_state
+    from unifiedgroupgen.group_constraints.flow_state import from_state
     torch.manual_seed(13);m=build_joint_model(config()).eval()
     s=initial(catalog_spec('space',1),budget=24)
     for z in [8,14,16]:
@@ -135,23 +172,27 @@ def test_nontrivial_rotation_translation_and_atom_permutation():
     torch.testing.assert_close(a['element_logits'][perm],c['element_logits'],atol=4e-5,rtol=5e-4)
     torch.testing.assert_close(a['coordinate_velocity_scaled'][perm],c['coordinate_velocity_scaled'],atol=4e-5,rtol=5e-4)
 
-def test_new_native_format_and_optimizer_resume(tmp_path):
-    from unifiedgroupgen.pl_modules.joint_training import fit_joint,load_joint_checkpoint,FLOW_FORMAT
+def test_new_native_format_and_optimizer_roundtrip_without_training(tmp_path):
+    from unifiedgroupgen.pl_modules.unified.module import JointGeneratorModule,load_joint_checkpoint,FLOW_FORMAT
     cfg=config('joint_atom_graph')
-    train=[record('mp_20'),record('c2db_51')]
-    val=[record('mp_20','val'),record('c2db_51','val')]
-    output=tmp_path/'model.pt'
-    fit_joint(cfg,train,val,output,epochs=1,max_steps=1,runtime=dict(batch_size=2,edge_budget=200000))
+    module=JointGeneratorModule(cfg)
+    optimizer=module.configure_optimizers()
+    output=tmp_path/'last.ckpt'
+    saved=dict(epoch=2,global_step=42,state_dict=module.state_dict(),
+        joint_state=dict(format=FLOW_FORMAT,config=cfg),optimizer_states=[optimizer.state_dict()])
+    torch.save(saved,output)
     value=load_joint_checkpoint(output)
     assert value['format']==FLOW_FORMAT
     restored=build_joint_model(value['config']);restored.load_state_dict(value['model'],strict=True)
-    trainer=fit_joint(cfg,train,val,output,epochs=2,max_steps=2,resume=tmp_path/'last.ckpt',
-                      runtime=dict(batch_size=2,edge_budget=200000))
-    assert trainer.global_step==2
+    other=torch.optim.AdamW(restored.parameters(),lr=.2)
+    other.load_state_dict(torch.load(output,weights_only=False)['optimizer_states'][0])
+    assert other.param_groups[0]['lr']==optimizer.param_groups[0]['lr']
+    for key,tensor in module.model.state_dict().items():
+        torch.testing.assert_close(restored.state_dict()[key],tensor,rtol=0,atol=0)
 
 def test_oracle_sampler_reaches_real_endpoint_without_reference_at_birth():
     # Oracle is a numerical sampler fixture, not a learned generation result.
-    from unifiedgroupgen.pl_data.joint_path import JointTarget
+    from unifiedgroupgen.common.data_utils import JointTarget
     endpoint=populated('space',2);endpoint=assign(endpoint,0,8)
     class Oracle(torch.nn.Module):
         allowed_elements=(8,);max_atoms=40;max_orbits=12;event_budget=8;birth_scale=.2
@@ -190,8 +231,8 @@ def test_all_structural_kernels_are_legal_and_preserve_survivors():
 
 @pytest.mark.parametrize('dataset',['mp_20','c2db_51'])
 def test_real_v2_endpoint_cif_roundtrip(dataset):
-    from unifiedgroupgen.joint_flow.state import from_state
-    from unifiedgroupgen.generation.joint import JointSample
+    from unifiedgroupgen.group_constraints.flow_state import from_state
+    from unifiedgroupgen.generation.types import JointSample
     from unifiedgroupgen.joint import evaluation_record
     target=target_from_record(record(dataset))
     state=from_state(target.state,frozen=True)
@@ -199,14 +240,3 @@ def test_real_v2_endpoint_cif_roundtrip(dataset):
     row=evaluation_record(sample,0,1)
     assert row['status']=='generated' and row['accepted']
     assert row['cif_sha256'] and row['constraint_residuals']['elements']
-
-def test_common_sampler_defaults_follow_new_checkpoint(monkeypatch):
-    from types import SimpleNamespace
-    from unifiedgroupgen.generation.joint import sample_joint
-    import unifiedgroupgen.joint_flow.sampling as sampling
-    monkeypatch.setattr(sampling,'sample_one',lambda model,spec,**kwargs:kwargs)
-    model=SimpleNamespace(flow_version='joint_flow_v2',event_budget=96,birth_scale=.35)
-    result=sample_joint(model,catalog_spec('space',1))
-    assert result['budget']==96 and result['birth_scale']==.35
-    explicit=sample_joint(model,catalog_spec('space',1),budget=256,birth_scale=.2)
-    assert explicit['budget']==256 and explicit['birth_scale']==.2

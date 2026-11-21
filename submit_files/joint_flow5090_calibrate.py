@@ -8,11 +8,10 @@ from pathlib import Path
 import subprocess
 import sys
 import uuid
-from types import SimpleNamespace
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
-from submit_files.hpc5090 import read,write
+from submit_files.common import read,write
 
 
 def identity(campaign,model,audit):
@@ -25,7 +24,7 @@ def validate_profile(profile,expected):
     if profile.get('identity')!=expected or profile.get('state')!='complete':
         raise ValueError('Calibration does not match frozen config, TRAIN inputs and policy')
     chosen=profile['selected']
-    if chosen.get('state')!='pass' or [chosen['batch_size'],chosen['edge_budget']] not in expected['policy']['candidates']:
+    if chosen.get('state')!='pass' or chosen['batch_size'] not in expected['policy']['candidates']:
         raise ValueError('Calibration has no valid selected candidate')
     if (chosen.get('precision')!='fp32' or not math.isfinite(chosen.get('records_per_second',0))
             or chosen['records_per_second']<=0 or chosen['peak_reserved_bytes']>chosen['memory_limit_bytes']):
@@ -40,44 +39,44 @@ def select_trial(trials):
     return max(valid,key=lambda r:(r['records_per_second'],-r['batch_size']))
 
 
-def workloads(sizes,batch_size,edge_budget,policy):
-    from unifiedgroupgen.pl_data.joint_datamodule import JointBatchSampler
-    def packed(order,shuffle):
-        dataset=SimpleNamespace(records=[{'_joint_target':SimpleNamespace(state=SimpleNamespace(num_atoms=sizes[i]))} for i in order])
-        batches=JointBatchSampler(dataset,batch_size,edge_budget,lambda:0,shuffle)
-        return [[order[i] for i in b] for b in batches]
-    cost=lambda b:sum(sizes[i]*(sizes[i]-1) for i in b)
-    normal=sorted(packed(list(range(len(sizes))),True),key=cost)
-    measured=[normal[int((len(normal)-1)*q)] for q in (.1,.3,.5,.7,.9)]
-    large=packed(sorted(range(len(sizes)),key=lambda i:-sizes[i]),False)
-    result=[dict(indices=list(measured[0]),time=None,timed=False) for _ in range(policy['warmup_steps'])]
-    result += [dict(indices=b,time=None,timed=True) for b in measured]
-    result += [dict(indices=large[0],time=t,timed=False) for t in policy['stress_times']]
-    result.append(dict(indices=max(large,key=cost),time=.95,timed=False))
+def workloads(sizes,batch_size,policy):
+    import torch
+    from torch.utils.data import BatchSampler, RandomSampler
+
+    sampler = RandomSampler(sizes, generator=torch.Generator().manual_seed(42))
+    batches = BatchSampler(sampler, batch_size, drop_last=False)
+    normal = sorted(batches, key=lambda batch: sum(sizes[i] for i in batch))
+    measured = [normal[int((len(normal)-1)*q)] for q in (.1,.3,.5,.7,.9)]
+    largest = sorted(range(len(sizes)), key=lambda i: -sizes[i])[:batch_size]
+    result = [dict(indices=list(measured[0]),time=None,timed=False) for _ in range(policy['warmup_steps'])]
+    result += [dict(indices=batch,time=None,timed=True) for batch in measured]
+    result += [dict(indices=largest,time=t,timed=False) for t in (*policy['stress_times'], .95)]
     return result
 
 
 def prepare_inputs(campaign,model,folder):
-    from unifiedgroupgen.common.configuration import compose_experiment,training_definition
+    from unifiedgroupgen.common.configuration import project_root
+    from unifiedgroupgen.experiment_config import compose_experiment,training_definition
     from unifiedgroupgen.pl_data.dataset import load_training_splits
     from unifiedgroupgen.run import fit_training_config
     from unifiedgroupgen.group_constraints.group_prior import fit_group_prior
     from unifiedgroupgen.group_constraints.unified import catalog_spec
-    from unifiedgroupgen.pl_data.task_path import has_property_target
-    override='data.data_audit=intermediate/hpc_runs/'+campaign['name']+'/audits/'+model+'.json'
-    config=training_definition(compose_experiment(campaign['entries'][model]['experiment'],overrides=[override]))
-    records,_,_=load_training_splits(config,ROOT)
+    from unifiedgroupgen.conditional.tasks import eligible_records
+    from submit_files.joint_flow5090 import run_overrides
+    config=training_definition(compose_experiment(campaign['entries'][model]['experiment'],
+                                                   overrides=run_overrides(campaign,model)))
+    records,_,_=load_training_splits(config,project_root())
     config=fit_training_config(config,records)
-    config={**config,'group_prior':fit_group_prior(records),'magnetic_training':False}
-    if config.get('generation_task')=='property':records=[r for r in records if has_property_target(r,config['properties'])]
+    config={**config,'group_prior':fit_group_prior(records, composition_ranked=config.get('csp_group_policy')=='composition_ranked')}
+    records=eligible_records(records,config)
     if not records:raise ValueError('No eligible TRAIN records for calibration')
     sizes=[sum(catalog_spec(r['descriptor']['kind'],r['descriptor']['number']).template(w['letter']).multiplicity
                for w in r['descriptor']['orbits']) for r in records]
     candidates=[];needed=set()
-    for batch,edges in campaign['calibration']['candidates']:
-        cases=workloads(sizes,batch,edges,campaign['calibration'])
+    for batch in campaign['calibration']['candidates']:
+        cases=workloads(sizes,batch,campaign['calibration'])
         needed.update(i for c in cases for i in c['indices'])
-        candidates.append(dict(batch_size=batch,edge_budget=edges,cases=cases))
+        candidates.append(dict(batch_size=batch,cases=cases))
     selected=sorted(needed);mapping={i:j for j,i in enumerate(selected)}
     for candidate in candidates:
         for case in candidate['cases']:case['indices']=[mapping[i] for i in case['indices']]
@@ -117,16 +116,15 @@ def trial(input_path,index,output):
     import time
     import torch
     from unifiedgroupgen.pl_modules.factory import build_joint_model
-    from unifiedgroupgen.pl_modules.joint_training import strict_fp32
-    from unifiedgroupgen.pl_data.joint_path import target_from_record
-    from unifiedgroupgen.pl_data.task_path import task_target
-    from unifiedgroupgen.joint_flow.path import sample_path
-    from unifiedgroupgen.joint_flow.objective import loss
+    from unifiedgroupgen.pl_modules.unified.module import strict_fp32
+    from unifiedgroupgen.common.data_utils import target_from_record
+    from unifiedgroupgen.pl_data.unified.tasks import task_target
+    from unifiedgroupgen.pl_data.unified.path import sample_path
+    from unifiedgroupgen.pl_modules.unified.objectives import loss
     torch.set_num_threads(4);torch.manual_seed(42)
     strict_fp32(dict(precision='fp32',strict_fp32=True))
     value=read(input_path);config=value['config'];candidate=value['candidates'][index]
-    row={k:candidate[k] for k in ('batch_size','edge_budget')}
-    row.update(precision='fp32',state='running')
+    row=dict(batch_size=candidate['batch_size'],precision='fp32',state='running')
     total=torch.cuda.get_device_properties(0).total_memory;free,_=torch.cuda.mem_get_info()
     cap=min(total*value['policy']['memory_fraction'],free-value['policy']['reserve_gib']*2**30)
     row.update(memory_limit_bytes=cap,gpu=torch.cuda.get_device_name(0))
@@ -146,7 +144,7 @@ def trial(input_path,index,output):
                 endpoint=task_target(targets[i],config,seed)
                 sample=sample_path(endpoint,seed,time=case['time'],allowed_elements=config['allowed_elements'],
                     max_atoms=config['max_atoms'],max_orbits=config['max_orbits'],budget=config['event_budget'],
-                    augment=True,birth_scale=config['birth_scale'])
+                    augment=True,birth_scale=config['birth_scale'],orbit_order=config.get('orbit_order','random'))
                 samples.append(sample.to('cuda:0'))
             with torch.autocast('cuda',enabled=False):parts=loss(model,samples,config['jump_weight'])
             parts['loss'].backward()

@@ -8,7 +8,7 @@ import yaml
 from filelock import FileLock, Timeout
 from submit_files import joint_flow5090 as jobs
 from submit_files import joint_flow5090_calibrate as calibration
-from unifiedgroupgen.common.configuration import compose_experiment, training_definition
+from unifiedgroupgen.experiment_config import compose_experiment, training_definition
 
 ROOT=Path(__file__).resolve().parents[3]
 DATA=yaml.safe_load((ROOT/jobs.CATALOG).read_text(encoding='utf-8'))
@@ -22,35 +22,37 @@ def test_full_configuration_has_correct_task_data_backbone_and_no_limits(name,en
     assert c['dataset']==entry['dataset'] and c['generation_task']==entry['task']
     assert c['epochs']==1000 and c['joint_max_steps']==-1
     assert c['lr_schedule']==dict(factor=.5,patience=10,threshold=.0001,min_lr=.000001)
-    assert c['early_stopping']==dict(patience=60,min_delta=.0001) and c['validation_seed']==918
+    is_comparison = name in DATA['backbone_comparison']['models']
+    assert c['early_stopping']==dict(patience=30 if is_comparison else 60,min_delta=.0001)
+    assert c['validation_seed']==918
     assert c['joint_train_limit'] is c['joint_val_limit'] is None
     assert cfg.runtime.joint_train_limit is cfg.runtime.joint_val_limit is cfg.runtime.joint_max_steps is None
-    assert c['chemical_set_probability']==0. and c['composition_probability']==c['observation_probability']==0.
-    assert not c.get('dataset_domains') and c['cond_dropout']==0.
-    assert set(c['properties'])==({'band_gap'} if entry['task']=='property' else set())
+    assert c['chemical_set_probability']==0.
+    assert not c.get('dataset_domains') and c['cond_dropout']==(.1 if 'property_conditioning' in entry else 0.)
+    assert set(c['properties'])==({entry['property_conditioning']} if 'property_conditioning' in entry else set())
     assert not any(p.get('context') for p in c['properties'].values())
     assert cfg.runtime.precision=='fp32' and cfg.runtime.strict_fp32 and cfg.runtime.fused_adamw
-    assert cfg.runtime.batch_size==c['batch_size']==8 and cfg.runtime.edge_budget==c['edge_budget']==40000
-    assert cfg.runtime.edge_budget>=c['max_atoms']*(c['max_atoms']-1)
+    assert cfg.runtime.batch_size==(4 if is_comparison else 8) and 'batch_size' not in c
     assert c['model']['hidden']==128 and c['model']['layers']==4 and not c['model']['checkpoint_layers']
     assert c['model']['heads']==(8 if entry['backbone']=='equiformer_v2' else 4)
-    for split in ('train','val','test'):
-        paths=c[split+'_files'];assert all('mpts_52' not in p for p in paths)
-        expected=['mp_20','c2db_51'] if entry['dataset']=='mp20_c2db51' else [entry['dataset']]
-        assert len(paths)==len(expected) and all('/'+d+'/'+split+'.jsonl' in p for d,p in zip(expected,paths))
-    assert name in c['data_audit'] and c['require_data_audit'] and c['require_source_integrity']
+    expected = ['mp_20', 'c2db_51'] if entry['dataset'] == 'mp20_c2db51' else [entry['dataset']]
+    assert c['source_configs'] == {name: f'configs/sources/{name}.yaml' for name in expected}
+    assert c['data_audit'] is None
+    assert cfg.resume is None and cfg.initialize_from is None
 
 
 def test_matrix_and_default_plan_are_exactly_requested():
-    assert len(DATA['experiments'])==12
-    combinations={(e['dataset'],e['backbone'],e['task']) for e in DATA['experiments'].values()}
-    expected={(d,'equiformer_v2',t) for d in ('mp_20','c2db_51','mp20_c2db51') for t in ('dng','csp','property')}
-    expected|={('mp_20','joint_atom_graph',t) for t in ('dng','csp','property')}
+    assert len(DATA['experiments'])==16
+    combinations={(e['dataset'],e['backbone'],e['task'],e.get('property_conditioning')) for e in DATA['experiments'].values()}
+    variants=(('dng',None),('csp',None),('dng','band_gap'))
+    expected={(d,'equiformer_v2',t,p) for d in ('mp_20','c2db_51','mp20_c2db51') for t,p in variants}
+    expected|={('mp_20','joint_atom_graph',t,p) for t,p in variants}
+    expected|={('mp_20','cspnet',t,None) for t in ('dng','csp')}
     assert combinations==expected
     plan=jobs.plan()
     assert plan['selected']==['full_mp20_eqv2_dng','full_mp20_eqv2_csp'] and plan['jobs']==2
     assert plan['phase']=='audit_calibrate_train' and not plan['local_training_started']
-    assert plan['calibration']['candidates'][-1]==[128,160000]
+    assert plan['calibration']['candidates'] == [1,2,4,8,16,32,64,128]
     assert plan['resources']==dict(partition='5090',gpus=1,cpus=8,memory='64G',hours=72)
     assert jobs.plan(['full_joint_eqv2_property'])['jobs']==1
 
@@ -62,7 +64,7 @@ def test_bad_selection_is_rejected(models):
 
 def campaign(root,source):
     models=DATA['default_models']
-    return dict(schema='ugg_joint_flow_full_5090_v2',root=str(root),source=str(source),name='test_full',
+    return dict(schema=jobs.CAMPAIGN_SCHEMA,root=str(root),source=str(source),name='test_full',
                 revision='frozen-commit',models=models,entries={m:DATA['experiments'][m] for m in models},
                 resources=DATA['resources'],calibration=DATA['calibration'])
 
@@ -71,7 +73,7 @@ def make_profile(c,model):
     folder=Path(c['root'])/'intermediate/hpc_runs'/c['name']
     audit=dict(passed=True,config_sha256='fixture',inputs={'train':[]})
     jobs.write(folder/'audits'/(model+'.json'),audit)
-    chosen=dict(state='pass',batch_size=16,edge_budget=60000,records_per_second=10.,precision='fp32',
+    chosen=dict(state='pass',batch_size=16,records_per_second=10.,precision='fp32',
                 peak_reserved_bytes=100,memory_limit_bytes=200)
     jobs.write(folder/'profiles'/(model+'.json'),dict(state='complete',identity=calibration.identity(c,model,audit),selected=chosen))
 
@@ -89,7 +91,7 @@ def test_commands_share_audit_definition_and_resume_native_last_checkpoint(tmp_p
     _,train=jobs.commands(c,model)
     assert 'resume='+str(path.parent/'last.ckpt') in train
     assert 'output='+str(path) in train
-    assert 'runtime.batch_size=16' in train and 'runtime.edge_budget=60000' in train
+    assert 'runtime.batch_size=16' in train
 
 
 def test_incomplete_unresumable_results_are_preserved(tmp_path):
@@ -216,6 +218,55 @@ def test_live_checkout_cannot_replace_frozen_worker_source(tmp_path,monkeypatch)
 def test_sbatch_uses_current_joint_worker_and_no_install_or_legacy_campaign():
     text=(ROOT/'submit_files/joint_flow5090.sbatch').read_text(encoding='utf-8')
     assert '#SBATCH -p 5090' in text and '#SBATCH --gres=gpu:1' in text
-    assert 'joint_flow5090.py run "$@"' in text and 'UGG_PROJECT_ROOT="$PWD"' in text
+    assert 'joint_flow5090.py run "$@"' in text and 'export UGG_PROJECT_ROOT' in text and 'Missing project root from submission' in text
     assert 'CUDA/12.9' in text and 'conda activate unifiedgroupgen' in text
     assert not any(x in text for x in ('pip install','conda install','hpc5090.py run','git pull'))
+
+
+def test_paper_matrix_freezes_same_budget_across_three_arms(tmp_path, monkeypatch):
+    paper = dict(seeds=None, max_steps=10000, batch_size=4)
+    planned = jobs.plan(paper=paper)
+    assert planned['jobs'] == len(set(planned['selected'])) == 36
+    assert planned['calibration']['candidates'] == [4]
+    assert list(planned['entries'])[0] == 'full_mp20_eqv2_dng_control_s42'
+    assert not planned['local_training_started']
+
+    model = 'full_c2db51_eqv2_csp'
+    paper['seeds'] = [43]
+    submit_calls = []
+    monkeypatch.setattr(jobs, 'catalog', lambda: DATA)
+    monkeypatch.setattr(jobs, 'ROOT', tmp_path)
+    monkeypatch.setattr(jobs, 'snapshot', lambda root, folder, revision: folder/'source')
+    monkeypatch.setattr(jobs.subprocess, 'run', lambda *a,**k: None)
+
+    def scheduler(command, **kwargs):
+        if command[0] == 'git':
+            return '' if 'ls-files' in command else 'frozen-commit'
+        assert command[0] == 'yhbatch'
+        submit_calls.append(command)
+        return str(len(submit_calls))
+
+    monkeypatch.setattr(jobs.subprocess, 'check_output', scheduler)
+    jobs.submit('paper', [model], paper=paper)
+    c = jobs.read(tmp_path/'intermediate/hpc_runs/paper/campaign.json')
+    assert c['models'] == [f'{model}_{mode}_s43' for mode in DATA['paper']['ablations']]
+    assert [call[-1] for call in submit_calls] == c['models']
+    for key in c['models']:
+        audit, train = jobs.commands(c, key)
+        overrides = jobs.run_overrides(c, key)
+        assert audit[-6:]==[v for item in overrides for v in ('--override',item)]
+        assert set(overrides)<=set(train)
+        assert 'seed=43' in train and 'train.joint_max_steps=10000' in train
+        definition = training_definition(compose_experiment(model, overrides=overrides))
+        assert definition['joint_max_steps']==10000 and definition['early_stopping'] is None
+        assert definition['dataset']=='c2db_51' and definition['generation_task']=='csp'
+    with pytest.raises(ValueError,match='settings are frozen'):
+        jobs.submit('paper', [model], paper={**paper,'batch_size': 8})
+    assert len(submit_calls)==3
+
+    key = c['models'][0]
+    path = jobs.output(c, key)
+    path.parent.mkdir(parents=True)
+    jobs.write(path.with_suffix('.status.json'),dict(state='complete',global_step=9999))
+    with pytest.raises(ValueError,match='optimization budget'):
+        jobs.complete(c,key)

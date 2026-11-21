@@ -11,9 +11,9 @@
 | 两库混合 | EquiformerV2 | [full_joint_eqv2_dng](../configs/experiment/full_joint_eqv2_dng.yaml) | [full_joint_eqv2_csp](../configs/experiment/full_joint_eqv2_csp.yaml) | [full_joint_eqv2_property](../configs/experiment/full_joint_eqv2_property.yaml) |
 | MP-20 | JointAtomGraph | [full_mp20_atomgraph_dng](../configs/experiment/full_mp20_atomgraph_dng.yaml) | [full_mp20_atomgraph_csp](../configs/experiment/full_mp20_atomgraph_csp.yaml) | [full_mp20_atomgraph_property](../configs/experiment/full_mp20_atomgraph_property.yaml) |
 
-总表：[experiments_joint_flow_full.yaml](../configs/experiments_joint_flow_full.yaml)。新选择器不覆盖原来的flow_*、task_*、旧两阶段配置或历史输出。
+总表：[experiments_joint_flow_full.yaml](../configs/experiments_joint_flow_full.yaml)。各选择器直接组合来源、模型、训练和运行配置，历史任务保存在原冻结批次。
 
-DNG不提供性质或组分；CSP训练时可见准确的每胞元素计数，以库存受限的整轨道动作构造路径；property只使用实际存在的band_gap目标标签。所有配置chemical_set_probability=0，不混入限定元素集合任务。当前性质模块和cond_dropout=0沿用既有独立任务设置，不宣称新增CFG。任务类型、周期维度及群规范保持现有硬约束定义。
+DNG默认不提供性质或组分。CSP训练时可见准确的每胞元素计数，以库存受限的整轨道动作构造路径。表中的带隙实验为 DNG 加目标性质 CFG，观测标签参与拟合，训练条件丢弃率为 0.1。也可在 CSP 中显式选择 `conditioning=band_gap`。全表的 `chemical_set_probability` 为 0。
 
 混合数据按相同划分自然拼接，不作1:1重采样，不加入source_domain/dataset条件。记录中的dataset仅用于标识、缓存键和审计，不作为神经条件。
 
@@ -36,17 +36,17 @@ DNG不提供性质或组分；CSP训练时可见准确的每胞元素计数，�
 - 主干宽度128、4层；EquiformerV2为128球通道、lmax=4、mmax=2、原生8头，配置heads已标为实际8；JointAtomGraph沿用4头。原生Equiformer核心及其等变表示未修改。
 - 事件预算96，最多192原子、52轨道；轨道预算回退使用修复后的独立时钟。
 - 正式训练使用FP32（Lightning 32-true），关闭autocast与TF32；融合AdamW仍保留，参数、梯度和优化器状态使用FP32。日志步频25；激活重计算默认关闭。可选joint_flow_fast配置保留其原有BF16行为，不作为本轮基准。
-- 每个5090作业先自动校准batch_size和edge_budget，再以测得的配置训练；配置中的8/40000只供直接入口的回退默认值。默认服务器提交路径必须有通过校验的校准记录才可启动训练。
+- 每个5090作业先自动校准 `batch_size`，再按选中的固定结构数分批。直接启动训练入口时的默认批大小是 8。默认服务器提交路径必须有通过校验的校准记录才可启动训练。
 
 共同配置为[完整训练](../configs/train/joint_flow_full.yaml)和[5090执行配置](../configs/runtime/joint_flow_5090.yaml)。两主干的表示和参数量不同，本组对照用于检验同一方法在替换主干后是否适用，不宣称参数量相等。
 
 ## 服务器自动校准
 
-[校准程序](../submit_files/joint_flow5090_calibrate.py)仅允许在已分配的服务器作业内运行。DNG、CSP分别校准，候选(batch_size, edge_budget)为(1,40000)、(2,40000)、(4,40000)、(8,40000)、(16,60000)、(32,80000)、(64,120000)、(128,160000)。edge_budget沿用实际批采样器的原子数平方代理，因此实际每批记录数可能小于batch_size。
+[校准程序](../submit_files/joint_flow5090_calibrate.py)仅允许在已分配的服务器作业内运行。DNG、CSP 分别校准，候选批大小为 1、2、4、8、16、32、64、128。训练使用 PyTorch 随机采样和固定大小组批，验证保持顺序。压力检查集中测试原子数较大的结构。
 
 每个候选使用独立CUDA子进程与新初始化模型，执行2步预热、5步吞吐计时以及4步大结构/时间压力检查（t=0.05、0.75、0.95）。每候选11步、每模型最多88步临时前向/反向/优化器探测，**仅在用户启动服务器作业后执行**。从TRAIN中按实际批采样器选择代表性批次，包含目标尺寸较大的结构；不使用VAL/TEST选择批大小。计时包括CPU路径构造、传输、FP32前后向、裁剪和融合AdamW，预热和压力检查不计入吞吐。临时权重丢弃，正式训练在独立进程以seed=42重新初始化。
 
-筛选要求梯度/权重有限，且峰值CUDA reserved显存不超过总显存85%和启动空闲显存减2 GiB两者的较小值。OOM或显存余量不足的候选淘汰，其他错误阻止正式训练；通过者按实测记录/秒选择，吞吐相同优先较小批次。所有候选失败也会阻止训练。有限探测与边预算代理不能严格覆盖后续所有中间状态及周期边数，仍需观察真实训练显存；不宣称已找到全局最优批大小或绝不OOM。
+筛选要求梯度/权重有限，且峰值CUDA reserved显存不超过总显存85%和启动空闲显存减2 GiB两者的较小值。OOM或显存余量不足的候选淘汰，其他错误阻止正式训练；通过者按实测记录/秒选择，吞吐相同优先较小批次。所有候选失败也会阻止训练。有限探测只覆盖部分中间状态，正式训练仍需观察实际峰值显存。
 
 校准结果保存到intermediate/hpc_runs/<批次名>/profiles/<模型名>.json，包含GPU、显存阈值、峰值、吞吐、实际批大小和中间原子数。对应profiles/<模型名>/attempt_*/保存输入、每候选JSON和日志。完整结果绑定冻结提交、配置哈希、TRAIN输入哈希和校准策略，重试直接复用。已有last.ckpt时若原校准记录缺失或不一致则拒绝重新校准，避免断点恢复时改变训练批次轨迹。
 
@@ -80,7 +80,7 @@ yhq
 
 源文件必须已提交；未提交的运行代码会被拒绝，以免实际训练的版本和用户看到的工作树不同。提交器不自动reset、stash或清理任何文件。直接运行sbatch文件不替代提交器提供的冻结目录和manifest参数。
 
-本版campaign格式为ugg_joint_flow_full_5090_v2。原先BF16/200 epoch的v1批次保留冻结源码，当前提交器拒绝将其改成新实验；请使用新的批次名，而不是复用旧名。
+固定组批使用 `ugg_joint_flow_full_5090_v3`。新实验使用新的批次名，旧批次的精确续训使用各自的冻结源码和原校准记录。旧权重可用于生成评估，或通过 `initialize_from` 初始化一个新训练。
 
 其他模型只在明确选择时提交，例如：
 
@@ -104,7 +104,7 @@ outputs/full_mp20_eqv2_csp/jointflow_mp20_fp32_v2/
 
 批次目录intermediate/hpc_runs/jointflow_mp20_fp32_v2/中保存campaign.json、submitted.json、submission_history.jsonl、source/、audits/、profiles/及logs/。日志名为ugg_模型名-作业号.out，可用tail查看。
 
-重复普通submit不会重复提交已有作业号。下述 `--retry` 只适用于保持原冻结源码的恢复；不能修复旧源码中的镜像超限及无边图错误。这两处修复后的独立续训请使用[安全恢复说明](REPAIRED_RESUME_20261114.md)。若只是超时且无需修改源码，先用yhq确认原作业已经结束，再执行：
+重复普通 submit 不会重复提交已有作业号。`--retry` 仅用于当前批次、原冻结源码和原运行配置。先用 yhq 确认原作业已经结束，再用原批次名执行：
 
 ```bash
 python submit_files/joint_flow5090.py submit --name jointflow_mp20_fp32_v2 --retry
@@ -117,3 +117,19 @@ python submit_files/joint_flow5090.py submit --name jointflow_mp20_fp32_v2 --ret
 本次本地未构造真实训练模型、未执行真实Trainer.fit、反向传播、optimizer.step、CUDA校准或调度提交。仅进行12配置解析、只读Hydra plan、Bash -n检查，以及模拟yhbatch/训练子进程的配置与控制流测试。调度器状态测试只为标量参数实例化优化器并更新学习率计数，不更新参数。验证记录见[FP32准备状态](validation/full_flow_fp32_5090_20261113.json)；[旧准备记录](validation/full_flow_5090_20261113.json)保留为200 epoch/BF16版本的历史快照。
 
 本轮47项配置、校准控制流与状态测试通过，覆盖plateau衰减/恢复、早停计数恢复、FP32设置、验证RNG隔离、校准候选选择/输入映射、原校准复用及默认两作业门禁。默认两个模型的真实Hydra plan和Git Bash语法检查另行执行。未运行会启动短训的旧测试集；真实Lightning端到端续训、5090校准、吞吐、显存、实际收敛和材料性能需服务器启动后实测。
+
+## MP-20 双主干对照
+
+使用以下命令查看四个独立配置及批大小预检计划。
+
+~~~bash
+python -B submit_files/joint_flow5090.py plan --backbones
+~~~
+
+四组均采用随机初始化、MP-20 全量数据、seed 42、严格 FP32、batch size 4 和 AdamW。上限为 1000 轮，验证损失连续 30 轮无改善时早停。四组分别在 5090 上对 batch size 4 做显存和有限梯度检查。CSPNet 沿用速度测试中的 288 通道配置，EquiformerV2 沿用 128 通道和 8 个注意力头的全量配置。两种主干的参数量不同。
+
+四组共用晶格形状、各向同性体积和轨道位点分项损失，以及显式群约束和整轨道规则。CSP 的组分排序使用训练集拟合的频次，也可通过 --csp-group-policy prior 运行原先的抽群方式。显式输入群编号或操作集时，直接使用指定条件。DNG 继续使用训练集群先验。
+
+新作业从 Git 冻结源码，使用 UGG_PROJECT_ROOT 定位工作区及其中的 .env。MP-20 原始输入从 data/src/mp_20 读取，可按该路径复用已有原始 CSV。当前流程根据源数据和协议指纹选择 Tensor 缓存。旧版仓库中的原始 CSV 位于 data/scr/mp_20。
+
+不带参数时仍显示两份原 EquiformerV2 配置。双主干计划需要显式选择 --backbones。计划命令仅输出配置和资源，校准与训练由明确提交的节点作业执行。

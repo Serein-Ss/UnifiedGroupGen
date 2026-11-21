@@ -116,7 +116,7 @@ def campaign_summary(output, state):
              'requested':report['requested'],'generated':report['generation']['generated'],
              'generation_failed':report['generation']['failed'],'valid_structures':report['common']['basic_valid']['passed'],
              'seconds':entry['seconds'],'protocol':report['protocol_id']}
-        for key in ('generation_success','basic_valid','legacy_joint_valid','exact_target_group','target_operation_containment','composition_satisfied'):
+        for key in ('generation_success','basic_valid','pair_distance_chemical_valid','exact_target_group','target_operation_containment','composition_satisfied'):
             row[key]=report['common'][key]['rate']
         if report['task']=='csp':
             for profile,values in report['csp']['profiles'].items():

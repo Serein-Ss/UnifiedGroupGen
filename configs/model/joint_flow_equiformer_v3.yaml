@@ -1,0 +1,10 @@
+defaults:
+- joint_flow_equiformer
+- _self_
+
+backbone: equiformer_v3
+channels: 64
+lmax: 2
+mmax: 2
+heads: 8
+radial_basis: 64

@@ -17,16 +17,23 @@ def sha256(path):
     return value.hexdigest()
 
 
-def read_records(path):
-    records = []
-    with resolve_path(path).open(encoding='utf-8-sig') as stream:
+def iter_records(path):
+    path = resolve_path(path)
+    if path.suffix == '.pt':
+        from unifiedgroupgen.pl_data.cache import records_from_cache
+        yield from records_from_cache(path)
+        return
+    with path.open(encoding='utf-8-sig') as stream:
         for line, text in enumerate(stream, 1):
             if text.strip():
                 try:
-                    records.append(json.loads(text))
+                    yield json.loads(text)
                 except ValueError as error:
                     raise ValueError(f'{path}:{line}: incomplete/invalid JSON; input was not modified') from error
-    return records
+
+
+def read_records(path):
+    return list(iter_records(path))
 
 
 def write_json(path, data):
@@ -76,14 +83,12 @@ def load_structure(record, base):
     base = Path(base)
     if 'cif' in record:
         from pymatgen.io.cif import CifParser
-        return CifParser.from_str(inline_cif_bytes(record).decode('utf-8'), frac_tolerance=0).parse_structures(primitive=False)[0]
+        structure = CifParser.from_str(inline_cif_bytes(record).decode('utf-8'), frac_tolerance=0).parse_structures(primitive=False)[0]
+        if record.get('kind') == 'rod' and 'periodic' in record:
+            # CIF carries an auxiliary 3-D cell; the ledger preserves the actual PBC.
+            structure.lattice = Lattice(structure.lattice.matrix, pbc=tuple(record['periodic']))
+        return structure
     name = record.get('cif_path')
-    if name is None and 'index' in record and 'status' in record and not record.get('structure'):
-        candidate = base/f"sample_{int(record['index']):05d}.cif"
-        if candidate.exists():
-            name = str(candidate)
-        elif record.get('cif_sha256'):
-            raise FileNotFoundError(f'Missing declared exported CIF: {candidate}')
     if name:
         path = Path(name)
         path = path if path.is_absolute() else base/path
@@ -97,7 +102,7 @@ def load_structure(record, base):
     if all(key in record for key in ('lattice', 'atomic_numbers', 'frac_coords')):
         return Structure(Lattice(record['lattice']), record['atomic_numbers'], record['frac_coords'])
     if record.get('descriptor') and 'state' in record:
-        from unifiedgroupgen.tests.representation import compiled_chart, expand_numpy
+        from unifiedgroupgen.group_constraints.representation import compiled_chart, expand_numpy
         from unifiedgroupgen.group_constraints.compiler import Descriptor
         compiled = compiled_chart(Descriptor.from_dict(record['descriptor']))
         lattice, coordinates, _ = expand_numpy(compiled, record['state'])
@@ -159,36 +164,3 @@ def export_cif(samples, index, output):
     output.parent.mkdir(parents=True,exist_ok=True)
     with output.open('xb') as stream: stream.write(content)
     return {'index':index,'output':str(output),'cif_sha256':hashlib.sha256(content).hexdigest()}
-
-
-def verified_prior_records(specification):
-    """Read a bound previous batch without changing its files or discarding failures."""
-    path=resolve_path(specification['samples'])
-    if sha256(path)!=specification['samples_sha256']:
-        raise ValueError('Previous sample ledger changed: '+str(path))
-    for name,digest in specification.get('metadata_sha256',{}).items():
-        if sha256(name)!=digest: raise ValueError('Previous generation metadata changed: '+name)
-    records=read_records(path)
-    if [r['index'] for r in records]!=list(range(len(records))) or len(records)!=specification['records']:
-        raise ValueError('Previous generation ledger budget/indices are incomplete')
-    result=[]
-    for record in records:
-        row=dict(record)
-        if row.get('status')=='generated':
-            if 'cif' in row:
-                content=inline_cif_bytes(row)
-            else:
-                cif=Path(row.get('cif_path',f"sample_{row['index']:05d}.cif"))
-                cif=cif if cif.is_absolute() else path.parent/cif
-                content=cif.read_bytes()
-                if not row.get('cif_sha256') or hashlib.sha256(content).hexdigest()!=row['cif_sha256']:
-                    raise ValueError('Previous CIF changed or lacks a hash: '+str(cif))
-            row['cif']=content.decode('utf-8')
-            row['cif_sha256']=hashlib.sha256(content).hexdigest()
-        elif row.get('status')!='failed':
-            raise ValueError('Previous ledger contains an unsupported status')
-        seconds=row.pop('wall_seconds',None)
-        row['source_wall_seconds']=seconds if seconds is not None else row.get('source_wall_seconds')
-        row['reused_from']={'samples':str(path),'samples_sha256':specification['samples_sha256'],'index':record['index']}
-        result.append(row)
-    return result

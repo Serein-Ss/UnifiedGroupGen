@@ -2,6 +2,34 @@
 default_models:
 - full_mp20_eqv2_dng
 - full_mp20_eqv2_csp
+backbone_comparison:
+  batch_size: 4
+  models:
+  - full_mp20_eqv2_dng_improved
+  - full_mp20_eqv2_csp_improved
+  - full_mp20_cspnet_dng_improved
+  - full_mp20_cspnet_csp_improved
+paper:
+  main_models:
+  - full_mp20_eqv2_dng
+  - full_mp20_eqv2_csp
+  - full_c2db51_eqv2_dng
+  - full_c2db51_eqv2_csp
+  - full_joint_eqv2_dng
+  - full_joint_eqv2_csp
+  models:
+  - full_mp20_eqv2_dng
+  - full_mp20_eqv2_csp
+  - full_c2db51_eqv2_dng
+  - full_c2db51_eqv2_csp
+  ablations: [control, fixed_orbits, no_geometry_feedback]
+  seeds: [42, 43, 44]
+  evaluation:
+    dng_attempts: 10000
+    csp_candidates: 20
+    sampling_steps: 128
+    sampling_batch_size: 4
+    seed_offset: 10000
 resources:
   partition: '5090'
   gpus: 1
@@ -9,15 +37,7 @@ resources:
   memory: 64G
   hours: 72
 calibration:
-  candidates:
-  - [1, 40000]
-  - [2, 40000]
-  - [4, 40000]
-  - [8, 40000]
-  - [16, 60000]
-  - [32, 80000]
-  - [64, 120000]
-  - [128, 160000]
+  candidates: [1, 2, 4, 8, 16, 32, 64, 128]
   memory_fraction: 0.85
   reserve_gib: 2
   warmup_steps: 2
@@ -37,7 +57,8 @@ experiments:
     experiment: full_mp20_eqv2_property
     dataset: mp_20
     backbone: equiformer_v2
-    task: property
+    task: dng
+    property_conditioning: band_gap
   full_c2db51_eqv2_dng:
     experiment: full_c2db51_eqv2_dng
     dataset: c2db_51
@@ -52,7 +73,8 @@ experiments:
     experiment: full_c2db51_eqv2_property
     dataset: c2db_51
     backbone: equiformer_v2
-    task: property
+    task: dng
+    property_conditioning: band_gap
   full_joint_eqv2_dng:
     experiment: full_joint_eqv2_dng
     dataset: mp20_c2db51
@@ -67,7 +89,8 @@ experiments:
     experiment: full_joint_eqv2_property
     dataset: mp20_c2db51
     backbone: equiformer_v2
-    task: property
+    task: dng
+    property_conditioning: band_gap
   full_mp20_atomgraph_dng:
     experiment: full_mp20_atomgraph_dng
     dataset: mp_20
@@ -82,4 +105,25 @@ experiments:
     experiment: full_mp20_atomgraph_property
     dataset: mp_20
     backbone: joint_atom_graph
-    task: property
+    task: dng
+    property_conditioning: band_gap
+  full_mp20_eqv2_dng_improved:
+    experiment: full_mp20_eqv2_dng_improved
+    dataset: mp_20
+    backbone: equiformer_v2
+    task: dng
+  full_mp20_eqv2_csp_improved:
+    experiment: full_mp20_eqv2_csp_improved
+    dataset: mp_20
+    backbone: equiformer_v2
+    task: csp
+  full_mp20_cspnet_dng_improved:
+    experiment: full_mp20_cspnet_dng_improved
+    dataset: mp_20
+    backbone: cspnet
+    task: dng
+  full_mp20_cspnet_csp_improved:
+    experiment: full_mp20_cspnet_csp_improved
+    dataset: mp_20
+    backbone: cspnet
+    task: csp

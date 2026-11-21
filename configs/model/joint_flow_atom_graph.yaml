@@ -9,3 +9,6 @@ task_controls: true
 operation_compiler: true
 edge_chunk_size: 8192
 checkpoint_layers: false
+cutoff: 6.0
+max_neighbors: 64
+max_images: 16

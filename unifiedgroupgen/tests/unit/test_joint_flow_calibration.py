@@ -2,19 +2,21 @@
 import copy
 import sys
 import pytest
+import torch
+from torch.utils.data import BatchSampler, RandomSampler
 from submit_files import joint_flow5090_calibrate as calibration
 
-POLICY=dict(candidates=[[1,40000],[8,40000],[16,60000]],memory_fraction=.85,reserve_gib=2,
+POLICY=dict(candidates=[1,8,16],memory_fraction=.85,reserve_gib=2,
             warmup_steps=2,stress_times=[.05,.75,.95])
 
 
-def passed(batch,edges,speed):
-    return dict(state='pass',batch_size=batch,edge_budget=edges,records_per_second=speed,
+def passed(batch,speed):
+    return dict(state='pass',batch_size=batch,records_per_second=speed,
                 precision='fp32',peak_reserved_bytes=100,memory_limit_bytes=200)
 
 
 def test_selection_prefers_measured_throughput_over_largest_batch():
-    trials=[passed(1,40000,2.),passed(8,40000,7.),passed(16,60000,6.),
+    trials=[passed(1,2.),passed(8,7.),passed(16,6.),
             dict(state='oom',batch_size=32),dict(state='memory_margin_failed',records_per_second=100.)]
     assert calibration.select_trial(trials)['batch_size']==8
     with pytest.raises(RuntimeError):calibration.select_trial(trials[3:])
@@ -22,17 +24,18 @@ def test_selection_prefers_measured_throughput_over_largest_batch():
 
 def test_workload_uses_actual_batch_sampler_and_stresses_large_records():
     sizes=[2,3,4,8,9,10,2,2,2,3,4,4]
-    cases=calibration.workloads(sizes,4,120,POLICY)
+    cases=calibration.workloads(sizes,4,POLICY)
     assert len(cases)==11 and sum(c['timed'] for c in cases)==5
     assert cases[0] is not cases[1]
     assert {c['time'] for c in cases if c['time'] is not None}=={.05,.75,.95}
-    assert any(sizes.index(10) in c['indices'] for c in cases if c['time'] is not None)
-    for c in cases:
-        assert len(c['indices'])<=4 and sum(sizes[i]*(sizes[i]-1) for i in c['indices'])<=120
+    expected = list(BatchSampler(RandomSampler(sizes, generator=torch.Generator().manual_seed(42)), 4, False))
+    assert all(len(c['indices']) == 4 for c in cases)
+    assert all(c['indices'] in expected for c in cases if c['timed'])
+    assert all(c['indices'] == [5,4,3,2] for c in cases if c['time'] is not None)
 
 
 def test_profile_reuse_requires_exact_identity_and_memory_criteria():
-    expected=dict(policy=POLICY,revision='a');profile=dict(state='complete',identity=expected,selected=passed(8,40000,7))
+    expected=dict(policy=POLICY,revision='a');profile=dict(state='complete',identity=expected,selected=passed(8,7))
     assert calibration.validate_profile(profile,expected)['batch_size']==8
     for key,value in [('identity',{'revision':'b'}),('state','running')]:
         changed={**profile,key:value}
@@ -48,8 +51,8 @@ def test_each_candidate_runs_in_a_separate_mock_subprocess_and_completed_profile
     monkeypatch.setattr(calibration,'prepare_inputs',lambda c,m,folder:calibration.write(folder/'inputs.json',{}))
     calls=[]
     def subprocess_only(command,**kwargs):
-        calls.append(command);index=int(command[command.index('--index')+1]);batch,edges=POLICY['candidates'][index]
-        calibration.write(command[command.index('--output')+1],passed(batch,edges,[1.,8.,5.][index]))
+        calls.append(command);index=int(command[command.index('--index')+1]);batch=POLICY['candidates'][index]
+        calibration.write(command[command.index('--output')+1],passed(batch,[1.,8.,5.][index]))
     monkeypatch.setattr(calibration.subprocess,'run',subprocess_only)
     calibration.calibrate(manifest,'model')
     assert len(calls)==3 and all('trial' in c for c in calls)

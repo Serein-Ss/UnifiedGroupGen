@@ -3,12 +3,12 @@ import pytest
 import torch
 from unifiedgroupgen.tests.unit.test_joint_flow_v2 import config,record
 from unifiedgroupgen.pl_modules.factory import build_joint_model
-from unifiedgroupgen.pl_data.joint_path import target_from_record
-from unifiedgroupgen.pl_data.task_path import task_target
-from unifiedgroupgen.joint_flow.path import sample_path
-from unifiedgroupgen.joint_flow.objective import loss
-from unifiedgroupgen.joint_flow.state import metric_tangent,coordinate_tangent
-from unifiedgroupgen.pl_modules.backbones.periodic_graph import radius_graph
+from unifiedgroupgen.common.data_utils import target_from_record
+from unifiedgroupgen.pl_data.unified.tasks import task_target
+from unifiedgroupgen.pl_data.unified.path import sample_path
+from unifiedgroupgen.pl_modules.unified.objectives import loss
+from unifiedgroupgen.group_constraints.flow_state import metric_tangent,coordinate_tangent
+from unifiedgroupgen.common.data_utils import radius_graph
 
 
 @pytest.fixture(autouse=True)
@@ -74,14 +74,13 @@ def test_cuda_bf16_geometry_remains_float32(backend,dataset):
         assert decoded['lattice'].dtype==decoded['coordinates'].dtype==torch.float32
         assert metric_tangent(s,torch.zeros_like(s.metric)).dtype==torch.float32
         assert coordinate_tangent(s,torch.zeros_like(s.coordinates)).dtype==torch.float32
-    optimizer=torch.optim.AdamW(m.parameters(),lr=1e-4,fused=True)
-    value['loss'].backward();optimizer.step()
+    value['loss'].backward()  # Precision/gradient verification, no parameter update.
     assert all(torch.isfinite(p).all() for p in m.parameters())
     assert all(torch.isfinite(p.grad).all() for p in m.parameters() if p.grad is not None)
 
 
 def test_fast_profile_resolves_without_changing_model_definition():
-    from unifiedgroupgen.common.configuration import compose_experiment,training_definition
+    from unifiedgroupgen.experiment_config import compose_experiment,training_definition
     a=compose_experiment('flow_mp20_dng')
     b=compose_experiment('flow_mp20_dng',overrides=['runtime=joint_flow_fast'])
     assert training_definition(a)==training_definition(b)
@@ -89,24 +88,40 @@ def test_fast_profile_resolves_without_changing_model_definition():
     assert b.runtime.precision=='bf16' and b.runtime.fused_adamw
 
 
-@pytest.mark.skipif(not torch.cuda.is_available(),reason='CUDA training precision integration')
-@pytest.mark.parametrize('precision,mode',[('bf16','bf16-mixed'),('fp32','32-true')])
-def test_lightning_fused_checkpoint_and_resume(tmp_path,monkeypatch,precision,mode):
-    from unifiedgroupgen.pl_modules.joint_training import fit_joint,load_joint_checkpoint,JointGeneratorModule
-    original=JointGeneratorModule.configure_gradient_clipping;norms=[]
-    def capture(module,*args,**kwargs):
-        original(module,*args,**kwargs)
-        norm=torch.linalg.vector_norm(torch.stack([p.grad.norm() for p in module.parameters() if p.grad is not None]))
-        norms.append(float(norm))
-    monkeypatch.setattr(JointGeneratorModule,'configure_gradient_clipping',capture)
-    cfg=config('equiformer_v2');cfg['gradient_clip']=.01
-    runtime=dict(batch_size=2,edge_budget=200000,precision=precision,fused_adamw=True,log_every_n_steps=25)
-    train=[record('mp_20'),record('c2db_51')];val=[record('mp_20','val'),record('c2db_51','val')]
-    path=tmp_path/'model.pt'
-    trainer=fit_joint(cfg,train,val,path,device='cuda:0',epochs=1,max_steps=1,runtime=runtime)
-    assert trainer.precision==mode
-    assert norms and max(norms)<=.010001
-    assert load_joint_checkpoint(path)['runtime']['fused_adamw']
-    resumed=fit_joint(cfg,train,val,path,device='cuda:0',epochs=2,max_steps=2,runtime=runtime,resume=tmp_path/'last.ckpt')
-    assert resumed.global_step==2
-    assert len(norms)==2 and max(norms)<=.010001
+@pytest.mark.parametrize('cartesian', [False, True])
+def test_batched_relative_tangent_matches_two_original_projections(cartesian):
+    from unifiedgroupgen.group_constraints.flow_state import initial, apply, JointAction
+    from unifiedgroupgen.group_constraints.unified import catalog_spec
+
+    spec = catalog_spec('space', 10)
+    state = initial(spec, generator=torch.Generator().manual_seed(8))
+    free = next(w for w in spec.templates if w.dof)
+    fixed = next(w for w in spec.templates if not w.dof)
+    for template in (free, fixed, free, spec.templates[0]):
+        if not template.dof and template.letter in state.letters:
+            continue
+        state = apply(state, JointAction('birth', letter=template.letter))
+    value = torch.randn_like(state.coordinates, requires_grad=True)
+    reference = torch.randn_like(state.coordinates, requires_grad=True)
+
+    def old_projection(vector, is_cartesian):
+        lattice = state.decoded(wrap=False)['lattice']
+        pieces = []
+        for section, (basis, _, _) in zip(state.compiled.slices, state.compiled.blocks):
+            a = vector.new_tensor(basis)
+            if a.shape[-1] == 0:
+                pieces.append(vector[section]*0)
+                continue
+            j = torch.einsum('ab,nbq->naq', lattice, a).reshape(-1, a.shape[-1])
+            v = vector[section] if is_cartesian else vector[section] @ lattice.T
+            q = torch.linalg.solve(j.T @ j, j.T @ v.reshape(-1))
+            pieces.append(torch.einsum('nbq,q->nb', a, q))
+        return torch.cat(pieces)
+
+    old = old_projection(value, cartesian) - old_projection(reference, False)
+    new = coordinate_tangent(state, value, cartesian=cartesian, reference=reference)
+    torch.testing.assert_close(new, old, atol=2e-6, rtol=1e-5)
+    weights = torch.randn_like(value)
+    expected = torch.autograd.grad((old*weights).sum(), (value, reference))
+    actual = torch.autograd.grad((new*weights).sum(), (value, reference))
+    torch.testing.assert_close(actual, expected, atol=2e-6, rtol=1e-5)

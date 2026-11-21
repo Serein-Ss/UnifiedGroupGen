@@ -1,29 +1,31 @@
-"""Apply task visibility to endpoints before constructing network inputs."""
+"""Attach chemical controls and optional target properties to a training endpoint."""
 from dataclasses import replace
-import math
 import numpy as np
-from unifiedgroupgen.group_constraints.chemistry import ChemicalControl, orbit_counts, edit_signature
-from unifiedgroupgen.conditional.tasks import TASKS, RESERVED, validate_task_config, has_property_target
-from unifiedgroupgen.pl_data.programs import inventory_program
+from unifiedgroupgen.group_constraints.chemistry import ChemicalControl, orbit_counts
+from unifiedgroupgen.conditional.tasks import generation_mode, observed_properties, validate_task_config
 
 def task_target(target, config, seed):
-    task = config.get('generation_task')
+    task = generation_mode(config)
     if task is None:
         return target
     validate_task_config(config)
-    rng = np.random.default_rng(seed)
+    schema = config.get('properties', {})
+    properties = observed_properties(target.properties, schema)
+    if schema and not properties:
+        raise ValueError('Record has no observed label for property conditioning')
+    control = chemical_control(target.state, task, config, seed)
+    return replace(target, state=replace(target.state, chemistry=control), properties=properties)
+
+
+def chemical_control(state, task, config, seed):
     vocabulary = tuple(config['allowed_elements'])
-    properties = {}
-    if task == 'property':
-        properties = {name: target.properties[name] for name in config['properties']
-                      if target.properties.get(name) is not None and math.isfinite(float(target.properties[name]))}
-        if not properties:
-            raise ValueError('Property-task record has no observed target label')
     if task == 'csp':
-        control = ChemicalControl.from_inputs(counts=orbit_counts(target.state.spec, target.state.letters,
-                                                                 target.state.elements))
-    elif rng.random() < config.get('chemical_set_probability', .5):
-        present = set(target.state.elements)
+        control = ChemicalControl.from_inputs(counts=orbit_counts(state.spec, state.letters, state.elements))
+        control.domain(vocabulary)
+        return control
+    rng = np.random.default_rng(seed)
+    if rng.random() < config.get('chemical_set_probability', .5):
+        present = set(state.elements)
         extra = sorted(set(vocabulary)-present)
         count = int(rng.integers(0, min(4, len(extra))+1))
         added = rng.choice(extra, size=count, replace=False).tolist() if count else []
@@ -31,4 +33,4 @@ def task_target(target, config, seed):
     else:
         control = ChemicalControl()
     control.domain(vocabulary)
-    return replace(target, state=replace(target.state, chemistry=control), properties=properties)
+    return control

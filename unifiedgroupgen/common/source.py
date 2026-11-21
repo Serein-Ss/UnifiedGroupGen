@@ -8,10 +8,8 @@ def package_sources():
     root = Path(__file__).resolve().parents[1]
     files = [p for p in root.rglob('*.py')
              if not any(part in ('__pycache__', 'build') for part in p.relative_to(root).parts)
-             and not any(p.is_relative_to(root/'tests'/name) for name in ('unit','legacy','reference_workflows','workflows'))
-             and p != root/'tests/reference_training.py' and p.name != 'setup.py']
+             and not p.is_relative_to(root/'tests') and p.name != 'setup.py']
     return sorted(files + list((root/'evaluation/resources').glob('*.json'))
-                  + list((root/'common/predictors').glob('*.json'))
                   + list((root/'evaluation/predictors').glob('*.json'))
                   + list((root/'pl_modules/backbones/official').glob('*.json')))
 

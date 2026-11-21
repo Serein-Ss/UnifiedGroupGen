@@ -1,10 +1,8 @@
-"""Shared workspace paths, YAML experiments and .env settings; no training side effects."""
+"""Shared workspace paths, YAML loading and .env settings."""
 import os
-from types import SimpleNamespace
 from dataclasses import dataclass
 from pathlib import Path
 
-import yaml
 from omegaconf import OmegaConf
 
 
@@ -20,40 +18,23 @@ def runtime_pythonpath():
 
 
 def project_root():
-    explicit=os.environ.get('UGG_PROJECT_ROOT') or os.environ.get('PROJECT_ROOT')
-    if explicit: return Path(explicit).expanduser().resolve()
-    for candidate in (Path.cwd(),*Path.cwd().parents):
-        if (candidate/'configs/run.yaml').is_file() and (candidate/'unifiedgroupgen').is_dir():
-            return candidate.resolve()
-    editable=Path(__file__).resolve().parents[2]
-    return editable if (editable/'configs').is_dir() else Path.cwd().resolve()
+    """Read the project root from the required workspace .env file."""
+    return RunSettings.load().project_root
+
+
+def configuration_root():
+    """Prefer YAML shipped with the active checkout or frozen source."""
+    source = package_parent()
+    return source if (source/'configs/run.yaml').is_file() else project_root()
 
 
 def resolve_path(value, root=None):
-    """Resolve a path; location mounts are data configuration, not dataset logic."""
-    root=Path(root).resolve() if root is not None else project_root()
-    settings = root/'configs/paths.yaml'
-    options = (yaml.safe_load(settings.read_text(encoding='utf-8')) or {}) if settings.is_file() else {}
-    recorded = os.fspath(value).replace('\\', '/')
-    native = Path(value).expanduser()
-    if not (native.is_absolute() and native.resolve().is_relative_to(root)):
-        for before, after in sorted(options.get('recorded_roots', {}).items(), key=lambda item: -len(item[0])):
-            before = before.replace('\\', '/').rstrip('/')
-            if recorded == before or recorded.startswith(before+'/'):
-                value = root/after/recorded[len(before):].lstrip('/')
-                break
-    path=Path(value).expanduser()
-    path=(path if path.is_absolute() else root/path).resolve()
-    package=Path(__file__).resolve().parents[1]
-    mounts = options.get('mounts', {})
-    aliases = [(root/before, root/after) for before, after in mounts.items()]
-    aliases.append((root/'unifiedgroupgen', package))
-    for before,after in sorted(aliases, key=lambda pair: -len(pair[0].parts)):
-        before=before.resolve()
-        if path.is_relative_to(before):
-            target=after/path.relative_to(before)
-            return target.resolve()
-    return path
+    """Resolve current paths literally, relative to the workspace when needed."""
+    path = Path(value).expanduser()
+    if path.is_absolute():
+        return path.resolve()
+    base = Path(root).resolve() if root is not None else project_root()
+    return (base / path).resolve()
 
 
 def source_key(path, root=None):
@@ -66,19 +47,18 @@ def source_key(path, root=None):
 
 
 def artifact_path(value, root=None):
-    root = Path(root).resolve() if root is not None else project_root()
+    settings = RunSettings.load() if root is None else None
+    root = Path(root).resolve() if root is not None else settings.project_root
     path = resolve_path(value, root)
     # Frozen HPC sources deliberately mount the live data/result directories.
     roots = [root, *((root/name).resolve() for name in ('data', 'outputs', 'intermediate', 'wandb')
                      if (root/name).is_symlink())]
+    if settings is not None:
+        roots.extend((settings.jobs, settings.wandb_dir))
     if not any(path.is_relative_to(base) for base in roots):
-        raise ValueError('Generated artifacts must be inside UnifiedGroupGen')
+        raise ValueError('Generated artifacts must be inside UnifiedGroupGen or .env output/log directories')
     path.parent.mkdir(parents=True, exist_ok=True)
     return path
-
-
-def root_path(value):
-    return resolve_path(value)
 
 
 def model_result_directory(checkpoint, category, task):
@@ -99,7 +79,7 @@ def evaluation_directory(samples):
 
 
 def sampling_files(output):
-    """Canonical task files, or distinct sidecars for an explicit legacy filename."""
+    """Use distinct sidecars for explicit ledger filenames."""
     output = Path(output)
     prefix = '' if output.name == 'samples.jsonl' else output.name+'.'
     return output.parent/(prefix+'summary.json'), output.parent/(prefix+'sampling.status.json')
@@ -112,89 +92,6 @@ def load_yaml(path, root=None):
     return value
 
 
-def training_definition(cfg):
-    """Compose functional groups into the flat model/data contract used by checkpoints.
-
-    Execution overrides stay in runtime, as in the original audited experiments.
-    This preserves both the audit fingerprint and inference checkpoint schema.
-    """
-    if 'data' not in cfg:
-        return OmegaConf.to_container(cfg.experiment, resolve=True)
-    groups = OmegaConf.to_container(cfg, resolve=True)
-    data = dict(groups['data'])
-    context = data.pop('context_properties', {})
-    overrides = data.pop('property_overrides', {})
-    condition = dict(groups['conditioning'])
-    properties = {name: {**spec, **overrides} for name, spec in condition.pop('properties').items()}
-    condition['properties'] = {**properties, **context}
-    model = dict(groups['model'])
-    limits = {key: model.pop(key) for key in ('max_atoms', 'max_orbits')}
-    loss = dict(groups['loss'])
-    loss.pop('coordinate_length_scale')  # A runtime loss setting, saved with every run.
-    definition = {**data, **limits, 'model': model, **condition, **groups['optim'],
-                  **loss, **groups['train'], **groups['experiment'], **groups.get('learning', {})}
-    if groups.get('prior'): definition['prior'] = groups['prior']
-    return definition
-
-
-def compose_experiment(name, root=None, overrides=()):
-    """Use the same Hydra defaults list as the training entry, without launching it."""
-    from hydra import compose, initialize_config_dir
-    from hydra.core.global_hydra import GlobalHydra
-    root = Path(root).resolve() if root is not None else project_root()
-    # Catalogs may also be read from the Hydra evaluation entry. Restore its loader.
-    state = GlobalHydra.instance().hydra
-    GlobalHydra.instance().clear()
-    try:
-        with initialize_config_dir(config_dir=str(root/'configs'), version_base='1.3'):
-            return compose(config_name='run', overrides=['experiment='+name, *overrides])
-    finally:
-        GlobalHydra.instance().hydra = state
-
-
-def load_experiments(path, root=None):
-    """Preserve catalog order; Hydra selectors and standalone YAML inputs share one API."""
-    root = Path(root).resolve() if root is not None else project_root()
-    entries = load_yaml(path, root).get('experiments')
-    if not isinstance(entries, dict) or not entries:
-        raise ValueError('The experiment catalog needs a nonempty experiments mapping')
-    result = {}
-    for name, entry in entries.items():
-        if not isinstance(entry, dict) or not (entry.get('experiment') or entry.get('config')):
-            raise ValueError(f'Experiment {name} needs a Hydra experiment or config path')
-        if entry.get('experiment'):
-            composed = compose_experiment(entry['experiment'], root, entry.get('overrides', []))
-            config_path = root/'configs/experiment'/f"{entry['experiment']}.yaml"
-            config = training_definition(composed)
-            runtime = OmegaConf.to_container(composed.runtime, resolve=True)
-        else:
-            config_path = resolve_path(entry['config'], root)
-            config = load_yaml(config_path, root)
-            runtime = entry.get('runtime', {})
-        if isinstance(runtime, str):
-            runtime = load_yaml(runtime, root)
-        if not isinstance(runtime, dict):
-            raise ValueError(f'Experiment {name} runtime must be a mapping or YAML path')
-        result[name] = {**entry, 'config_path': config_path, 'config': config,
-                        'runtime': dict(runtime)}
-    return result
-
-
-def task_options(cfg, section):
-    """Resolve an entry's configured input/output paths without importing training code."""
-    values=OmegaConf.to_container(cfg[section],resolve=True)
-    paths={'samples','output','cache','request','assessments','assessment_metadata','reference_assessments',
-           'embeddings','experiments','checkpoint_root','cgdit_root','predictor_root','reference_cache',
-           'model_cache','predictor_config','checkpoint','reuse_manifest'}
-    for key in paths & values.keys():
-        if values[key] is not None and not isinstance(values[key],dict):
-            values[key]=resolve_path(values[key])
-    for key in ('reference_files','novelty_files'):
-        if key in values: values[key]=[resolve_path(p) for p in values[key]]
-    values.update(device=cfg.get('device','cpu'),seed=cfg.get('seed',142),threads=cfg.get('threads',2))
-    return SimpleNamespace(**values)
-
-
 @dataclass(frozen=True)
 class RunSettings:
     project_root: Path
@@ -203,15 +100,39 @@ class RunSettings:
     wandb_mode: str
 
     @classmethod
-    def load(cls, root, mode=None):
+    def load(cls, root=None, mode=None):
+        """Require all runtime settings in .env; never overlay shell values.
+
+        UGG_PROJECT_ROOT only selects the directory containing .env for installed
+        packages and frozen workers. Otherwise use the source checkout directory.
+        """
         from dotenv import dotenv_values
-        root = Path(root).resolve()
-        values = {**dotenv_values(root/'.env'), **os.environ}
-        flag = str(values.get('USE_WANDB_LOGGING', '0'))
+        directory = Path(root if root is not None else os.environ.get('UGG_PROJECT_ROOT') or package_parent())
+        env_file = directory.expanduser().resolve()/'.env'
+        if not env_file.is_file():
+            raise FileNotFoundError(f'Required environment file does not exist: {env_file}')
+        values = dotenv_values(env_file, encoding='utf-8-sig', interpolate=False)
+        required = ('PROJECT_ROOT', 'HYDRA_JOBS', 'WANDB_DIR', 'USE_WANDB_LOGGING')
+        missing = [key for key in required if not values.get(key) or not values[key].strip()]
+        if missing:
+            raise ValueError(f'{env_file}: missing required settings: {", ".join(missing)}')
+        root = Path(values['PROJECT_ROOT']).expanduser()
+        if not root.is_absolute() or not root.is_dir():
+            raise ValueError(f'{env_file}: PROJECT_ROOT must be an existing absolute directory')
+        root = root.resolve()
+        flag = values['USE_WANDB_LOGGING']
         if flag not in ('0', '1'):
-            raise ValueError('USE_WANDB_LOGGING must be 1 (online) or 0 (offline)')
-        def directory(key, default):
-            value = Path(values.get(key) or default).expanduser()
-            return (value if value.is_absolute() else root/value).resolve()
-        return cls(root, directory('HYDRA_JOBS', 'outputs'), directory('WANDB_DIR', 'wandb'),
+            raise ValueError(f'{env_file}: USE_WANDB_LOGGING must be 1 (online) or 0 (offline)')
+        if mode not in (None, 'online', 'offline', 'disabled'):
+            raise ValueError('Logging mode must be online, offline or disabled')
+        def output_directory(key):
+            value = values[key].replace('${PROJECT_ROOT}', str(root))
+            if '$' in value:
+                raise ValueError(f'{env_file}: {key} only supports ${{PROJECT_ROOT}} interpolation')
+            path = Path(value).expanduser()
+            path = (path if path.is_absolute() else root/path).resolve()
+            if any(p.exists() and not p.is_dir() for p in (path, *path.parents)):
+                raise ValueError(f'{env_file}: {key} must point to a directory, not a file')
+            return path
+        return cls(root, output_directory('HYDRA_JOBS'), output_directory('WANDB_DIR'),
                    mode or ('online' if flag == '1' else 'offline'))

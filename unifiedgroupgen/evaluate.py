@@ -1,6 +1,7 @@
 """Calculate metrics from existing structures; this entry never samples structures."""
 from pathlib import Path
 import sys
+from types import SimpleNamespace
 if __package__ in (None,''):
     sys.path[0]=str(Path(__file__).resolve().parent.parent)
 import csv
@@ -13,23 +14,37 @@ import torch
 import numpy as np
 from filelock import FileLock
 from omegaconf import OmegaConf
-from unifiedgroupgen.common.configuration import project_root, resolve_path, source_key, task_options, evaluation_directory
+from unifiedgroupgen.common.configuration import configuration_root, project_root, resolve_path, source_key, evaluation_directory
 from unifiedgroupgen.common.structures import ReferenceBank, counts_of, load_structure, read_records, sha256, write_json
 from unifiedgroupgen.common.progress import track
 from unifiedgroupgen.evaluation.common import EvaluationContext, evaluate_records, build_summary, geometry, descriptor_metadata, operation_check
 from unifiedgroupgen.evaluation.utils import numeric, logical_and, composition_validity, fingerprints
 from unifiedgroupgen.evaluation.conditional import evaluate_properties
-from unifiedgroupgen.common.reports import write_tables, figures
+from unifiedgroupgen.evaluation.reports import write_tables, figures
 ROOT=project_root()
+
+def task_options(cfg, section):
+    values = OmegaConf.to_container(cfg[section], resolve=True)
+    paths = {'samples', 'output', 'cache', 'request', 'assessments', 'assessment_metadata',
+             'reference_assessments', 'embeddings', 'cgdit_root', 'predictor_root',
+             'reference_cache', 'model_cache', 'predictor_config'}
+    for key in paths & values.keys():
+        if values[key] is not None and not isinstance(values[key], dict):
+            values[key] = resolve_path(values[key])
+    for key in ('reference_files', 'novelty_files'):
+        if key in values:
+            values[key] = [resolve_path(path) for path in values[key]]
+    return SimpleNamespace(**values, device=cfg.device, seed=cfg.seed, threads=cfg.threads)
+
 
 def metric_sources():
     """Identity of metric implementation, independent of sampling/training entry changes."""
     package=Path(__file__).parent
     return [Path(__file__),*(package/'evaluation').glob('*.py'),
             *(package/'evaluation/resources').glob('*.json'),
-            package/'common/structures.py',package/'common/reports.py',
+            package/'common/structures.py',
             package/'group_constraints/compiler.py',package/'group_constraints/encoding.py',
-            package/'tests/representation.py']
+            package/'group_constraints/representation.py']
 
 
 def metric_versions():
@@ -42,7 +57,7 @@ def reference_metrics(bank, kind, use_fingerprints, cache, progress_log=None):
         'code': {Path(p).name: sha256(p) for p in (
             Path(__file__), Path(__file__).parent/'evaluation/common.py', Path(__file__).parent/'evaluation/utils.py', Path(__file__).parent/'common/structures.py',
             Path(__file__).parent/'group_constraints/compiler.py',
-            Path(__file__).parent/'tests/representation.py')}}
+            Path(__file__).parent/'group_constraints/representation.py')}}
     key = __import__('hashlib').sha256(json.dumps(identity, sort_keys=True).encode()).hexdigest()
     path = Path(cache)/(key+'.json')
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -127,8 +142,6 @@ def evaluate_task(args):
             continue
         if r.get('cif_path'):
             p=Path(r['cif_path']); inputs.append(p if p.is_absolute() else args.samples.parent/p)
-        elif r.get('status')=='generated' and (args.samples.parent/f"sample_{r['index']:05d}.cif").exists():
-            inputs.append(args.samples.parent/f"sample_{r['index']:05d}.cif")
     code = metric_sources()
     identity = {'inputs':{str(p.resolve()):sha256(p) for p in inputs},
                 'code':{source_key(p,ROOT):sha256(p) for p in code},
@@ -136,7 +149,7 @@ def evaluate_task(args):
                 'options':{k:v for k,v in vars(args).items() if k not in ('output','cache') and not isinstance(v,Path) and k not in ('reference_files','novelty_files')}}
     manifest = args.output/'manifest.json'
     if manifest.exists():
-        raise ValueError('Completed metrics already exist. The campaign may verify and skip them; choose a new output directory to recompute.')
+        raise ValueError('Completed metrics already exist; choose a new output directory to recompute')
     def prediction_csv(path,index_key):
         predictions={}
         if path is None: return predictions
@@ -179,7 +192,7 @@ def evaluate_task(args):
 def execute(cfg):
     torch.set_num_threads(cfg.get('threads',2))
     if cfg.task=='predict_properties':
-        from unifiedgroupgen.common.predictors.service import predict
+        from unifiedgroupgen.evaluation.predictors.service import predict
         return predict(task_options(cfg,'property_predictor'))
     if cfg.task!='evaluate':
         raise ValueError('evaluate.py accepts evaluate or predict_properties; generation uses generate.py')
@@ -190,7 +203,7 @@ def execute(cfg):
     if args.output is None:
         args.output = evaluation_directory(args.samples)
     if (args.output/'manifest.json').exists():
-        raise ValueError('Completed metrics already exist; use the campaign to skip them or choose a new output directory')
+        raise ValueError('Completed metrics already exist; choose a new output directory')
     args.output.mkdir(parents=True,exist_ok=True)
     status=args.output/'metrics.status.json'
     lifecycle={'pid':__import__('os').getpid(),'started':time.time(),
@@ -199,7 +212,7 @@ def execute(cfg):
     started=time.perf_counter()
     try:
         if args.conditional_enabled and cfg.get('property_predictor',{}).get('enabled',False):
-            from unifiedgroupgen.common.predictors.service import predict
+            from unifiedgroupgen.evaluation.predictors.service import predict
             predictor=task_options(cfg,'property_predictor')
             predictor.samples=args.samples; predictor.reference_files=args.reference_files
             predictor.dataset=args.dataset; predictor.kind=args.kind
@@ -227,7 +240,7 @@ def execute(cfg):
     return result
 
 
-@hydra.main(version_base='1.3',config_path=str(project_root()/'configs'),config_name='evaluate')
+@hydra.main(version_base='1.3',config_path=str(configuration_root()/'configs'),config_name='evaluate')
 def main(cfg):
     execute(cfg)
 

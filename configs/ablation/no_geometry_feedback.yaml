@@ -1,0 +1,4 @@
+# @package _global_
+train:
+  orbit_ablation: no_geometry_feedback
+  early_stopping: null

@@ -126,6 +126,33 @@ def legal_actions(state, allowed_elements, max_atoms=192, max_orbits=52):
                     state.step == state.budget-1)
 
 
+def _inventory_can_finish_after(spec, letters, elements, control, action, slots, max_atoms, max_orbits):
+    new_letters, new_elements = edit_signature(letters, elements, action)
+    return can_complete(spec, new_letters, new_elements, control, slots, max_orbits, max_atoms)
+
+
+def inventory_teacher_allows(spec, letters, elements, control, allowed, max_atoms, max_orbits,
+                             remaining_events, action):
+    """Check one typed birth, split or END from the teacher for a valid inventory prefix."""
+    if remaining_events <= 1:
+        return False
+    if action.kind == 'end':
+        return bool(letters) and all(elements) and not any(
+            n for _, n in control.remaining(spec, letters, elements))
+    if action.kind not in ('birth', 'split') or action.element not in allowed:
+        return False
+    template = spec.template(action.letter)
+    if len(letters) >= max_orbits or compile_constraints(spec, letters).num_atoms+template.multiplicity > max_atoms:
+        return False
+    if action.kind == 'split':
+        if not (template.dof and 0 <= action.orbit < len(letters) and letters[action.orbit] == action.letter):
+            return False
+    elif not template.dof and action.letter in letters:
+        return False
+    return _inventory_can_finish_after(spec, letters, elements, control, action, remaining_events-3,
+                                       max_atoms, max_orbits)
+
+
 @lru_cache(maxsize=256)
 def _inventory_actions(spec, letters, elements, control, allowed, max_atoms, max_orbits, remaining_events):
     if remaining_events <= 1:
@@ -142,68 +169,7 @@ def _inventory_actions(spec, letters, elements, control, allowed, max_atoms, max
         for candidate in candidates:
             if candidate.kind in ('replace', 'element') and candidate.element == 0:
                 continue
-            new_letters, new_elements = edit_signature(letters, elements, candidate)
-            if can_complete(spec, new_letters, new_elements, control, remaining_events-3,
-                            max_orbits, max_atoms):
+            if _inventory_can_finish_after(spec, letters, elements, control, candidate, remaining_events-3,
+                                           max_atoms, max_orbits):
                 legal.append(candidate)
     return tuple(legal) or (JointAction('fail'),)
-
-
-
-def apply_action(state, action, generator=None, birth_scale=.2, check=None):
-    """K_a = pushforward of a fixed Gaussian kernel; survivors keep their raw state."""
-    if state.status != 'active' or state.step >= state.budget:
-        raise ValueError('Cannot edit a stopped state')
-    if state.step == state.budget-1 and action.kind != 'fail':
-        raise ValueError('The last event slot is reserved for failure, not forced completion')
-    if check is not None and action not in check:
-        raise ValueError('Action is outside the shared training/inference support')
-    step = state.step+1
-    if action.kind in ('end', 'fail'):
-        if action.kind == 'end' and (not state.num_atoms or not all(state.elements)):
-            raise ValueError('END requires a nonempty, fully assigned structure')
-        return replace(state, step=step, status='done' if action.kind == 'end' else 'failed')
-    letters, elements = list(state.letters), list(state.elements)
-    coords = list(state.coordinates.split([w.multiplicity for w in state.compiled.templates]))
-    moments = None if state.moments is None else list(state.moments.split([w.multiplicity for w in state.compiled.templates]))
-
-    def born(letter, parent=None):
-        w = state.spec.template(letter)
-        _, b = w.arrays()
-        x = state.coordinates.new_tensor(b) if parent is None else coords[parent]
-        x = x+birth_scale*torch.randn(x.shape, dtype=x.dtype, device=x.device, generator=generator)
-        m = None if moments is None else torch.randn(x.shape, dtype=x.dtype, device=x.device, generator=generator)
-        if m is not None and parent is not None:
-            m = m+moments[parent]
-        return x, m
-
-    if action.kind in ('birth', 'split'):
-        x, m = born(action.letter, action.orbit if action.kind == 'split' else None)
-        letters.append(action.letter); elements.append(action.element); coords.append(x)
-        if moments is not None:
-            moments.append(m)
-    elif action.kind == 'delete':
-        for values in (letters, elements, coords):
-            values.pop(action.orbit)
-        if moments is not None:
-            moments.pop(action.orbit)
-    elif action.kind == 'element':
-        elements[action.orbit] = action.element
-    elif action.kind == 'swap':
-        i, j = action.orbit, action.partner
-        elements[i], elements[j] = elements[j], elements[i]
-    elif action.kind == 'replace':
-        if state.spec.template(action.letter).multiplicity == len(coords[action.orbit]):
-            x = coords[action.orbit]
-            m = None if moments is None else moments[action.orbit]
-        else:
-            x, m = born(action.letter)
-        letters[action.orbit], elements[action.orbit], coords[action.orbit] = action.letter, action.element, x
-        if moments is not None:
-            moments[action.orbit] = m
-    else:
-        raise ValueError(f'Unknown joint action {action.kind}')
-    return replace(state, letters=tuple(letters), elements=tuple(elements), step=step,
-                   coordinates=torch.cat(coords) if coords else state.coordinates.new_zeros((0, 3)),
-                   moments=None if moments is None else (torch.cat(moments) if moments else state.moments.new_zeros((0, 3))),
-                   status='failed' if step == state.budget else 'active')

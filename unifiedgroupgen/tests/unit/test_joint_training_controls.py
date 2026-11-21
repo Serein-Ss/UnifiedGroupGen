@@ -4,7 +4,7 @@ from types import SimpleNamespace
 import pytest
 import torch
 from pytorch_lightning.callbacks import EarlyStopping,ModelCheckpoint
-from unifiedgroupgen.pl_modules import joint_training as training
+from unifiedgroupgen.pl_modules.unified import module as training
 
 
 def optimizer_and_schedule():

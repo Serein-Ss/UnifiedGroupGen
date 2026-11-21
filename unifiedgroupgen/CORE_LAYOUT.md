@@ -1,41 +1,34 @@
-# 核心库布局
+# UnifiedGroupGen 核心代码
 
-本次只整理核心代码职责。配置、数据、权重、结果、网页和服务器冻结源码不迁移；不改变模型参数注册、数学路径或采样规则。
+生产模型为 `joint_flow_v2`。EquiformerV2 是共享主干，JointAtomGraph 用于主干对照。DNG 与精确组分 CSP 独立配置，目标性质 CFG 可以叠加到任一任务。
 
-| 目录 | 职责 |
+| 位置 | 职责 |
 |---|---|
-| common | 配置、路径、文件、哈希、精度、结构与通用显示工具 |
-| conditional | 条件编码、可见性及任务规则；组分限制仍按硬任务约束处理 |
-| evaluation | 结构指标、CSP匹配、性质代理及指标报告 |
-| generation | two_stage与unified生成算法、轨迹和共享结果容器 |
-| group_constraints | 唯一的操作、轨道、状态、合法变更与显式约束执行核心 |
-| pl_data | 记录编码、目标恢复、共用教师程序、动态周期图和训练中间样本 |
-| pl_modules | 一级共享层、主干和训练辅助；two_stage、unified两种架构 |
-| tests | 既有测试及兼容回归；正式运行用的检查函数由对应业务目录实现 |
+| `common/` | 通用路径与环境、晶体解析和周期图算子、结构读写、哈希与进度显示 |
+| `conditional/` | 标量目标性质编码、训练可见性、CFG 的空条件分支及任务规则 |
+| `group_constraints/` | 群操作编译、Wyckoff 映射、轨道与晶格约束、合法事件及库存可行性 |
+| `pl_data/cache.py` | 从 CSV 构建和复用当前 V3 Tensor 缓存，保存缓存配置 |
+| `pl_data/dataset.py` 和 `datamodule.py` | 单结构 PyG Data、批处理、加载与同一运行的批次恢复 |
+| `pl_data/unified/` | 从真实终点在线构造训练路径和监督 |
+| `pl_modules/backbones/` | 网络主干与 EquiformerV2 依赖 |
+| `pl_modules/unified/` | 共享网络、三部分联合损失、Lightning 训练和原生检查点 |
+| `generation/` | 批量生成、连续积分、离散轨道事件、结构账本与轨迹 |
+| `evaluation/` | 独立结构评估、CSP 匹配、性质预测器和报告 |
+| `tests/unit/` | 当前实现的回归测试 |
+| `tests/legacy_code/` | 旧源码和实验配置归档 |
 
-## 两种架构
+## 参数归属
 
-- `pl_modules/two_stage`：DescriptorTransformer、OrbitFlow、训练目标和Lightning模块。
-- `pl_modules/unified`：JointFlow、JointAtomGraph、周期Equiformer特征适配、联合目标和Lightning模块。
-- `pl_modules/backbones/official` 保持原位置和原字节，包含许可证及数学常量；不重新包装主干或增加参数父层。
-- `pl_modules/layers.py` 是共享图层；`training_utils.py` 保留精度策略及epoch边界规范化。
+- `.env` 指定工作区、输出目录与 W&B 日志目录。
+- `configs/sources/` 定义原始 CSV 的位置、列映射和对称性识别协议。`configs/data/` 用来选择单库或混合数据。
+- `configs/model/` 定义模型规模和周期构图参数。`configs/train/` 定义训练目标、路径及验证策略。`configs/optim/`、`configs/conditioning/` 和 `configs/runtime/` 分别管理优化器、目标性质和设备执行参数。
+- `configs/experiment/` 组合配置组并选择 DNG 或 CSP。`experiment_config.py` 将 Hydra 配置转换为模型使用的训练定义。
+- `configs/evaluation/` 与 `configs/property_predictor/` 管理独立评估和性质预测设置。
 
-## 数据、约束和采样
+## 从头运行
 
-`pl_data/targets.py` 只恢复端点，`programs.py` 是共用教师程序，`unified/path.py` 构造当前联合训练路径。`two_stage/path.py` 构造原几何插值。旧联合路径在 `unified/compat_path.py` 保留。
+`data/process.py → pl_data/cache.py → CrystalDataset → DataModule → 联合中间态 → 共享模型`。默认从来源 CSV 选择或构建内容指纹匹配的缓存，使用训练集拟合元素词表、群频率和性质归一化。审计报告为显式选项。训练计划的 `resume` 和 `initialize_from` 默认为空。
 
-`group_constraints/flow_state.py` 保留当前状态与合法动作核，训练和生成共用。其 `advance` 只执行约束状态的确定性增量；Heun积分和事件时钟由 `generation/unified/sampling.py` 管理。
+`generate.py → generation/unified/` 使用用户明确指定的当前检查点。`evaluate.py → evaluation/` 使用用户明确指定的样本和参考数据。旧格式检查点、旧路径映射、JSONL 训练缓存迁移和历史批次修复入口已退出主线。当前格式检查点可在训练配置和数据身份相符时显式续训。
 
-`pl_data/periodic_graph.py` 是运行时动态图构造，保留最终边向量的坐标与晶格梯度。预处理不意味着离线固定邻居或detach几何。
-
-`generation/types.py` 定义共享JointSample，`trajectory.py` 保存观察轨迹。生成调度在 `generation/unified/runner.py`；根目录命令入口保持。
-
-## 兼容性
-
-旧 `joint_flow/*`、`pl_modules/descriptor.py`、`joint_training.py` 等位置保留模块转发，旧导入与新规范导入得到同一个模块对象；私有辅助名称和monkeypatch行为也保留。混合职责的 `joint_path`、`task_path` 由兼容模块导出拆分后的对象。
-
-实际实现仅保留一份。原生检查点中的配置、张量键名、优化器、调度器、随机状态和循环协议不改写；旧模块路径仍可解析。正式模型通过原入口读取，不转换已有权重。
-
-性质代理搬迁后的评估源码身份会自然改变，新的评估缓存不复用旧源码身份；历史报告和manifest不重写。公开代理注册表在原路径保留兼容资源，新增规范资源内容相同。
-
-迁移索引见 `core_layout.json`。新测试不执行真实训练，CPU前向/自动微分只用于比较输出、损失及梯度；本次禁止调用Trainer.fit和优化器更新。
+本轮移出的源码和配置保存在 `tests/legacy_code/fresh_core_20261119/`。历史运行文件仍在各自的原始位置。

@@ -15,10 +15,8 @@ source /fs6/software/python/3.13_miniforge3-26.1.1/etc/profile.d/conda.sh
 conda activate unifiedgroupgen
 
 # Submission selects the immutable Git snapshot using --chdir.
-export UGG_PROJECT_ROOT="$PWD"
-export PROJECT_ROOT="$PWD"
-export HYDRA_JOBS="$PWD/outputs"
-export WANDB_DIR="$PWD/wandb"
+: "${UGG_PROJECT_ROOT:?Missing project root from submission}"
+export UGG_PROJECT_ROOT
 export PYTHONPATH="$PWD${PYTHONPATH:+:$PYTHONPATH}"
 export PYTHONIOENCODING=utf-8
 export OMP_NUM_THREADS=1

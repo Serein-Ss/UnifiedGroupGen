@@ -1,0 +1,722 @@
+{
+  "mp_20": {
+    "train": {
+      "id": "mp-1221227",
+      "dataset": "mp_20",
+      "descriptor": {
+        "kind": "space",
+        "number": 8,
+        "orbits": [
+          {
+            "letter": "a",
+            "atomic_number": 8
+          },
+          {
+            "letter": "a",
+            "atomic_number": 8
+          },
+          {
+            "letter": "a",
+            "atomic_number": 8
+          },
+          {
+            "letter": "a",
+            "atomic_number": 8
+          },
+          {
+            "letter": "a",
+            "atomic_number": 8
+          },
+          {
+            "letter": "a",
+            "atomic_number": 8
+          },
+          {
+            "letter": "a",
+            "atomic_number": 11
+          },
+          {
+            "letter": "a",
+            "atomic_number": 11
+          },
+          {
+            "letter": "a",
+            "atomic_number": 11
+          },
+          {
+            "letter": "a",
+            "atomic_number": 25
+          },
+          {
+            "letter": "a",
+            "atomic_number": 27
+          },
+          {
+            "letter": "a",
+            "atomic_number": 28
+          }
+        ]
+      },
+      "state": [
+        3.286061501978626,
+        -0.3768941160992812,
+        0.01942799981823352,
+        1.1824650156748677,
+        0.07231699999999996,
+        0.690081,
+        0.418679,
+        0.69828,
+        0.741195,
+        0.710818,
+        0.9292460000000001,
+        0.30547,
+        0.24877100000000008,
+        0.29142500000000005,
+        0.5846110000000001,
+        0.306728,
+        0.6665110000000001,
+        0.0017850000000000366,
+        0.00012300000000009526,
+        0.999725,
+        0.33202500000000024,
+        0.995662,
+        0.49982300000000013,
+        0.500733,
+        0.1737360000000001,
+        0.49349200000000004,
+        0.8329640000000001,
+        0.5058
+      ],
+      "properties": {
+        "formation_energy": -1.637460082715517,
+        "band_gap": 0.2132999999999998,
+        "energy_above_hull": 0.0430011104166663
+      },
+      "provenance": {
+        "source_csv": "E:\\WORKSPACE\\CodePlace\\test_CGDiT\\data\\mp_20\\train.csv",
+        "source_row": 0,
+        "source_cif_sha256": "d9e07e27683d8dfbc1cc0959d5f2c383723201c25d3e46706ccdeedf329f0c4c",
+        "orbit_order": "coordinate_dof,letter,element,source_index",
+        "coordinate_mode": "fractional",
+        "cell": "pyxtal_conventional",
+        "source_atoms": 12,
+        "expanded_atoms": 24,
+        "source_integrity": {
+          "protocol": "source-cif-integrity-v1",
+          "source_composition": {
+            "8": 6,
+            "11": 3,
+            "25": 1,
+            "27": 1,
+            "28": 1
+          },
+          "encoded_composition": {
+            "8": 6,
+            "11": 3,
+            "25": 1,
+            "27": 1,
+            "28": 1
+          },
+          "composition_conserved": true,
+          "source_atoms": 12,
+          "encoded_atoms": 24,
+          "tolerance_angstrom": 0.001,
+          "geometry_equivalent": true,
+          "numerically_identical": true,
+          "max_displacement_angstrom": 1.95278028540438e-15,
+          "measure_per_atom_relative_error": 5.795364188543317e-14,
+          "lattice_relative_tolerance": 0.0003301110095288479,
+          "scale_normalization": false,
+          "periodic_dimension": 3,
+          "normalized_rms_displacement": 5.520745471670751e-16,
+          "source_cif_sha256": "d9e07e27683d8dfbc1cc0959d5f2c383723201c25d3e46706ccdeedf329f0c4c",
+          "encoding_sha256": "b060e38b8f531f5a3a2d4133102adf615776bdb721863f0e478bc3cb0e1719f0"
+        }
+      }
+    },
+    "val": {
+      "id": "mp-865981",
+      "dataset": "mp_20",
+      "descriptor": {
+        "kind": "space",
+        "number": 225,
+        "orbits": [
+          {
+            "letter": "a",
+            "atomic_number": 69
+          },
+          {
+            "letter": "b",
+            "atomic_number": 12
+          },
+          {
+            "letter": "c",
+            "atomic_number": 80
+          }
+        ]
+      },
+      "state": [
+        3.0037639831486898
+      ],
+      "properties": {
+        "formation_energy": -0.4363681541666666,
+        "band_gap": 0.0,
+        "energy_above_hull": 0.0
+      },
+      "provenance": {
+        "source_csv": "E:\\WORKSPACE\\CodePlace\\test_CGDiT\\data\\mp_20\\val.csv",
+        "source_row": 0,
+        "source_cif_sha256": "c08f0156a6a5408ec92b959ab81134834ff715a400e8b7a5f0b3987330a415ee",
+        "orbit_order": "coordinate_dof,letter,element,source_index",
+        "coordinate_mode": "fractional",
+        "cell": "pyxtal_conventional",
+        "source_atoms": 4,
+        "expanded_atoms": 16,
+        "source_integrity": {
+          "protocol": "source-cif-integrity-v1",
+          "source_composition": {
+            "12": 1,
+            "69": 1,
+            "80": 2
+          },
+          "encoded_composition": {
+            "12": 1,
+            "69": 1,
+            "80": 2
+          },
+          "composition_conserved": true,
+          "source_atoms": 4,
+          "encoded_atoms": 16,
+          "tolerance_angstrom": 0.001,
+          "geometry_equivalent": true,
+          "numerically_identical": true,
+          "max_displacement_angstrom": 2.0814831257767924e-15,
+          "measure_per_atom_relative_error": 7.771561172376096e-16,
+          "lattice_relative_tolerance": 0.00019806685168223325,
+          "scale_normalization": false,
+          "periodic_dimension": 3,
+          "normalized_rms_displacement": 4.510122075527652e-16,
+          "source_cif_sha256": "c08f0156a6a5408ec92b959ab81134834ff715a400e8b7a5f0b3987330a415ee",
+          "encoding_sha256": "7efb6324e48e9f9ce1689de1f9882450ae15b778345370ec5038f5b692454ab0"
+        }
+      }
+    },
+    "test": {
+      "id": "mp-10009",
+      "dataset": "mp_20",
+      "descriptor": {
+        "kind": "space",
+        "number": 194,
+        "orbits": [
+          {
+            "letter": "f",
+            "atomic_number": 31
+          },
+          {
+            "letter": "f",
+            "atomic_number": 52
+          }
+        ]
+      },
+      "state": [
+        0.6360684093263942,
+        3.726148194464047,
+        0.18295900000000007,
+        0.8862040000000002
+      ],
+      "properties": {
+        "formation_energy": -0.5750923537499997,
+        "band_gap": 0.8979999999999997,
+        "energy_above_hull": 0.0
+      },
+      "provenance": {
+        "source_csv": "E:\\WORKSPACE\\CodePlace\\test_CGDiT\\data\\mp_20\\test.csv",
+        "source_row": 0,
+        "source_cif_sha256": "1d9c45b601322e7c1e061e5e31aaf6a52961dfd064711c0d4ec334e15172ff91",
+        "orbit_order": "coordinate_dof,letter,element,source_index",
+        "coordinate_mode": "fractional",
+        "cell": "pyxtal_conventional",
+        "source_atoms": 8,
+        "expanded_atoms": 8,
+        "source_integrity": {
+          "protocol": "source-cif-integrity-v1",
+          "source_composition": {
+            "31": 1,
+            "52": 1
+          },
+          "encoded_composition": {
+            "31": 1,
+            "52": 1
+          },
+          "composition_conserved": true,
+          "source_atoms": 8,
+          "encoded_atoms": 8,
+          "tolerance_angstrom": 0.001,
+          "geometry_equivalent": true,
+          "numerically_identical": true,
+          "max_displacement_angstrom": 2.3871120524709944e-06,
+          "measure_per_atom_relative_error": 8.85737018174737e-08,
+          "lattice_relative_tolerance": 0.0002418613972388548,
+          "scale_normalization": false,
+          "periodic_dimension": 3,
+          "normalized_rms_displacement": 7.361449072851564e-07,
+          "source_cif_sha256": "1d9c45b601322e7c1e061e5e31aaf6a52961dfd064711c0d4ec334e15172ff91",
+          "encoding_sha256": "ca472295b4f310d313ba59ff9495e550eaf527f9a25fc66e48985f0ba3c2485a"
+        }
+      }
+    }
+  },
+  "c2db_51": {
+    "train": {
+      "id": "1OVF2-2",
+      "dataset": "c2db_51",
+      "descriptor": {
+        "kind": "layer",
+        "number": 37,
+        "orbits": [
+          {
+            "letter": "b",
+            "atomic_number": 23
+          },
+          {
+            "letter": "d",
+            "atomic_number": 8
+          },
+          {
+            "letter": "i",
+            "atomic_number": 9
+          }
+        ]
+      },
+      "state": [
+        0.035848807507638136,
+        0.3661506008712189,
+        -1.255487408499996
+      ],
+      "properties": {
+        "formation_energy": -2.659322428,
+        "band_gap": 0.0,
+        "energy_above_hull": 0.048603921
+      },
+      "provenance": {
+        "source_csv": "E:\\WORKSPACE\\CodePlace\\test_CGDiT\\UnifiedGroupGen\\artifacts\\source_recovery\\c2db_official\\train.csv",
+        "source_row": 0,
+        "source_cif_sha256": "b550cb2775de59f3a9c37e456fc2574010ffde2b044400b85bf0c574e65b0e9c",
+        "official_structure_url": "https://c2db.fysik.dtu.dk/material/1OVF2-2/download/json",
+        "official_structure_sha256": "2049458cd42db865433df258bd813f038d8b9de95d3d2f1a2eb2428022372f6f",
+        "original_csv_sha256": "8c6a17ecfa6fd6c883274e24b46254b06c7b3bf20bdd3fe1e9a299993acd06f1",
+        "source_verification": "UID + species + Cartesian positions + cell shape + energy",
+        "orbit_order": "coordinate_dof,letter,element,source_index",
+        "coordinate_mode": "fractional",
+        "origin_xy": [
+          0.0,
+          0.0
+        ],
+        "axis_transform": [
+          [
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0
+          ]
+        ],
+        "operation_residual_angstrom": 1.7763568394002505e-15,
+        "coordinate_tolerance_angstrom": 1e-05,
+        "chart_fit_rms_angstrom": 1.0877919644084146e-15,
+        "chart_fit_max_angstrom": 1.7763568394002505e-15,
+        "cell": "spglib_layer_conventional",
+        "source_atoms": 4,
+        "expanded_atoms": 4,
+        "declared_layer_group": 37,
+        "identified_layer_group": 37,
+        "layer_group_policy": "identify",
+        "symmetry_tolerance_angstrom": 0.1,
+        "source_operation_residual_angstrom": 1.2935763571420011e-14,
+        "std_position_rms_angstrom": 4.624242221670601e-15,
+        "std_position_max_angstrom": 7.39186489795429e-15,
+        "native_std_chart_idealized": false,
+        "std_position_total_max_upper_bound_angstrom": 9.168221737354541e-15,
+        "std_metric_relative_change": 3.683293535206015e-16,
+        "displacement_metric": "Nearest same-species standard position at fixed ideal cell; excludes lattice strain",
+        "source_idealization": "spglib layer standardization and bounded orbit fit; not raw-coordinate identity",
+        "transformation_matrix": [
+          [
+            1.0,
+            -4.930380657631324e-32,
+            0.0
+          ],
+          [
+            0.0,
+            1.0000000000000002,
+            0.0
+          ],
+          [
+            1.5407439555097887e-33,
+            7.703719777548943e-34,
+            1.0000000000000002
+          ]
+        ],
+        "origin_shift": [
+          0.0,
+          0.0,
+          -0.5
+        ],
+        "std_rotation_matrix": [
+          [
+            1.0,
+            -6.842277657836021e-49,
+            6.123233995736766e-17
+          ],
+          [
+            -3.749399456654643e-33,
+            1.0,
+            6.123233995736765e-17
+          ],
+          [
+            -6.123233995736766e-17,
+            -6.123233995736766e-17,
+            1.0
+          ]
+        ],
+        "cell_orientation_inferred": false,
+        "cif_fractional_rounding_disabled": true,
+        "source_integrity": {
+          "protocol": "source-cif-integrity-v1",
+          "source_composition": {
+            "8": 1,
+            "9": 2,
+            "23": 1
+          },
+          "encoded_composition": {
+            "8": 1,
+            "9": 2,
+            "23": 1
+          },
+          "composition_conserved": true,
+          "source_atoms": 4,
+          "encoded_atoms": 4,
+          "tolerance_angstrom": 0.1,
+          "geometry_equivalent": true,
+          "numerically_identical": true,
+          "max_displacement_angstrom": 6.736551179779147e-15,
+          "measure_per_atom_relative_error": 0.0,
+          "lattice_relative_tolerance": 0.0327411760950662,
+          "scale_normalization": false,
+          "periodic_dimension": 2,
+          "source_cif_sha256": "b550cb2775de59f3a9c37e456fc2574010ffde2b044400b85bf0c574e65b0e9c",
+          "encoding_sha256": "c4b20f64c36c343802dd4b41f9a9b36ee6f8444dd67cc52e79c43db362b94371"
+        }
+      }
+    },
+    "val": {
+      "id": "1CoNi2Se4-1",
+      "dataset": "c2db_51",
+      "descriptor": {
+        "kind": "layer",
+        "number": 13,
+        "orbits": [
+          {
+            "letter": "a",
+            "atomic_number": 27
+          },
+          {
+            "letter": "a",
+            "atomic_number": 28
+          },
+          {
+            "letter": "a",
+            "atomic_number": 28
+          },
+          {
+            "letter": "a",
+            "atomic_number": 34
+          },
+          {
+            "letter": "a",
+            "atomic_number": 34
+          },
+          {
+            "letter": "a",
+            "atomic_number": 34
+          },
+          {
+            "letter": "a",
+            "atomic_number": 34
+          }
+        ]
+      },
+      "state": [
+        0.31688650138208635,
+        2.965519161466067,
+        0.65309774,
+        0.2666330962615475,
+        0.01374484499999995,
+        -0.0008693462596511825,
+        0.37911230500000004,
+        -0.27614522911027106,
+        0.5052041699999998,
+        1.5862818736771682,
+        0.53631385,
+        -1.5615325152002504,
+        0.2415236799999998,
+        1.2568628113102693,
+        0.78925596,
+        -1.2712306906788113
+      ],
+      "properties": {
+        "formation_energy": -0.27644164,
+        "band_gap": 0.0,
+        "energy_above_hull": 0.020810525
+      },
+      "provenance": {
+        "source_csv": "E:\\WORKSPACE\\CodePlace\\test_CGDiT\\UnifiedGroupGen\\artifacts\\source_recovery\\c2db_official\\val.csv",
+        "source_row": 0,
+        "source_cif_sha256": "3697f65be3cc59299074d694408b2cd8d956140ea6b879149e5480aa87a7af0f",
+        "official_structure_url": "https://c2db.fysik.dtu.dk/material/1CoNi2Se4-1/download/json",
+        "official_structure_sha256": "de105d7261fe9594c338ba7734f0fca1913d23c103628ec1b3eb4d11a558b7de",
+        "original_csv_sha256": "dfb02ba5becab042e1f1d5aa97cdb6d783476de858f961852e9019193c550973",
+        "source_verification": "UID + species + Cartesian positions + cell shape + energy",
+        "orbit_order": "coordinate_dof,letter,element,source_index",
+        "coordinate_mode": "fractional",
+        "origin_xy": [
+          0.0,
+          0.0
+        ],
+        "axis_transform": [
+          [
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0
+          ]
+        ],
+        "operation_residual_angstrom": 2.9343761496301963e-15,
+        "coordinate_tolerance_angstrom": 1e-05,
+        "chart_fit_rms_angstrom": 6.156557992735256e-16,
+        "chart_fit_max_angstrom": 1.4671880748150981e-15,
+        "cell": "spglib_layer_conventional",
+        "source_atoms": 7,
+        "expanded_atoms": 14,
+        "declared_layer_group": 13,
+        "identified_layer_group": 13,
+        "layer_group_policy": "identify",
+        "symmetry_tolerance_angstrom": 0.1,
+        "source_operation_residual_angstrom": 0.0037377702565346413,
+        "std_position_rms_angstrom": 0.000991842434323596,
+        "std_position_max_angstrom": 0.0018688851282675158,
+        "native_std_chart_idealized": false,
+        "std_position_total_max_upper_bound_angstrom": 0.001868885128268983,
+        "std_metric_relative_change": 7.236536862794681e-05,
+        "displacement_metric": "Nearest same-species standard position at fixed ideal cell; excludes lattice strain",
+        "source_idealization": "spglib layer standardization and bounded orbit fit; not raw-coordinate identity",
+        "transformation_matrix": [
+          [
+            0.9999999999999999,
+            -0.49999999999999994,
+            0.0
+          ],
+          [
+            0.0,
+            0.5,
+            0.0
+          ],
+          [
+            1.5407439555097887e-33,
+            0.0,
+            1.0
+          ]
+        ],
+        "origin_shift": [
+          0.10044665000000003,
+          0.8995533499999999,
+          0.0
+        ],
+        "std_rotation_matrix": [
+          [
+            1.0,
+            0.0,
+            6.123233995736766e-17
+          ],
+          [
+            -4.876138289439268e-33,
+            1.0,
+            7.963338152411332e-17
+          ],
+          [
+            -6.123233995736766e-17,
+            -7.963338152411332e-17,
+            1.0
+          ]
+        ],
+        "cell_orientation_inferred": false,
+        "cif_fractional_rounding_disabled": true,
+        "source_integrity": {
+          "protocol": "source-cif-integrity-v1",
+          "source_composition": {
+            "27": 1,
+            "28": 2,
+            "34": 4
+          },
+          "encoded_composition": {
+            "27": 1,
+            "28": 2,
+            "34": 4
+          },
+          "composition_conserved": true,
+          "source_atoms": 7,
+          "encoded_atoms": 14,
+          "tolerance_angstrom": 0.1,
+          "geometry_equivalent": true,
+          "numerically_identical": false,
+          "max_displacement_angstrom": 0.001045402848191512,
+          "measure_per_atom_relative_error": 1.8597581030732613e-08,
+          "lattice_relative_tolerance": 0.028449046544287346,
+          "scale_normalization": false,
+          "periodic_dimension": 2,
+          "source_cif_sha256": "3697f65be3cc59299074d694408b2cd8d956140ea6b879149e5480aa87a7af0f",
+          "encoding_sha256": "37036219d2bf597c07cfbd982abca1b93425ed18c981e5e1ea691fff1a17cfa2"
+        }
+      }
+    },
+    "test": {
+      "id": "1OsI2-2",
+      "dataset": "c2db_51",
+      "descriptor": {
+        "kind": "layer",
+        "number": 59,
+        "orbits": [
+          {
+            "letter": "a",
+            "atomic_number": 76
+          },
+          {
+            "letter": "e",
+            "atomic_number": 53
+          }
+        ]
+      },
+      "state": [
+        0.6875502270392926,
+        1.7411274545119102
+      ],
+      "properties": {
+        "formation_energy": 0.842134469,
+        "band_gap": 0.0,
+        "energy_above_hull": 0.842134469
+      },
+      "provenance": {
+        "source_csv": "E:\\WORKSPACE\\CodePlace\\test_CGDiT\\UnifiedGroupGen\\artifacts\\source_recovery\\c2db_official\\test.csv",
+        "source_row": 6,
+        "source_cif_sha256": "b7583c1d4736ee42541bb960f4f37922632e01fcb312114f380975a0e6438512",
+        "official_structure_url": "https://c2db.fysik.dtu.dk/material/1OsI2-2/download/json",
+        "official_structure_sha256": "39077d7dda98280bcc4207c5d0d46a7cb1c77d171b5721b273025acd4b2b610f",
+        "original_csv_sha256": "bb3d1ee02705eca39ca37604912ecd3cbd52c9e32bc5970149431e5bb7aec237",
+        "source_verification": "UID + species + Cartesian positions + cell shape + energy",
+        "orbit_order": "coordinate_dof,letter,element,source_index",
+        "coordinate_mode": "fractional",
+        "origin_xy": [
+          0.0,
+          0.0
+        ],
+        "axis_transform": [
+          [
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0
+          ]
+        ],
+        "operation_residual_angstrom": 1.3322676295501878e-15,
+        "coordinate_tolerance_angstrom": 1e-05,
+        "chart_fit_rms_angstrom": 4.622227044373279e-16,
+        "chart_fit_max_angstrom": 6.661338147750939e-16,
+        "cell": "spglib_layer_conventional",
+        "source_atoms": 3,
+        "expanded_atoms": 3,
+        "declared_layer_group": 59,
+        "identified_layer_group": 59,
+        "layer_group_policy": "identify",
+        "symmetry_tolerance_angstrom": 0.1,
+        "source_operation_residual_angstrom": 5.700667363741189e-07,
+        "std_position_rms_angstrom": 3.2912817882957315e-07,
+        "std_position_max_angstrom": 5.70066727935436e-07,
+        "native_std_chart_idealized": false,
+        "std_position_total_max_upper_bound_angstrom": 5.700667286015699e-07,
+        "std_metric_relative_change": 2.457173454107108e-07,
+        "displacement_metric": "Nearest same-species standard position at fixed ideal cell; excludes lattice strain",
+        "source_idealization": "spglib layer standardization and bounded orbit fit; not raw-coordinate identity",
+        "transformation_matrix": [
+          [
+            0.9999999999999999,
+            -2.465190328815662e-32,
+            0.0
+          ],
+          [
+            0.0,
+            0.9999999999999999,
+            0.0
+          ],
+          [
+            -1.5407439555097887e-33,
+            0.0,
+            0.9999999999999999
+          ]
+        ],
+        "origin_shift": [
+          0.0,
+          0.0,
+          -0.49999985999999996
+        ],
+        "std_rotation_matrix": [
+          [
+            1.0,
+            -6.842277657836021e-49,
+            6.123233995736766e-17
+          ],
+          [
+            -3.749399456654643e-33,
+            1.0,
+            6.123233995736765e-17
+          ],
+          [
+            -6.123233995736766e-17,
+            -6.123233995736765e-17,
+            1.0
+          ]
+        ],
+        "cell_orientation_inferred": false,
+        "cif_fractional_rounding_disabled": true,
+        "source_integrity": {
+          "protocol": "source-cif-integrity-v1",
+          "source_composition": {
+            "53": 2,
+            "76": 1
+          },
+          "encoded_composition": {
+            "53": 2,
+            "76": 1
+          },
+          "composition_conserved": true,
+          "source_atoms": 3,
+          "encoded_atoms": 3,
+          "tolerance_angstrom": 0.1,
+          "geometry_equivalent": true,
+          "numerically_identical": true,
+          "max_displacement_angstrom": 3.8004448329094964e-07,
+          "measure_per_atom_relative_error": 1.4654943925052066e-14,
+          "lattice_relative_tolerance": 0.02614014633238233,
+          "scale_normalization": false,
+          "periodic_dimension": 2,
+          "source_cif_sha256": "b7583c1d4736ee42541bb960f4f37922632e01fcb312114f380975a0e6438512",
+          "encoding_sha256": "f1cd5c1dfa8a645e896db635f00fb8868279218c2a09b034bfd78f7b99351101"
+        }
+      }
+    }
+  }
+}

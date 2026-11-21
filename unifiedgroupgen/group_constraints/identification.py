@@ -99,6 +99,8 @@ def validate_joint_state(state, exact=False, tolerance=1e-3, minimum_distance=.6
                   stability_validated=False)
     if exact:
         report.update(identify_maximal_group(decoded, state.spec, tolerance))
+        if state.spec.kind == 'rod':
+            report['maximal_group_checked'] = False
     return report
 
 

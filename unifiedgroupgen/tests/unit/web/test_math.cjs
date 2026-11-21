@@ -8,16 +8,14 @@ const root=path.resolve(__dirname,'../../../../web/symmetry-lab');
 const math=require(path.join(root,'dist/math.js'));
 const context={window:{}};vm.runInNewContext(fs.readFileSync(path.join(root,'dist/data.js'),'utf8'),context);
 const data=context.window.UGG_DATA;
-assert.equal(data.models.length,15);
-assert(data.models.every(m=>m.status==='complete'&&m.strict_load));
-assert.equal(data.latest_snapshot.total_completed_epochs,2520);
-assert.equal(data.latest_snapshot.checkpoint_count,30);
-assert.deepEqual(Array.from(data.models,m=>m.name),['mp20_u','c2db51_u','joint_u','mp20_all','c2db51_all','joint_all','mp20_ef','mp20_eg','mp20_eh','c2db51_ef','c2db51_eg','c2db51_eh','joint_ef','joint_eg','joint_eh']);
-assert(!('comparison' in data));
-assert(data.gallery.every(f=>!f.historical&&typeof f.model_label==='string'));
-assert.deepEqual(Array.from(data.sections,s=>s.id),['architecture','datasets','training','generation','construction','pending']);
-assert(!data.gallery.some(f=>f.original.includes('model_comparison')||f.original.includes('current_snapshot')||f.original.includes('videos/')));
-assert.equal(data.gallery.filter(f=>f.original.includes('14_random_structures')).length,3);
+assert.equal(data.theory_version,'joint-flow-v2-2026-11-13');
+assert.match(data.scope,/data analysis/i);
+for(const key of ['models','pending_models','latest_snapshot','baseline_evaluation'])assert(!(key in data),key);
+assert(data.gallery.every(f=>f.category==='数据集'&&!f.historical));
+assert.equal(data.gallery.length,12);
+assert.deepEqual(Array.from(data.datasets),['mp_20','c2db_51']);assert.equal(data.dataset_analysis.records,62134);assert(!/mpts/i.test(JSON.stringify(data)));
+assert.deepEqual(Array.from(data.sections,s=>s.id),['datasets','construction']);
+for(const name of ['baseline_results.js','current_results.js','figures/results','figures/training','figures/paper','tables/model_inventory.json','tables/training_history.csv','tables/UNIFIEDGROUPGEN_MANUSCRIPT_ZH.md'])assert(!fs.existsSync(path.join(root,'dist',name)),name);
 let maxLatticeError=0,maxCoordinateError=0,maxProjectionError=0,cases=0;
 function error(a,b){if(Array.isArray(a))return Math.max(0,...a.map((x,i)=>error(x,b[i])));return Math.abs(a-b);}
 for(const material of data.materials){
@@ -40,8 +38,6 @@ for(const figure of data.gallery){
  const bytes=fs.readFileSync(path.join(root,'dist',figure.path));assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'),figure.sha256);
 }
 assert.equal(data.gallery.length,JSON.parse(fs.readFileSync(path.join(root,'gallery_catalog.json'),'utf8')).figures.length);
-assert.equal(data.baseline_evaluation.validation.sample_attempts_verified,5404);
-assert.equal(data.baseline_evaluation.generation_quality.length,16);
 assert.equal(data.gallery.filter(f=>f.status==='待补实验').length,0);
 const report={passed:true,python_reference_cases:18,additional_parameter_cases:42,total_cases:cases,max_lattice_error:maxLatticeError,max_coordinate_error:maxCoordinateError,max_projection_error:maxProjectionError,verified_png_files:data.gallery.length,placeholder_figures:0,scope:'JavaScript expansion and physical projection matched to actual PyTorch compiler fixtures; no neural sampling or energy calculation.'};
 fs.mkdirSync(path.join(root,'qa'),{recursive:true});fs.writeFileSync(path.join(root,'qa/math_validation.json'),JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));

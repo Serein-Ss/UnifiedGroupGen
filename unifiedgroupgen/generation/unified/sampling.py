@@ -4,11 +4,12 @@ import math
 import torch
 from unifiedgroupgen.generation.types import JointSample
 from unifiedgroupgen.group_constraints.flow_state import initial,advance,apply,assign,actions
+from unifiedgroupgen.conditional.guidance import guided_forward, validate_guidance
 
 @torch.no_grad()
 def sample_batch(model,specs,steps=64,epsilon=1e-4,budget=None,birth_scale=None,
                  properties=None,chemistries=None,seeds=None,generators=None,frames=None,
-                 trajectory_callback=None):
+                 trajectory_callback=None,guidance_scale=1.):
     """Optionally report committed states, not Heun predictors or root-search trials.
 
     callback(local_index, stage, state, time, integration_step, event, reason)
@@ -20,6 +21,7 @@ def sample_batch(model,specs,steps=64,epsilon=1e-4,budget=None,birth_scale=None,
     like=next(model.parameters());budget=budget or model.event_budget
     birth_scale=model.birth_scale if birth_scale is None else birth_scale
     properties=properties or [{} for _ in specs];chemistries=chemistries or [None]*n
+    validate_guidance(guidance_scale, any(properties), getattr(getattr(model,'property_encoder',None),'dropout',0.))
     frames=frames or [None]*n;seeds=seeds or list(range(n))
     generators=generators or [torch.Generator(device=like.device).manual_seed(seed) for seed in seeds]
     states=[initial(g,generators[i],budget,chemistries[i],like.device,like.dtype,frames[i]) for i,g in enumerate(specs)]
@@ -31,14 +33,14 @@ def sample_batch(model,specs,steps=64,epsilon=1e-4,budget=None,birth_scale=None,
     thresholds=[exponential(i) for i in range(n)]
     def evaluate(ids,batch,clock,decide=False):
         try:
-            return model.forward_batch(batch,clock,[properties[i] for i in ids],
-                                       actions=None if decide else [()]*len(ids))
+            return guided_forward(model,batch,clock,[properties[i] for i in ids],
+                                  None if decide else [()]*len(ids),guidance_scale)
         except (ValueError,RuntimeError):
             values=[]
             for i,s,t in zip(ids,batch,clock):
                 try:
-                    values.append(model.forward_batch([s],[t],[properties[i]],
-                                  actions=None if decide else [()])[0])
+                    values.append(guided_forward(model,[s],[t],[properties[i]],
+                                  None if decide else [()],guidance_scale)[0])
                 except (ValueError,RuntimeError) as error:
                     reason[i]='numerical_or_graph_failure: '+str(error)
                     values.append(None)

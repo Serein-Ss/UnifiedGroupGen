@@ -9,7 +9,7 @@ import sys
 ROOT = project_root()
 sys.path.insert(0, str(ROOT))
 from unifiedgroupgen.common.rendering import render_structure
-from unifiedgroupgen.tests.representation import compiled_chart, expand_numpy
+from unifiedgroupgen.group_constraints.representation import compiled_chart, expand_numpy
 from unifiedgroupgen.group_constraints.compiler import Descriptor
 
 

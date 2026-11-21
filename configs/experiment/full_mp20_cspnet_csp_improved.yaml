@@ -1,0 +1,20 @@
+# @package _global_
+defaults:
+- override /data: mp20_unified
+- override /model: joint_flow_cspnet
+- override /conditioning: none
+- override /train: joint_flow_full
+- override /runtime: joint_flow_5090
+experiment_name: full_mp20_cspnet_csp_improved
+model:
+  channels: 288
+logging:
+  mode: offline
+train:
+  generation_task: csp
+  geometry_objective: decomposed
+  csp_group_policy: composition_ranked
+  early_stopping:
+    patience: 30
+runtime:
+  batch_size: 4

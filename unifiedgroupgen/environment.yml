@@ -2,8 +2,8 @@
 # conda env create -f unifiedgroupgen/environment.yml
 # conda activate unifiedgroupgen_cuda
 # python -m pip install --no-deps --no-build-isolation -e ./unifiedgroupgen
-# Linux CUDA reference: Python 3.10.18 / PyTorch 2.7.1 CUDA 11.8 / NumPy 1.26.4.
-# Official backbone cores are bundled; do not install full mattergen/fairchem-core training distributions.
+# Linux CUDA reference: Python 3.10.18 / PyTorch 2.7.1 CUDA 11.8 / NumPy 2.1.2.
+# The active EquiformerV2 computation is bundled with the package.
 # Optional Windows smoke-test instructions: docs/ENVIRONMENT.md.
 # Optional public property models: pip install -e "./unifiedgroupgen[pretrained]"
 # Use official wheels, not the mixed metadata/binaries in the old cgdit environment.
@@ -20,7 +20,7 @@ dependencies:
       - --extra-index-url https://download.pytorch.org/whl/cu118
       - --find-links https://data.pyg.org/whl/torch-2.7.0+cu118.html
       - torch==2.7.1+cu118
-      - numpy==1.26.4
+      - numpy==2.1.2
       - scipy==1.15.2
       - pandas==2.3.3
       - pyxtal==1.1.3

@@ -1,0 +1,10 @@
+defaults:
+- joint_flow_equiformer
+- _self_
+
+backbone: mace
+channels: 64
+lmax: 2
+correlation: 3
+radial_basis: 8
+average_neighbors: 32.0

@@ -1,7 +1,7 @@
 """Hard-constrained public state and shared, target-independent orbit kernels."""
 from dataclasses import dataclass, replace
 import torch
-from unifiedgroupgen.group_constraints.state import JointState, JointAction, initial_state, legal_actions as old_actions
+from unifiedgroupgen.group_constraints.state import JointState, JointAction, initial_state, legal_actions as inventory_actions
 from unifiedgroupgen.group_constraints.chemistry import can_complete
 
 @dataclass
@@ -43,24 +43,40 @@ def _metric_tangent(state, value):
     matrix = torch.einsum('a,aij->ij', torch.einsum('aij,ij->a', basis, matrix), basis)
     return torch.einsum('kij,ij->k', standard, matrix)
 
-def coordinate_tangent(state, value, cartesian=False):
+def coordinate_tangent(state, value, cartesian=False, *, reference=None):
+    """Project a velocity, optionally relative to a fractional reference velocity."""
     with torch.autocast(device_type=state.metric.device.type,enabled=False):
-        return _coordinate_tangent(state,value.to(state.metric.dtype),cartesian)
+        return _coordinate_tangent(state,value.to(state.metric.dtype),cartesian,reference)
 
 
-def _coordinate_tangent(state, value, cartesian=False):
-    lattice = state.decoded(wrap=False)['lattice']
-    blocks = []
-    for section, (a, _, _) in zip(state.compiled.slices, state.compiled.blocks):
-        a = value.new_tensor(a)
-        if not a.shape[-1]:
-            blocks.append(value[section]*0)
+def _coordinate_tangent(state, value, cartesian, reference):
+    chart = state.compiled
+    if not chart.slices:
+        return value
+    lattice = chart.lattice(state.metric)
+    frame = getattr(state, 'frame', None)
+    if frame is not None:
+        lattice = frame @ lattice
+    blocks = [None] * len(chart.slices)
+    systems = {}
+    for i, (section, (basis, _, _)) in enumerate(zip(chart.slices, chart.blocks)):
+        dof = basis.shape[-1]
+        if not dof:
+            blocks[i] = value[section]*0
             continue
-        j = torch.einsum('ab,nbq->naq', lattice, a).reshape(-1, a.shape[-1])
+        a = value.new_tensor(basis)
+        j = torch.einsum('ab,nbq->naq', lattice, a).reshape(-1, dof)
         v = value[section] if cartesian else value[section] @ lattice.T
-        q = torch.linalg.solve(j.T @ j, j.T @ v.reshape(-1))
-        blocks.append(torch.einsum('nbq,q->nb', a, q))
-    return torch.cat(blocks) if blocks else value
+        if reference is not None:
+            v = v - reference[section] @ lattice.T
+        systems.setdefault(dof, []).append((i, a, j.T @ j, j.T @ v.reshape(-1)))
+    # Orbit multiplicities may differ, but their Gram systems share the free dimension.
+    for group in systems.values():
+        indices, bases, matrices, rhs = zip(*group)
+        q = torch.linalg.solve(torch.stack(matrices), torch.stack(rhs).unsqueeze(-1)).squeeze(-1)
+        for i, a, free in zip(indices, bases, q):
+            blocks[i] = torch.einsum('nbq,q->nb', a, free)
+    return torch.cat(blocks)
 
 def initial(spec, generator=None, budget=96, chemistry=None, device='cpu', dtype=torch.float32, frame=None):
     s = initial_state(spec, device, dtype, generator, budget, False, chemistry)
@@ -73,7 +89,7 @@ def actions(state, allowed, max_atoms=192, max_orbits=52):
         return ()
     # Existing exact-inventory task uses typed whole-orbit edits, not independent MASK draws.
     if state.chemistry.counts:
-        support = old_actions(state, allowed, max_atoms, max_orbits)
+        support = inventory_actions(state, allowed, max_atoms, max_orbits)
         return tuple(replace(a, kind='freeze') if a.kind == 'end' else a for a in support)
     if state.step >= state.budget-1:
         return (JointAction('freeze'),) if state.num_atoms else (JointAction('fail'),)

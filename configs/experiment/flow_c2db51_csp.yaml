@@ -1,9 +1,10 @@
 # @package _global_
 defaults:
-- task_c2db51_csp
+- override /data: c2db51_unified
 - override /model: joint_flow_equiformer
+- override /conditioning: none
+- override /train: joint_flow
+- override /runtime: local
 experiment_name: flow_c2db51_csp
-experiment:
-  experiment_family: joint_flow_v2
 train:
-  event_budget: 96
+  generation_task: csp

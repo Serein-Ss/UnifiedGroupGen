@@ -59,5 +59,5 @@ def csp_summary(rows, request):
     output['coordinate_dof_strata'] = {}
     for name, predicate in [('zero', lambda q:q==0), ('1-3', lambda q:0<q<=3), ('4-9',lambda q:3<q<=9), ('10+',lambda q:q>9)]:
         group = [v for v in cases.values() if v[0].get('reference_coordinate_dof') is not None and predicate(v[0]['reference_coordinate_dof'])]
-        output['coordinate_dof_strata'][name] = {'cases':len(group), 'match_at_1':rate(v[0].get('match_legacy_ugg_v1') for v in group)}
+        output['coordinate_dof_strata'][name] = {'cases':len(group), 'match_at_1':rate(v[0].get('match_strict') for v in group)}
     return output

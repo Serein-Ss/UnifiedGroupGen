@@ -7,9 +7,9 @@ import pytest
 import torch
 from unifiedgroupgen.group_constraints.unified import catalog_spec
 from unifiedgroupgen.group_constraints.chemistry import ChemicalControl
-from unifiedgroupgen.joint_flow.sampling import sample_batch
-from unifiedgroupgen.joint_flow.state import initial,JointAction
-from unifiedgroupgen.joint_flow.trajectory import TrajectoryWriter
+from unifiedgroupgen.generation.unified.sampling import sample_batch
+from unifiedgroupgen.group_constraints.flow_state import initial,JointAction
+from unifiedgroupgen.generation.trajectory import TrajectoryWriter
 
 
 @pytest.fixture(autouse=True)
@@ -163,7 +163,7 @@ def test_nonfinite_state_and_interruption_remain_readable(tmp_path):
 
 @pytest.mark.parametrize('indices',[None,[0],[0,2]])
 def test_cli_global_selection_across_batches_and_no_feasible_group(tmp_path,monkeypatch,indices):
-    import unifiedgroupgen.joint_flow.cli as cli
+    import unifiedgroupgen.generation.unified.runner as cli
     import unifiedgroupgen.common.configuration as configuration
     from unifiedgroupgen.group_constraints.group_prior import NoFeasibleGroup
     spec=catalog_spec('space',2)

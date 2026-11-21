@@ -1,7 +1,10 @@
 # @package _global_
 defaults:
-- flow_mp20_dng
+- override /data: mp20_unified
 - override /model: joint_flow_atom_graph
+- override /conditioning: none
 - override /train: joint_flow_full
 - override /runtime: joint_flow_5090
 experiment_name: full_mp20_atomgraph_dng
+train:
+  generation_task: dng

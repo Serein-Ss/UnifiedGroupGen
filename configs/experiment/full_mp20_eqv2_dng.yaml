@@ -1,8 +1,10 @@
 # @package _global_
 defaults:
-- flow_mp20_dng
+- override /data: mp20_unified
+- override /model: joint_flow_equiformer_full
+- override /conditioning: none
 - override /train: joint_flow_full
 - override /runtime: joint_flow_5090
 experiment_name: full_mp20_eqv2_dng
-model:
-  heads: 8
+train:
+  generation_task: dng

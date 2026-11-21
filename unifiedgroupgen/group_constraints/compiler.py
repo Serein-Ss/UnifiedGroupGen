@@ -16,6 +16,36 @@ from pyxtal.symmetry import Group
 # Embed the 17 wallpaper groups into layer groups with unchanged normal coordinate.
 PLANE_TO_LAYER = (1, 3, 11, 12, 13, 23, 24, 25, 26, 49, 55, 56, 65, 69, 70, 73, 77)
 
+GROUP_PERIODIC = {
+    "space": (True, True, True),
+    "layer": (True, True, False),
+    "plane": (True, True, False),
+    "rod": (True, False, False),
+}
+
+# Columns are the axial direction and two unit vectors at 120 degrees.
+ROD_HEX_FRAME = ((1., 0., 0.), (0., 1., -.5), (0., 0., np.sqrt(3)/2))
+
+
+def _rod_table_frame(table):
+    """Map the standard (x, y, z_periodic) setting to model coordinates."""
+    frame = np.asarray(ROD_HEX_FRAME) if table.lattice_type == "hexagonal" else np.eye(3)
+    return frame[:, [1, 2, 0]]
+
+
+def catalog_operations(kind, number):
+    table = group_table(kind, number)
+    frame = _rod_table_frame(table) if kind == "rod" else None
+    inverse = np.linalg.inv(frame) if frame is not None else None
+    for op in table[0].ops:
+        r, t = op.rotation_matrix.copy(), op.translation_vector.copy()
+        if frame is not None:
+            r, t = frame @ r @ inverse, frame @ t
+        if kind == "plane":
+            r[2] = (0, 0, 1)
+            t[2] = 0
+        yield r, t
+
 
 @dataclass(frozen=True)
 class OrbitSpec:
@@ -39,11 +69,11 @@ class Descriptor:
 
 @lru_cache(maxsize=None)
 def group_table(kind, number):
-    limits = {"space": 230, "layer": 80, "plane": 17}
+    limits = {"space": 230, "layer": 80, "plane": 17, "rod": 75}
     if kind not in limits or not 1 <= number <= limits[kind]:
         raise ValueError(f"Invalid {kind} group number: {number}")
     actual = PLANE_TO_LAYER[number - 1] if kind == "plane" else number
-    return Group(actual, dim=3 if kind == "space" else 2)
+    return Group(actual, dim={"space": 3, "rod": 1}.get(kind, 2))
 
 
 @lru_cache(maxsize=None)
@@ -63,6 +93,10 @@ def wp_arrays(kind, number, letter):
     b = maps[:, :3, 3]
     if rank and np.linalg.matrix_rank(a.reshape(-1, rank), tol=1e-8) != rank:
         raise ValueError("Orbit parameter map has inconsistent rank")
+    if kind == "rod":
+        frame = _rod_table_frame(group_table(kind, number))
+        a, b = frame @ a, b @ frame.T
+        axes = [(axis + 1) % 3 for axis in axes]
     return a, b, axes
 
 
@@ -85,8 +119,8 @@ def _sqrt_spd(h, inverse=False):
 
 @lru_cache(maxsize=None)
 def metric_chart(kind, number):
-    d = 3 if kind == "space" else 2
-    rotations = np.stack([op.rotation_matrix[:d, :d] for op in group_table(kind, number)[0].ops])
+    d = sum(GROUP_PERIODIC[kind])
+    rotations = np.stack([r[:d, :d] for r, _ in catalog_operations(kind, number)])
     # Reynolds averaging supplies a reference metric even in a nonorthogonal fractional basis.
     h0 = np.mean(rotations.transpose(0, 2, 1) @ rotations, axis=0)
     h0 = h0 / np.linalg.det(h0) ** (1 / d) * 9.0
@@ -121,7 +155,7 @@ class CompiledDescriptor:
         if not descriptor.orbits:
             raise ValueError("Empty structures are not allowed")
         self.descriptor = descriptor
-        self.periodic = np.array([True, True, descriptor.kind == "space"])
+        self.periodic = np.array(GROUP_PERIODIC[descriptor.kind])
         self.root, self.invroot, self.metric_basis = metric_chart(descriptor.kind, descriptor.number)
         self.lattice_dof = len(self.metric_basis)
         self.blocks, self.offsets, self.q_periodic = [], [0], []
@@ -254,11 +288,7 @@ class CompiledDescriptor:
         from scipy.optimize import linear_sum_assignment
         f = np.asarray(coords)
         result = []
-        for op in group_table(self.descriptor.kind, self.descriptor.number)[0].ops:
-            r, t = op.rotation_matrix.copy(), op.translation_vector.copy()
-            if self.descriptor.kind == "plane":
-                r[2] = [0, 0, 1]
-                t[2] = 0
+        for r, t in catalog_operations(self.descriptor.kind, self.descriptor.number):
             mapped = f @ r.T + t
             permutation = np.empty(self.num_atoms, dtype=int)
             for orbit in range(len(self.blocks)):

@@ -1,0 +1,85 @@
+{
+  "id": "mp-21313",
+  "dataset": "mp_20",
+  "descriptor": {
+    "kind": "space",
+    "number": 2,
+    "orbits": [
+      {
+        "letter": "a",
+        "atomic_number": 31
+      },
+      {
+        "letter": "e",
+        "atomic_number": 25
+      },
+      {
+        "letter": "f",
+        "atomic_number": 25
+      },
+      {
+        "letter": "g",
+        "atomic_number": 25
+      },
+      {
+        "letter": "h",
+        "atomic_number": 6
+      }
+    ]
+  },
+  "state": [
+    0.4931433474641056,
+    0.054680462731077,
+    0.05457286892909975,
+    0.49347343561509915,
+    0.05409330823938611,
+    0.4945275317291346
+  ],
+  "properties": {
+    "formation_energy": -0.1205078892586215,
+    "band_gap": 0.0,
+    "energy_above_hull": 0.0
+  },
+  "provenance": {
+    "source_csv": "E:\\WORKSPACE\\CodePlace\\test_CGDiT\\data\\mp_20\\test.csv",
+    "source_row": 4637,
+    "source_cif_sha256": "4c05553fd6acfcd0684ed5be2d685276fcc13b5c2ff3215edb3fc601c44eeee5",
+    "orbit_order": "coordinate_dof,letter,element,source_index",
+    "coordinate_mode": "fractional",
+    "cell": "spglib_space_conventional",
+    "source_atoms": 10,
+    "expanded_atoms": 5,
+    "symmetry_tolerance_angstrom": 0.001,
+    "hall_number": 2,
+    "converter": "bijective-standard-atom-orbits-v1",
+    "source_idealization": "spglib standardization and bijective species-preserving orbit fit",
+    "cif_fractional_rounding_disabled": true,
+    "source_integrity": {
+      "protocol": "source-cif-integrity-v1",
+      "source_composition": {
+        "6": 1,
+        "25": 3,
+        "31": 1
+      },
+      "encoded_composition": {
+        "6": 1,
+        "25": 3,
+        "31": 1
+      },
+      "composition_conserved": true,
+      "source_atoms": 10,
+      "encoded_atoms": 5,
+      "tolerance_angstrom": 0.001,
+      "geometry_equivalent": true,
+      "numerically_identical": false,
+      "max_displacement_angstrom": 0.00031261184284919844,
+      "measure_per_atom_relative_error": 0.0,
+      "lattice_relative_tolerance": 0.0002602950668024891,
+      "scale_normalization": false,
+      "periodic_dimension": 3,
+      "normalized_rms_displacement": 5.607292347501432e-05,
+      "source_cif_sha256": "4c05553fd6acfcd0684ed5be2d685276fcc13b5c2ff3215edb3fc601c44eeee5",
+      "encoding_sha256": "d4b45aa014ce04d0afe7b91f17750b6700eb9d9ac98400b641f23aba2ba5601b"
+    }
+  }
+}

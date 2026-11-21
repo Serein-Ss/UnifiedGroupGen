@@ -5,7 +5,7 @@ from functools import lru_cache
 import numpy as np
 from scipy.linalg import expm
 
-from unifiedgroupgen.group_constraints.compiler import CompiledDescriptor, Descriptor, OrbitSpec, group_table, metric_chart
+from unifiedgroupgen.group_constraints.compiler import CompiledDescriptor, Descriptor, OrbitSpec, catalog_operations, group_table, metric_chart
 
 
 @lru_cache(maxsize=128)
@@ -29,12 +29,7 @@ def expand_numpy(compiled, state):
 
 def action_statistics(compiled, coords, lattice):
     """Check each orbit from its anchor under every operation; no dense 3N constraint matrix."""
-    operations = group_table(compiled.descriptor.kind, compiled.descriptor.number)[0].ops
-    rotations = np.stack([op.rotation_matrix.copy() for op in operations])
-    translations = np.stack([op.translation_vector.copy() for op in operations])
-    if compiled.descriptor.kind == 'plane':
-        rotations[:, 2] = [0, 0, 1]
-        translations[:, 2] = 0
+    rotations, translations = map(np.stack, zip(*catalog_operations(compiled.descriptor.kind, compiled.descriptor.number)))
     closure, tangent = 0.0, 0.0
     ranks, nullities = [], []
     for index, basis in enumerate(compiled.blocks):
@@ -101,10 +96,10 @@ def audit_record(record, seed=182, path_points=3):
     return result
 
 
-def audit_catalog(seed=182, kinds=('space', 'layer', 'plane')):
+def audit_catalog(seed=182, kinds=('space', 'layer', 'plane', 'rod')):
     """Exhaust all catalog groups and single-orbit types; multi-orbit lists are unbounded."""
     rng = np.random.default_rng(seed)
-    for kind, limit in (('space', 230), ('layer', 80), ('plane', 17)):
+    for kind, limit in (('space', 230), ('layer', 80), ('plane', 17), ('rod', 75)):
         if kind not in kinds:
             continue
         for number in range(1, limit+1):

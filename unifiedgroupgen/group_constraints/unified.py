@@ -1,6 +1,6 @@
 """Operator-based constraints for the shared, variable-size atom-graph model.
 
-The legacy descriptor compiler remains unchanged. Coordinates use its convention:
+The canonical data decoder and operation compiler share the coordinate convention:
 fractional periodic components and real nonperiodic components (angstrom).
 """
 from dataclasses import dataclass
@@ -9,7 +9,7 @@ import numpy as np
 import torch
 from scipy.optimize import linear_sum_assignment
 from unifiedgroupgen.group_constraints.compiler import (
-    group_table, wp_arrays, metric_chart, _symmetric_basis, _sqrt_spd,
+    GROUP_PERIODIC, catalog_operations, group_table, wp_arrays, metric_chart, _symmetric_basis, _sqrt_spd,
 )
 
 
@@ -68,6 +68,8 @@ class SymmetrySpec:
         rank = sum(self.periodic)
         if tuple(self.periodic) != tuple(i < rank for i in range(3)):
             raise ValueError('Use an adapted frame with periodic directions first')
+        if self.kind == 'rod' and (rank != 1 or self.dimension != 3):
+            raise ValueError('A rod group requires one periodic axis in three dimensions')
         if not self.operations or not self.templates:
             raise ValueError('Operations and orbit templates must be nonempty')
         if len({w.letter for w in self.templates}) != len(self.templates):
@@ -122,11 +124,11 @@ class SymmetrySpec:
                     spin_generators=self.spin_generators)
 
     @classmethod
-    def from_dict(cls, data):
+    def from_dict(cls, data, *, _compiled=False):
         if 'templates' not in data:
             from unifiedgroupgen.group_constraints.operations import compile_request
             return compile_request(data)
-        return cls(data['kind'], int(data.get('number', 0)), tuple(data['periodic']),
+        values=(data['kind'], int(data.get('number', 0)), tuple(data['periodic']),
                    int(data.get('dimension', 3)),
                    tuple(Operation(_matrix(o['rotation']), tuple(o['translation']),
                                    None if o.get('spin') is None else _matrix(o['spin']),
@@ -135,6 +137,12 @@ class SymmetrySpec:
                                        _matrix(w['offset'])) for w in data['templates']),
                    bool(data.get('magnetic', False)),
                    tuple(_matrix(g) for g in data.get('spin_generators', ())))
+        if not _compiled:return cls(*values)
+        # Only the checksummed, already compiled Tensor cache uses this path.
+        # Raw user-supplied operations still run the normal constructor checks.
+        result=object.__new__(cls)
+        for name,value in zip(cls.__dataclass_fields__,values):object.__setattr__(result,name,value)
+        return result
 
     @classmethod
     def magnetic_database(cls, uni_number, templates=None):
@@ -163,19 +171,13 @@ class SymmetrySpec:
 @lru_cache(maxsize=512)
 def catalog_spec(kind, number):
     table = group_table(kind, number)
-    operations = []
-    for op in table[0].ops:
-        r, t = op.rotation_matrix.copy(), op.translation_vector.copy()
-        if kind == 'plane':
-            r[2] = (0, 0, 1)
-            t[2] = 0
-        operations.append(Operation(_matrix(r), tuple(t)))
+    operations = tuple(Operation(_matrix(r), tuple(t)) for r, t in catalog_operations(kind, number))
     templates = []
     for wp in table:
         a, b, _ = wp_arrays(kind, number, wp.letter)
         templates.append(OrbitTemplate(wp.letter,
                          tuple(tuple(tuple(v) for v in row) for row in a), _matrix(b)))
-    return SymmetrySpec(kind, number, (True, True, kind == 'space'),
+    return SymmetrySpec(kind, number, GROUP_PERIODIC[kind],
                         2 if kind == 'plane' else 3, tuple(operations), tuple(templates))
 
 
@@ -185,7 +187,7 @@ def _metric_data(spec):
     if not d:
         return np.zeros((0, 0)), np.zeros((0, 0, 0)), np.zeros((0, 0, 0))
     standard = _symmetric_basis(d)
-    if (spec.kind in ('space', 'layer', 'plane') and spec.number > 0
+    if (spec.kind in GROUP_PERIODIC and spec.number > 0
             and {op.rotation for op in spec.operations} == {op.rotation for op in catalog_spec(spec.kind, spec.number).operations}):
         root, _, basis = metric_chart(spec.kind, spec.number)
         return root, basis, standard

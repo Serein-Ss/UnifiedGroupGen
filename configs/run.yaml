@@ -1,16 +1,14 @@
 defaults:
-- data: mp20
-- model: default
+- data: mp20_unified
+- model: joint_flow_equiformer
 - conditioning: none
 - optim: default
-- loss: default
-- train: default
+- train: joint_flow
 - logging: wandb
-- learning: legacy
-- prior: legacy
-- runtime: rtx4090_crystal
+- runtime: local
 - _self_
-- experiment: new_joint_u
+- experiment: full_mp20_eqv2_dng
+- optional ablation: null
 - override hydra/job_logging: disabled
 task: train
 experiment_name: training
@@ -30,6 +28,3 @@ hydra:
   sweep:
     dir: intermediate/hydra_sweeps/${now:%y-%m-%d-%H-%M-%S}
     subdir: ${hydra.job.num}
-experiment:
-  experiment_id: ${experiment_name}
-  experiment_family: main15_source_integrity_v1

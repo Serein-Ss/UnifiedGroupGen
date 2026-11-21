@@ -32,21 +32,25 @@ def layer_structure(structure, height=None):
 def composition_validity(structure, maximum_combinations=10_000_000):
     """Same unary/alloy exceptions, charge neutrality and Pauling test as prior CGDiT."""
     import smact
+    from smact.data_loader import lookup_element_data, lookup_element_oxidation_states_icsd24
     from smact.screening import pauling_test
     counts = Counter(structure.atomic_numbers)
     numbers = sorted(counts)
     symbols = [Element.from_Z(z).symbol for z in numbers]
     if len(symbols) == 1 or all(symbol in smact.metals for symbol in symbols):
         return True, None
-    elements = smact.element_dictionary(symbols)
-    oxidation = [elements[symbol].oxidation_states for symbol in symbols]
+    # Use the same tables as SMACT Element, without loading its unrelated HHI data.
+    oxidation = [lookup_element_oxidation_states_icsd24(symbol) for symbol in symbols]
     if not all(oxidation):
         return None, 'Missing oxidation-state data'
     if np.prod([len(states) for states in oxidation], dtype=float) > maximum_combinations:
         return None, 'Oxidation-state search budget exceeded'
     amounts = np.array([counts[z] for z in numbers])
     amounts //= np.gcd.reduce(amounts)
-    electronegativities = [elements[s].pauling_eneg for s in symbols]
+    element_data = [lookup_element_data(symbol) for symbol in symbols]
+    if any(data is None for data in element_data):
+        return None, 'Missing SMACT elemental data'
+    electronegativities = [data['el_neg'] for data in element_data]
     for states in itertools.product(*oxidation):
         balanced, _ = smact.neutral_ratios(states, stoichs=[(int(n),) for n in amounts], threshold=int(amounts.max()))
         if balanced:
@@ -69,7 +73,7 @@ def geometry_metrics(structure, kind, cutoff=0.5, radius_ratio=0.6):
     np.fill_diagonal(distances, np.inf)
     pair_min = float(distances.min()) if len(structure)>1 else None
     standard = (pair_min is None or pair_min >= cutoff) and structure.volume >= 0.1
-    # Unlike the legacy matrix check, this includes an atom's own periodic images.
+    # This includes an atom's own periodic images.
     _, _, _, short_distances = structure.get_neighbor_list(cutoff)
     periodic_valid = not np.any(short_distances < cutoff-1e-10)
     radii = []
@@ -83,7 +87,7 @@ def geometry_metrics(structure, kind, cutoff=0.5, radius_ratio=0.6):
         radius_valid = bool(np.all(dd >= radius_ratio*sums))
         selected = dd <= 1.2*sums
         connectivity_rank = periodic_connectivity(len(structure), centers[selected], neighbors[selected], images[selected])
-    result = {'legacy_structural_valid': bool(standard), 'periodic_distance_valid': bool(periodic_valid),
+    result = {'pair_distance_volume_valid': bool(standard), 'periodic_distance_valid': bool(periodic_valid),
               'radius_distance_valid': radius_valid, 'minimum_pair_distance_angstrom': pair_min,
               'periodic_connectivity_rank': connectivity_rank,
               'num_elements': len(set(structure.atomic_numbers)), 'atoms': len(structure),
@@ -201,7 +205,7 @@ def fingerprints(structure, kind):
 
 
 def coverage(generated, reference, attempted, reference_requested, structural_cutoff=0.4, composition_cutoff=10.0):
-    """Preserve legacy independent nearest-distance coverage; bound distance-matrix memory."""
+    """Compute independent nearest-distance coverage; bound distance-matrix memory."""
     if not generated or not reference:
         return {'status': 'unavailable', 'cov_recall': None, 'cov_precision': None}
     gs, gc = map(np.array, zip(*generated))
@@ -237,7 +241,7 @@ def quantiles(values):
 def validity_summary(rows):
     total = len(rows)
     result = {'attempted': total, 'generated': sum(r.get('generated', False) for r in rows)}
-    for name in ('legacy_structural_valid', 'periodic_distance_valid', 'radius_distance_valid',
+    for name in ('pair_distance_volume_valid', 'periodic_distance_valid', 'radius_distance_valid',
                  'composition_valid', 'joint_valid', 'exact_target_group', 'unique', 'novel_against_reference'):
         known = [r[name] for r in rows if r.get(name) is not None]
         success = sum(bool(x) for x in known)
@@ -402,7 +406,7 @@ def frechet_distance(a, b):
 
 def population_metrics(rows, reference_rows, generated_fp, reference_fp, attempted, cutoffs):
     result = {'coverage': {
-        'legacy_independent_nn': coverage(generated_fp, reference_fp, attempted, len(reference_rows), *cutoffs),
+        'independent_nn': coverage(generated_fp, reference_fp, attempted, len(reference_rows), *cutoffs),
         'joint_neighbor': joint_coverage(generated_fp, reference_fp, attempted, len(reference_rows), *cutoffs)},
         'distributions': {}}
     for key in DISTRIBUTIONS:
@@ -429,16 +433,16 @@ DISTRIBUTIONS = ('atoms', 'num_elements', 'density_g_cm3', 'atomic_density_angst
 
 
 PROFILES = {
-    'legacy_ugg_v1': {'ltol': .2, 'stol': .3, 'angle_tol': 5, 'scale': False},
+    'strict': {'ltol': .2, 'stol': .3, 'angle_tol': 5, 'scale': False},
     'diffcsp_v1': {'ltol': .3, 'stol': .5, 'angle_tol': 10, 'scale': True},
 }
 PROFILE_LABELS = {
-    'legacy_ugg_v1':'Strict: ltol=0.2, stol=0.3, angle=5 deg, scale=False',
+    'strict':'Strict: ltol=0.2, stol=0.3, angle=5 deg, scale=False',
     'diffcsp_v1':'DiffCSP: ltol=0.3, stol=0.5, angle=10 deg, scale=True (3D)',
 }
 
 
-def match_pair(prediction, reference, kind, profile='legacy_ugg_v1'):
+def match_pair(prediction, reference, kind, profile='strict'):
     spec = PROFILES[profile]
     result = {'match': False, 'rmse_normalized': None, 'rmsd_angstrom': None,
               'length_relative_error': None, 'angle_mae_degrees': None,

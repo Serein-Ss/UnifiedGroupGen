@@ -1,0 +1,4 @@
+# @package _global_
+train:
+  orbit_ablation: fixed_orbits
+  early_stopping: null

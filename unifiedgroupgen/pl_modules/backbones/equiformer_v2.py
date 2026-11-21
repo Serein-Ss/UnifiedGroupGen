@@ -2,7 +2,7 @@
 from types import MethodType
 import torch
 from torch import nn
-from .periodic_graph import geometry, radius_graph, fractional_vectors
+from unifiedgroupgen.common.data_utils import geometry, radius_graph, fractional_vectors
 
 
 class EquiformerV2Backbone(nn.Module):

@@ -10,9 +10,10 @@ import sys
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
-from submit_files.hpc5090 import snapshot, read, write
+from submit_files.common import snapshot, read, write
 
 CATALOG='configs/experiments_joint_flow_full.yaml'
+CAMPAIGN_SCHEMA='ugg_joint_flow_full_5090_v3'
 
 
 def catalog():
@@ -27,11 +28,61 @@ def selection(data,models=None):
     return models
 
 
-def plan(models=None):
-    data=catalog();chosen=selection(data,models)
-    return dict(selected=chosen,jobs=len(chosen),phase='audit_calibrate_train',calibration=data['calibration'],
-                resources=data['resources'],available=data['experiments'],
-                local_training_started=False)
+def main_selection(data, models=None):
+    allowed = data['paper']['main_models']
+    chosen = selection(data, allowed if models is None else models)
+    if set(chosen) - set(allowed):
+        raise ValueError('Main experiments are full EquiformerV2 DNG/CSP on MP-20, C2DB-51 or both')
+    return chosen
+
+
+def planned_entries(data, models=None, paper=None):
+    if paper is None:
+        chosen = selection(data, models)
+        comparison = data['backbone_comparison']
+        paired = set(chosen) & set(comparison['models'])
+        if paired and paired != set(chosen):
+            raise ValueError('Select the backbone comparison and the other models in separate campaigns')
+        policy = {**data['calibration'], 'candidates': [comparison['batch_size']]} if paired else data['calibration']
+        return {name: data['experiments'][name] for name in chosen}, policy
+    settings = data['paper']
+    chosen = selection(data, settings['models'] if models is None else models)
+    if set(chosen) - set(settings['models']):
+        raise ValueError('The paired matrix supports the four MP-20/C2DB-51 EquiformerV2 tasks')
+    seeds = paper.get('seeds') or settings['seeds']
+    if len(set(seeds)) != len(seeds) or not all(0 <= seed < 2**32 for seed in seeds):
+        raise ValueError('Select distinct unsigned 32-bit training seeds')
+    max_steps, batch_size = (paper[k] for k in ('max_steps','batch_size'))
+    if min(max_steps, batch_size) < 1:
+        raise ValueError('Paired runs need positive max steps and batch size')
+    entries = {}
+    for mode in settings['ablations']:
+        for model in chosen:
+            for seed in seeds:
+                name = f'{model}_{mode}_s{seed}'
+                entries[name] = {**data['experiments'][model], 'seed': seed, 'ablation': mode, 'max_steps': max_steps}
+    # Each arm must pass the same candidate. The worker may never pick a different runtime.
+    return entries, {**data['calibration'], 'candidates': [batch_size]}
+
+
+def entry_overrides(entry):
+    if 'ablation' not in entry:
+        return []
+    return [f"ablation={entry['ablation']}", f"train.joint_max_steps={entry['max_steps']}"]
+
+
+def run_overrides(campaign, model):
+    certificate = f"intermediate/hpc_runs/{campaign['name']}/audits/{model}.json"
+    return [*entry_overrides(campaign['entries'][model]), 'data.data_audit='+certificate]
+
+
+def plan(models=None, paper=None):
+    data=catalog();entries,policy=planned_entries(data,models,paper)
+    result = dict(selected=list(entries),jobs=len(entries),phase='audit_calibrate_train',calibration=policy,
+                  resources=data['resources'],available=data['experiments'],local_training_started=False)
+    if paper is not None:
+        result['entries'] = entries
+    return result
 
 
 def output(campaign,model):
@@ -40,31 +91,35 @@ def output(campaign,model):
 
 def complete(campaign,model):
     path=output(campaign,model);status=path.with_suffix('.status.json')
-    if not status.exists() or read(status).get('state')!='complete':return False
+    state = read(status) if status.exists() else {}
+    if state.get('state')!='complete':return False
+    budget = campaign['entries'][model].get('max_steps')
+    if budget is not None and state.get('global_step') != budget:
+        raise ValueError('Paired run finished outside the required optimization budget: '+str(path.parent))
     if not all((path.parent/name).is_file() for name in ('model.pt','last.ckpt','best.ckpt')):
         raise ValueError('Completed run lacks required checkpoints: '+str(path.parent))
     return True
 
 
 def audit_command(campaign,model):
-    entry=campaign['entries'][model];selector=entry['experiment']
-    audit='data.data_audit=intermediate/hpc_runs/'+campaign['name']+'/audits/'+model+'.json'
-    return [sys.executable,'-u','-m','unifiedgroupgen.joint','audit','--experiment',selector,'--override',audit]
+    entry = campaign['entries'][model]
+    overrides = [argument for item in run_overrides(campaign, model) for argument in ('--override', item)]
+    return [sys.executable,'-u','-m','unifiedgroupgen.joint','audit','--experiment',entry['experiment'],*overrides]
 
 
 def commands(campaign,model):
     audit=audit_command(campaign,model)
-    selector=campaign['entries'][model]['experiment']
+    entry=campaign['entries'][model]
     path=output(campaign,model);last=path.parent/'last.ckpt'
-    train_command=[sys.executable,'-u','-m','unifiedgroupgen.run','experiment='+selector,
-                   audit[-1],'device=cuda:0','seed=42','threads=4','logging.mode=offline',
-                   'output='+str(path)]
+    train_command=[sys.executable,'-u','-m','unifiedgroupgen.run','experiment='+entry['experiment'],
+                   *run_overrides(campaign,model),'device=cuda:0',f"seed={entry.get('seed',42)}",'threads=4',
+                   'logging.mode=offline','output='+str(path)]
     profile=Path(campaign['root'])/'intermediate/hpc_runs'/campaign['name']/'profiles'/(model+'.json')
     if profile.is_file():
         from submit_files.joint_flow5090_calibrate import identity,validate_profile
         audit_report=read(profile.parent.parent/'audits'/(model+'.json'))
         chosen=validate_profile(read(profile),identity(campaign,model,audit_report))
-        train_command+=['runtime.batch_size='+str(chosen['batch_size']),'runtime.edge_budget='+str(chosen['edge_budget'])]
+        train_command+=['runtime.batch_size='+str(chosen['batch_size'])]
     elif last.is_file():raise ValueError('Resume requires the original batch calibration profile')
     if last.is_file():train_command.append('resume='+str(last))
     elif any((path.parent/name).exists() for name in ('model.pt','best.ckpt','model.history.jsonl','model.status.json')):
@@ -72,7 +127,7 @@ def commands(campaign,model):
     return audit,train_command
 
 
-def submit(name,models=None,retry=False):
+def submit(name,models=None,retry=False,paper=None):
     from filelock import FileLock
     if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]*',name):
         raise ValueError('Use a single alphanumeric campaign name')
@@ -81,22 +136,26 @@ def submit(name,models=None,retry=False):
     with FileLock(str(base/(name+'.submit.lock')),timeout=0):
         if manifest.exists():
             campaign=read(manifest)
-            if campaign.get('schema')!='ugg_joint_flow_full_5090_v2':
-                raise ValueError('Use a new campaign name for FP32/calibrated training; old frozen runs are preserved')
-            if models is not None and list(models)!=campaign['models']:
+            if campaign.get('schema')!=CAMPAIGN_SCHEMA:
+                raise ValueError('Use a new campaign name for fixed-size batches or retry with the original frozen submitter')
+            if paper is not None:
+                entries, policy = planned_entries(catalog(), models, paper)
+                if list(entries) != campaign['models'] or entries != campaign['entries'] or policy != campaign['calibration']:
+                    raise ValueError('Paired settings are frozen; use a new campaign name')
+            elif models is not None and list(models)!=campaign['models']:
                 raise ValueError('Selection is frozen; use a new campaign name')
         else:
             if folder.exists():raise FileExistsError('Partial campaign exists; inspect it or use a new name')
-            data=catalog();chosen=selection(data,models)
+            data=catalog();entries,policy=planned_entries(data,models,paper)
             tracked=['unifiedgroupgen','configs','scripts','submit_files']
             subprocess.run(['git','diff','--quiet','HEAD','--',*tracked],cwd=ROOT,check=True)
             untracked=subprocess.check_output(['git','ls-files','--others','--exclude-standard','--',*tracked],cwd=ROOT,text=True)
             if untracked.strip():raise ValueError('Commit runtime source before freezing: '+untracked.strip())
             revision=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
             folder.mkdir();source=snapshot(ROOT,folder,revision)
-            campaign=dict(schema='ugg_joint_flow_full_5090_v2',name=name,root=str(ROOT),
-                          source=str(source),revision=revision,models=chosen,
-                          entries={m:data['experiments'][m] for m in chosen},resources=data['resources'],calibration=data['calibration'])
+            campaign=dict(schema=CAMPAIGN_SCHEMA,name=name,root=str(ROOT),
+                          source=str(source),revision=revision,models=list(entries),
+                          entries=entries,resources=data['resources'],calibration=policy)
             write(manifest,campaign)
         (folder/'logs').mkdir(exist_ok=True)
         jobs_path=folder/'submitted.json'
@@ -115,7 +174,7 @@ def submit(name,models=None,retry=False):
                      str(Path(campaign['source'])/'submit_files/joint_flow5090.sbatch'),
                      '--campaign',str(manifest),'--model',model]
             job=subprocess.check_output(command,cwd=ROOT,
-                env={**os.environ,'UGG_GIT_COMMIT':campaign['revision']},text=True).strip().split(';')[0]
+                env={**os.environ,'UGG_GIT_COMMIT':campaign['revision'],'UGG_PROJECT_ROOT':campaign['root']},text=True).strip().split(';')[0]
             if not job.isdigit():raise RuntimeError('Unexpected yhbatch job ID: '+job)
             jobs[model]=job;write(jobs_path,jobs)
             with (folder/'submission_history.jsonl').open('a',encoding='utf-8') as stream:
@@ -137,7 +196,7 @@ def device_info():
 def run_worker(campaign_path,model):
     from filelock import FileLock
     campaign=read(campaign_path)
-    if campaign.get('schema')!='ugg_joint_flow_full_5090_v2' or model not in campaign['models']:
+    if campaign.get('schema')!=CAMPAIGN_SCHEMA or model not in campaign['models']:
         raise ValueError('Model is not selected in this full-flow campaign')
     if ROOT.resolve()!=Path(campaign['source']).resolve():
         raise ValueError('Run workers from the frozen source directory')
@@ -168,14 +227,39 @@ def run_worker(campaign_path,model):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__);commands_parser=parser.add_subparsers(dest='action',required=True)
-    p=commands_parser.add_parser('plan');p.add_argument('--models',nargs='+')
-    p=commands_parser.add_parser('submit');p.add_argument('--name',required=True);p.add_argument('--models',nargs='+')
-    p.add_argument('--retry',action='store_true',help='After old jobs end, resubmit incomplete models using frozen source and last.ckpt')
+    for action in ('plan', 'submit'):
+        p=commands_parser.add_parser(action)
+        p.add_argument('--models',nargs='+')
+        mode=p.add_mutually_exclusive_group()
+        mode.add_argument('--main',action='store_true',help='Select the six full-model runs at seed 42')
+        mode.add_argument('--backbones',action='store_true',help='Select the four matched MP-20 backbone/task runs')
+        mode.add_argument('--paper',action='store_true',help='Use the matched EquiformerV2 ablation matrix')
+        p.add_argument('--seeds',nargs='+',type=int)
+        p.add_argument('--max-steps',type=int)
+        p.add_argument('--batch-size',type=int)
+        if action == 'submit':
+            p.add_argument('--name',required=True)
+            p.add_argument('--retry',action='store_true',help='Reuse the frozen campaign after its old jobs end')
     p=commands_parser.add_parser('run');p.add_argument('--campaign',required=True);p.add_argument('--model',required=True)
     args=parser.parse_args()
-    if args.action=='plan':print(json.dumps(plan(args.models),ensure_ascii=False,indent=2))
-    elif args.action=='submit':submit(args.name,args.models,args.retry)
-    else:run_worker(args.campaign,args.model)
+    if args.action=='run':
+        return run_worker(args.campaign,args.model)
+    paper=None
+    if args.paper:
+        if None in (args.max_steps,args.batch_size):
+            parser.error('--paper requires --max-steps and --batch-size')
+        paper=dict(seeds=args.seeds,max_steps=args.max_steps,batch_size=args.batch_size)
+    elif any(value is not None for value in (args.seeds,args.max_steps,args.batch_size)):
+        parser.error('Budget and seed overrides require --paper')
+    models=main_selection(catalog(),args.models) if args.main else args.models
+    if args.backbones:
+        if args.models is not None:
+            parser.error('--backbones selects the four matching configurations without --models')
+        models=catalog()['backbone_comparison']['models']
+    if args.action=='plan':
+        print(json.dumps(plan(models,paper),ensure_ascii=False,indent=2))
+    else:
+        submit(args.name,models,args.retry,paper)
 
 
 if __name__=='__main__':main()

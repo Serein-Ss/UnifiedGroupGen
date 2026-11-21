@@ -6,12 +6,14 @@ import statistics
 import time
 from pathlib import Path
 import torch
-from unifiedgroupgen.common.configuration import project_root,compose_experiment,training_definition
+from unifiedgroupgen.common.configuration import project_root
+from unifiedgroupgen.experiment_config import compose_experiment, training_definition
 from unifiedgroupgen.pl_modules.factory import build_joint_model
-from unifiedgroupgen.pl_data.joint_path import target_from_record
-from unifiedgroupgen.pl_data.task_path import task_target
-from unifiedgroupgen.joint_flow.path import sample_path
-from unifiedgroupgen.joint_flow.objective import loss
+from unifiedgroupgen.common.data_utils import target_from_record
+from unifiedgroupgen.pl_data.cache import cache_paths, records_from_cache
+from unifiedgroupgen.pl_data.unified.tasks import task_target
+from unifiedgroupgen.pl_data.unified.path import sample_path
+from unifiedgroupgen.pl_modules.unified.objectives import loss
 
 
 def main():
@@ -31,11 +33,12 @@ def main():
     for dataset,tag in [('mp_20','mp20'),('c2db_51','c2db51')]:
         cfg=training_definition(compose_experiment('flow_'+tag+'_dng'));cfg['chemical_set_probability']=0.
         records=[]
-        with (root/'data/dataset/full_verified_v1'/dataset/'train.jsonl').open(encoding='utf-8') as stream:
-            for line in stream:
-                row=json.loads(line);target=target_from_record(row,operation_compiler=True)
-                if target.state.num_atoms<=24:records.append((row,target))
-                if len(records)==args.records:break
+        for row in records_from_cache(cache_paths(cfg, 'train', root)[0]):
+            target = target_from_record(row, operation_compiler=True)
+            if target.state.num_atoms <= 24:
+                records.append((row, target))
+            if len(records) == args.records:
+                break
         cfg['allowed_elements']=sorted({z for _,t in records for z in t.state.elements})
         if not args.reference_model:cfg['model'].update(hidden=32,channels=32,layers=2,lmax=2,mmax=1)
         samples=[sample_path(task_target(t,cfg,31+i),31+i,time=.8,allowed_elements=cfg['allowed_elements'],augment=False).to(args.device) for i,(_,t) in enumerate(records)]

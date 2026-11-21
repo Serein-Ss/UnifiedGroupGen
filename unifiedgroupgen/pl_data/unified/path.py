@@ -3,7 +3,8 @@ from dataclasses import dataclass, replace
 import numpy as np
 import torch
 from unifiedgroupgen.group_constraints.state import JointAction
-from unifiedgroupgen.pl_data.programs import _program
+from unifiedgroupgen.pl_data.programs import inventory_program
+from unifiedgroupgen.pl_data.orbit_order import endpoint_orbit_order
 from unifiedgroupgen.group_constraints.flow_state import initial, apply
 
 @dataclass
@@ -18,40 +19,33 @@ class FlowSample:
     properties: dict
     identity: str
     trajectory: tuple = ()
+    reference_orbits: tuple[bool, ...] | None = None
 
     def to(self, device, dtype=None):
         return replace(self,state=self.state.to(device,dtype),
                        metric_anchor=self.metric_anchor.to(device=device,dtype=dtype),
                        coordinate_anchor=self.coordinate_anchor.to(device=device,dtype=dtype))
 
-def sample_path(target, seed, time=None, allowed_elements=None, max_atoms=192,max_orbits=52,
-                budget=96,augment=True,birth_scale=.2):
-    # Only the program stream participates in budget fallback. Clock/noise
-    # streams are independent children and are sampled after the final program.
-    streams=np.random.SeedSequence(int(seed)).spawn(6)
-    rng=np.random.default_rng(streams[0])
+def orbit_program(target, rng, allowed, max_atoms, max_orbits, budget, augment, orbit_order='random'):
+    """Build the teacher edits using chemistry, independent of property labels."""
     endpoint=target.state
-    allowed=endpoint.chemistry.domain(allowed_elements or sorted(set(endpoint.elements)))
-    if endpoint.num_atoms>max_atoms or len(endpoint.letters)>max_orbits:
-        raise ValueError('Endpoint exceeds model limits')
-    if set(endpoint.elements)-set(allowed):
-        raise ValueError('Endpoint element outside TRAIN domain')
     anchors={i:x for i,x in enumerate(endpoint.coordinates.split([w.multiplicity for w in endpoint.compiled.templates]))}
     labels={i:z for i,z in enumerate(endpoint.elements)}
     program=[];roles=[];letters=[]
     if endpoint.chemistry.counts:
         # Exact formula retains its coupled, typed, inventory-conserving trajectory.
-        legacy, values=_program(target,rng,allowed,max_atoms,max_orbits,budget,False)
+        inventory, values=inventory_program(target,rng,allowed,max_atoms,max_orbits,budget,False,orbit_order)
         anchors={i:v[0] for i,v in values.items()}
-        for entry in legacy:
+        for entry in inventory:
             program.append((replace(entry.action,kind='freeze') if entry.action.kind=='end' else entry.action,entry.roles))
     else:
         ghost=-1
-        for j in rng.permutation(len(endpoint.letters)):
+        for j in endpoint_orbit_order(endpoint,rng,orbit_order):
             letter=endpoint.letters[j]
+            occupied_atoms=sum(endpoint.spec.template(s).multiplicity for s in letters)
             if augment and roles and rng.random()<.25 and len(roles)<max_orbits:
                 w=endpoint.spec.template(letter)
-                if sum(endpoint.spec.template(s).multiplicity for s in letters)+w.multiplicity<=max_atoms and (w.dof or letter not in letters):
+                if occupied_atoms+w.multiplicity<=max_atoms and (w.dof or letter not in letters):
                     a,b=w.arrays()
                     anchors[ghost]=endpoint.metric.new_tensor(b+np.einsum('nbq,q->nb',a,rng.normal(0,.2,w.dof)))
                     labels[ghost]=int(rng.choice(allowed))
@@ -61,7 +55,7 @@ def sample_path(target, seed, time=None, allowed_elements=None, max_atoms=192,ma
                     roles.pop();letters.pop();ghost-=1
             wrong=[w for w in endpoint.spec.templates if w.letter!=letter
                    and (w.dof or w.letter not in letters)
-                   and sum(endpoint.spec.template(s).multiplicity for s in letters)+w.multiplicity<=max_atoms]
+                   and occupied_atoms+w.multiplicity<=max_atoms] if augment else []
             if augment and wrong and len(roles)<max_orbits and rng.random()<.2:
                 w=wrong[int(rng.integers(len(wrong)))]
                 a,b=w.arrays()
@@ -78,9 +72,24 @@ def sample_path(target, seed, time=None, allowed_elements=None, max_atoms=192,ma
                     if parents and rng.random()<.5 else JointAction('birth',letter=letter))
             roles.append(int(j));letters.append(letter);program.append((action,tuple(roles)))
         program.append((JointAction('freeze'),tuple(roles)))
+    return program, anchors, labels
+
+
+def sample_path(target, seed, time=None, allowed_elements=None, max_atoms=192,max_orbits=52,
+                budget=96,augment=True,birth_scale=.2,orbit_order='random',orbit_ablation='joint'):
+    streams=np.random.SeedSequence(int(seed)).spawn(6)
+    endpoint=target.state
+    allowed=endpoint.chemistry.domain(allowed_elements or sorted(set(endpoint.elements)))
+    if endpoint.num_atoms>max_atoms or len(endpoint.letters)>max_orbits:
+        raise ValueError('Endpoint exceeds model limits')
+    if set(endpoint.elements)-set(allowed):
+        raise ValueError('Endpoint element outside TRAIN domain')
+    program,anchors,labels=orbit_program(target,np.random.default_rng(streams[0]),allowed,
+                                         max_atoms,max_orbits,budget,augment,orbit_order)
     if len(program)>budget-2:
         if augment:
-            return sample_path(target,seed,time,allowed_elements,max_atoms,max_orbits,budget,False,birth_scale)
+            return sample_path(target,seed,time,allowed_elements,max_atoms,max_orbits,budget,False,
+                               birth_scale,orbit_order,orbit_ablation)
         raise ValueError('Orbit event budget cannot represent endpoint')
     time_rng=np.random.default_rng(streams[1])
     event_rng=np.random.default_rng(streams[2])
@@ -95,6 +104,8 @@ def sample_path(target, seed, time=None, allowed_elements=None, max_atoms=192,ma
     state=initial(endpoint.spec,initial_generator,budget,endpoint.chemistry,endpoint.metric.device,endpoint.metric.dtype)
     roles=();births={};last=0.;completed=0
     def bridge(s,stop):
+        if orbit_ablation == 'fixed_orbits' and (not s.frozen or stop == last):
+            return s
         x=torch.cat([anchors[i] for i in roles]) if roles else s.coordinates.new_zeros((0,3))
         ratio=(1-stop)/(1-last)
         return replace(s,metric=endpoint.metric+(s.metric-endpoint.metric)*ratio,
@@ -114,7 +125,11 @@ def sample_path(target, seed, time=None, allowed_elements=None, max_atoms=192,ma
             elements.append(labels[role] if u<=(t-birth)/(1-birth) else 0)
         state=replace(state,elements=tuple(elements))
     x=torch.cat([anchors[i] for i in roles]) if roles else state.coordinates.new_zeros((0,3))
-    return FlowSample(state,t,endpoint.metric,x,tuple(labels[i] for i in roles) if not endpoint.chemistry.counts else state.elements,
+    metric_anchor = endpoint.metric
+    if orbit_ablation == 'fixed_orbits' and not state.frozen:
+        metric_anchor, x = state.metric, state.coordinates
+    return FlowSample(state,t,metric_anchor,x,tuple(labels[i] for i in roles) if not endpoint.chemistry.counts else state.elements,
                       len(program)-completed,program[completed][0] if completed<len(program) else None,
                       target.properties,target.identity,
-                      tuple(dict(time=float(tau),action=a.to_dict()) for tau,(a,_) in zip(times,program)))
+                      tuple(dict(time=float(tau),action=a.to_dict()) for tau,(a,_) in zip(times,program)),
+                      reference_orbits=tuple(role >= 0 for role in roles))

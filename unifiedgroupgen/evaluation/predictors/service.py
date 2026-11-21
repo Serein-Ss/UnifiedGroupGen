@@ -17,9 +17,6 @@ def external_cif_hashes(records):
         if 'cif' in record:
             continue
         name = record.get('cif_path')
-        if name is None and record.get('status') == 'generated' and 'index' in record:
-            candidate = base/f"sample_{int(record['index']):05d}.cif"
-            if candidate.exists(): name = candidate
         if name:
             path = Path(name)
             path = path if path.is_absolute() else base/path

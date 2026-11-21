@@ -1,5 +1,5 @@
 defaults:
-- joint_symmetry
+- local
 - _self_
 # Opt-in CUDA execution settings; architecture and probability path unchanged.
 precision: bf16

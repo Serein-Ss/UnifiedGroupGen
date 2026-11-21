@@ -1,0 +1,8 @@
+batch_size: 4
+precision: fp32
+strict_fp32: false
+fused_adamw: false
+log_every_n_steps: 1
+joint_train_limit: null
+joint_val_limit: null
+joint_max_steps: null

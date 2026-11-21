@@ -35,7 +35,7 @@ def _q_for_point(a, b, point, periodic, tolerance, physical_lattice=None):
             yield q
 
 
-def decompose_orbits(kind, number, coords, elements, tolerance=1e-4, physical_lattice=None):
+def decompose_orbits(kind, number, coords, elements, tolerance=1e-4, physical_lattice=None, orbit_labels=None):
     """Exact-to-tolerance finite orbit matching; failures are recorded, not assigned P1."""
     periodic = np.array([True, True, kind == "space"])
     remaining = set(range(len(coords)))
@@ -44,10 +44,14 @@ def decompose_orbits(kind, number, coords, elements, tolerance=1e-4, physical_la
     while remaining:
         i = min(remaining)
         candidates = np.array(sorted(j for j in remaining if elements[j] == elements[i]))
+        if orbit_labels is not None:
+            candidates = candidates[np.asarray(orbit_labels)[candidates] == orbit_labels[i]]
         found = False
         for wp in rows:
             a, b, axes = wp_arrays(kind, number, wp.letter)
             if len(a) > len(candidates):
+                continue
+            if orbit_labels is not None and len(a) != len(candidates):
                 continue
             for j in range(len(a)):
                 for q in _q_for_point(a[j], b[j], coords[i], periodic, tolerance, physical_lattice):

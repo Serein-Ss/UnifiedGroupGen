@@ -4,7 +4,7 @@ import pytest
 import torch
 from unifiedgroupgen.group_constraints.compiler import Descriptor, OrbitSpec, compile_descriptor
 from unifiedgroupgen.group_constraints.validation import to_structure, validate, summarize_attempts
-from unifiedgroupgen.tests.native_identifier import identify_isolated
+from unifiedgroupgen.group_constraints.native_identifier import identify_isolated
 
 
 @pytest.mark.parametrize('kind,number,letter', [('space', 2, 'i'), ('layer', 37, 'r')])
@@ -33,7 +33,7 @@ def test_float32_model_outputs_support_partial_periodic_geometry(kind, number, l
 
 
 def test_native_exit_and_timeout_are_unknown_and_remain_in_sampling_denominator(monkeypatch):
-    import unifiedgroupgen.tests.native_identifier as native
+    import unifiedgroupgen.group_constraints.native_identifier as native
     compiled = compile_descriptor(Descriptor('space', 2, (OrbitSpec('i', 14),)))
     generated = compiled.expand(compiled.prior())
     monkeypatch.setattr(native.subprocess, 'run', lambda *a, **kw: SimpleNamespace(returncode=-11, stderr='native abort', stdout=''))

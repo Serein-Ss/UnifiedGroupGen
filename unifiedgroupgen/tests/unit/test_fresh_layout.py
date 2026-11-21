@@ -3,46 +3,42 @@ import json
 from pathlib import Path
 import zipfile
 
-from omegaconf import OmegaConf
 import pytest
 
-from unifiedgroupgen.common.configuration import load_experiments
+from unifiedgroupgen.experiment_config import compose_experiment, training_definition
 from unifiedgroupgen.common.configuration import resolve_path
 from scripts.data_tools.bundle import pack, unpack
 from unifiedgroupgen import run
 
 
-def test_arbitrary_experiment_and_runtime_are_yaml_driven(tmp_path):
-    (tmp_path/'model.yaml').write_text('dataset: arbitrary\nproperties: {}\n', encoding='utf-8')
-    (tmp_path/'runtime.yaml').write_text('batch_size: 13\nedge_budget: 900\n', encoding='utf-8')
-    catalog = tmp_path/'experiments.yaml'
-    catalog.write_text('experiments:\n  new_chemistry_ablation:\n    config: model.yaml\n    runtime: runtime.yaml\n', encoding='utf-8')
-    entries = load_experiments(catalog, tmp_path)
-    assert list(entries) == ['new_chemistry_ablation']
-    assert entries['new_chemistry_ablation']['runtime']['batch_size'] == 13
-    assert entries['new_chemistry_ablation']['config']['dataset'] == 'arbitrary'
-    assert sorted(p.name for p in tmp_path.iterdir()) == ['experiments.yaml', 'model.yaml', 'runtime.yaml']
-
-
-def test_training_does_not_infer_runtime_from_experiment_name(capsys):
-    cfg = OmegaConf.create(dict(task='plan', experiment_name='completely_new', device='cpu', seed=42,
-        threads=1, epochs=None, output=None, resume=None, initialize_from=None,
-        wandb=dict(mode='disabled', project='fixture'),
-        experiment=dict(dataset='new', experiment_id='not_a_known_dataset', properties={},
-                        runtime_profile=dict(batch_size=13, edge_budget=900, coordinate_length_scale=3.)),
-        runtime=dict(batch_size=None, edge_budget=None, checkpoint=None, edge_chunk_size=None,
-                     validation_interval=None, coordinate_length_scale=None)))
+def test_fresh_plan_comes_from_current_yaml_only(capsys):
+    cfg = compose_experiment('full_mp20_eqv2_dng', overrides=[
+        'task=plan', 'runtime=local', 'runtime.batch_size=13',
+    ])
+    definition = training_definition(cfg)
     run.execute(cfg)
-    assert cfg.runtime.batch_size == 13 and cfg.runtime.edge_budget == 900
-    assert cfg.runtime.coordinate_length_scale == 3.
+    assert cfg.runtime.batch_size == 13
+    assert definition['source_configs'] == {'mp_20': 'configs/sources/mp_20.yaml'}
+    assert cfg.resume is None and cfg.initialize_from is None and definition['data_audit'] is None
     assert 'PLAN ONLY' in capsys.readouterr().out
 
 
-def test_location_mapping_is_explicit_not_a_builtin_dataset_alias(tmp_path):
-    assert resolve_path('artifacts/full_verified_v1/train.jsonl', tmp_path) == tmp_path/'artifacts/full_verified_v1/train.jsonl'
+def test_old_paths_are_never_rewritten(tmp_path):
     (tmp_path/'configs').mkdir()
-    (tmp_path/'configs/paths.yaml').write_text('mounts:\n  logical_inputs: data/prepared\n', encoding='utf-8')
-    assert resolve_path('logical_inputs/train.jsonl', tmp_path) == tmp_path/'data/prepared/train.jsonl'
+    (tmp_path/'configs/paths.yaml').write_text('mounts: {logical_inputs: data/prepared}', encoding='utf-8')
+    assert resolve_path('logical_inputs/train.jsonl', tmp_path) == tmp_path/'logical_inputs/train.jsonl'
+
+
+def test_configuration_uses_active_source_with_workspace_data(monkeypatch, tmp_path):
+    from unifiedgroupgen.common import configuration
+    source, workspace = tmp_path/'source', tmp_path/'workspace'
+    monkeypatch.setattr(configuration, 'package_parent', lambda: source)
+    monkeypatch.setattr(configuration, 'project_root', lambda: workspace)
+    assert configuration.configuration_root() == workspace
+    (source/'configs').mkdir(parents=True)
+    (source/'configs/run.yaml').touch()
+    assert configuration.configuration_root() == source
+    assert configuration.resolve_path('data/src') == workspace/'data/src'
 
 
 def test_both_workflow_directories_and_fixed_experiment_code_are_absent():
@@ -52,14 +48,15 @@ def test_both_workflow_directories_and_fixed_experiment_code_are_absent():
     assert not (package/'common/experiments.py').exists()
 
 
-def test_new_layer_dataset_is_not_inferred_from_a_special_dataset_name(tmp_path):
-    from scripts.evaluate_models import build_jobs
-    records=tmp_path/'records.jsonl'
-    records.write_text(json.dumps({'id': 'a', 'dataset': 'new_layers', 'properties': {},
-        'descriptor': {'kind': 'layer'}})+'\n', encoding='utf-8')
-    config={'dataset': 'new_layers', 'properties': {}, 'test_files': [str(records)], 'train_files': [str(records)]}
-    jobs=build_jobs(config, 1, 1, 1, 1, 142)
-    assert all(job['kind']=='layer' for job in jobs if job['task']!='components')
+def test_new_layer_dataset_is_not_inferred_from_a_special_dataset_name():
+    import torch
+    from unifiedgroupgen.group_constraints.group_prior import fit_group_prior, sample_group
+    records=[dict(id='a',dataset='mp_20',descriptor=dict(kind='layer',number=78))]
+    prior=fit_group_prior(records)
+    renamed=fit_group_prior([{**row,'dataset':'arbitrary_new_layers'} for row in records])
+    assert prior==renamed
+    spec=sample_group(prior,torch.Generator().manual_seed(7))
+    assert spec.kind=='layer' and spec.number==78
 
 
 def test_bundle_round_trip_and_changed_input_are_not_overwritten(tmp_path):

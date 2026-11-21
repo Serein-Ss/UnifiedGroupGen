@@ -1,0 +1,112 @@
+{
+  "schema": "ugg_core_layout_validation_v1",
+  "date": "2026-11-14",
+  "baseline_revision": "cc7b29de90c37be7fd752f01644d75bab45228f4",
+  "scope": "Local core library ownership refactor only; no server operations",
+  "tests": {
+    "passed": 383,
+    "suites": [
+      {
+        "report": "intermediate\\checks\\core_layout_5ab0fd0861\\release.xml",
+        "tests": 266,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "report": "intermediate\\checks\\core_layout_5ab0fd0861\\integration_final.xml",
+        "tests": 90,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "report": "intermediate\\checks\\core_layout_5ab0fd0861\\flow_core.xml",
+        "tests": 27,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    ],
+    "training_resume_fit_case_deselected": 1,
+    "guard": "Trainer.fit and AdamW/Adam/SGD.step forbidden; CUDA hidden in regression sessions"
+  },
+  "legacy_compatibility": {
+    "module_identity_aliases": 39,
+    "export_names_preserved": true,
+    "canonical_mapping": "unifiedgroupgen/core_layout.json",
+    "parameter_registration_unchanged": true,
+    "current_joint_checkpoint_loads": 18,
+    "historical_two_stage_checkpoint_loads": 19,
+    "strict_state_dict_load": true,
+    "checkpoint_scope": "Existing local short-run and historical artifacts; no GPU continuation executed"
+  },
+  "deterministic_equivalence": {
+    "exact_match": true,
+    "cases": [
+      "equiformer_v2/c2db_51/csp",
+      "equiformer_v2/c2db_51/dng",
+      "equiformer_v2/c2db_51/property",
+      "equiformer_v2/mp_20/csp",
+      "equiformer_v2/mp_20/dng",
+      "equiformer_v2/mp_20/property",
+      "joint_atom_graph/c2db_51/csp",
+      "joint_atom_graph/c2db_51/dng",
+      "joint_atom_graph/c2db_51/property",
+      "joint_atom_graph/mp_20/csp",
+      "joint_atom_graph/mp_20/dng",
+      "joint_atom_graph/mp_20/property",
+      "two_stage"
+    ],
+    "compared": [
+      "fixed-seed CPU forward outputs",
+      "losses",
+      "parameter names and values",
+      "parameter gradients",
+      "batched DNG sample geometry/elements/orbits/events for space/layer/plane groups"
+    ],
+    "baseline_capture": "intermediate\\checks\\core_layout_5ab0fd0861\\before.json",
+    "after_capture": "intermediate\\checks\\core_layout_5ab0fd0861\\after_final.json"
+  },
+  "installed_package": {
+    "wheel": "intermediate\\checks\\core_layout_5ab0fd0861\\wheels_ready\\unifiedgroupgen-0.1.0-py3-none-any.whl",
+    "sha256": "1bdb68ae3b70b223c4e02355a5ff219210ea809087c1cce56a11d46a4f82003c",
+    "smoke": {
+      "installed_package": "E:\\WORKSPACE\\CodePlace\\test_CGDiT\\UnifiedGroupGen\\intermediate\\checks\\core_layout_5ab0fd0861\\installed\\unifiedgroupgen\\__init__.py",
+      "aliases": 39,
+      "legacy_exports_checked": true,
+      "joint_checkpoint_strict": true,
+      "two_stage_checkpoint_strict": true,
+      "native_worker_number": 221,
+      "predictor_registry_available": true,
+      "training_started": false,
+      "optimizer_updates": false
+    },
+    "dependencies_installed": false,
+    "global_environment_changed": false
+  },
+  "preservation": {
+    "protected_hashes": 17322,
+    "existing_output_files": 103,
+    "changed_hashes": [],
+    "changed_output_metadata": []
+  },
+  "restrictions": {
+    "training_started": false,
+    "optimizer_updates": false,
+    "git_pushed": false,
+    "server_accessed": false,
+    "existing_data_weights_results_moved": false,
+    "existing_data_weights_results_deleted": false,
+    "original_private_web_and_document_changes_preserved": true
+  },
+  "limitations": [
+    "CPU regression and strict loading do not establish material generation performance",
+    "Full GPU training and server continuation were intentionally not run",
+    "This is a layout refactor; probability paths and model architecture mathematics are unchanged"
+  ],
+  "warnings": [
+    "pytest cache_dir warning because cacheprovider was disabled",
+    "Third-party torch_geometric deprecation warning; no test failures"
+  ]
+}

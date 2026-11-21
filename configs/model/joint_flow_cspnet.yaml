@@ -1,0 +1,7 @@
+defaults:
+- joint_flow_equiformer
+- _self_
+
+backbone: cspnet
+channels: 64
+fourier_frequencies: 10

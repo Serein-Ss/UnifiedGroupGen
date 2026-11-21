@@ -1,0 +1,9 @@
+defaults:
+- joint_flow_equiformer
+- _self_
+
+backbone: esen
+channels: 64
+lmax: 2
+mmax: 2
+radial_basis: 64

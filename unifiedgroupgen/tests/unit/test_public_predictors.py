@@ -10,9 +10,9 @@ import pytest
 import torch
 from pymatgen.core import Lattice, Structure
 
-from unifiedgroupgen.common.predictors.structures import structure_from_graph, predictor_structure
-from unifiedgroupgen.common.predictors.matgl import MatGLPredictor, fetch_model, model_registry
-from unifiedgroupgen.common.predictors import service as property_inference
+from unifiedgroupgen.evaluation.predictors.structures import structure_from_graph, predictor_structure
+from unifiedgroupgen.evaluation.predictors.matgl import MatGLPredictor, fetch_model, model_registry
+from unifiedgroupgen.evaluation.predictors import service as property_inference
 
 
 def test_expanded_graph_lattice_convention_is_explicit_and_embeddings_unused():
@@ -64,6 +64,29 @@ def test_model_cache_uses_fixed_hashes_and_detects_tampering(tmp_path, monkeypat
         fetch_model(spec, {'base_url': 'https://example.org/fixed/'}, tmp_path)
 
 
+@pytest.mark.parametrize('property_name',['formation_energy','band_gap'])
+def test_relocated_real_weights_match_registry_and_reuse_without_network(property_name,tmp_path,monkeypatch):
+    from pathlib import Path
+    from shutil import copytree
+    from unifiedgroupgen.common.configuration import load_yaml,resolve_path
+    root=Path(__file__).resolve().parents[3]
+    cache=resolve_path(load_yaml(root/'configs/property_predictor/default.yaml')['model_cache'])
+    assert cache==root/'pretrained/property_predictors/matgl'
+    registry=model_registry();spec=registry['models'][property_name]
+    original=cache/spec['name']
+    for name,digest in spec['files'].items():
+        assert hashlib.sha256((original/name).read_bytes()).hexdigest()==digest
+    # Exercise the actual cache-reuse path on a disposable copy, not the weights.
+    copytree(original,tmp_path/spec['name'])
+    def no_network(*args,**kwargs):
+        pytest.fail('Verified cached weights must not be downloaded again')
+    monkeypatch.setattr('requests.get',no_network)
+    restored=fetch_model(spec,registry,tmp_path)
+    assert restored==tmp_path/spec['name']
+    for name in spec['files']:
+        assert (restored/name).read_bytes()==(original/name).read_bytes()
+
+
 def test_unsupported_property_and_fidelity_fail_before_optional_import(tmp_path):
     with pytest.raises(ValueError, match='supported'): MatGLPredictor(tmp_path, properties=['energy_above_hull'])
     with pytest.raises(ValueError, match='fidelity'): MatGLPredictor(tmp_path, band_gap_fidelity='unknown')
@@ -88,7 +111,7 @@ def test_batch_failure_falls_back_without_losing_other_structures():
 
 
 def test_public_cli_retains_failed_indices_and_reuses_reference_cache(tmp_path, monkeypatch):
-    from unifiedgroupgen.common.predictors import matgl as adapter
+    from unifiedgroupgen.evaluation.predictors import matgl as adapter
     calls = []
     class FakePredictor:
         def __init__(self, cache, **kwargs):
@@ -130,24 +153,3 @@ def test_public_cli_retains_failed_indices_and_reuses_reference_cache(tmp_path, 
     assert (tmp_path/'first/reference_predictions.csv').read_bytes() == (tmp_path/'second/reference_predictions.csv').read_bytes()
     args.output=tmp_path/'first'
     with pytest.raises(ValueError, match='empty'): property_inference.public_predictions(args)
-
-
-def test_layer_prediction_requires_explicit_proxy_transfer(monkeypatch, tmp_path):
-    monkeypatch.setattr(sys, 'argv', ['properties', '--backend', 'matgl', '--kind', 'layer', '--dataset', 'c2db_51',
-        '--samples', 'samples', '--reference-files', 'refs', '--reference-cache', str(tmp_path/'cache'),
-        '--output', str(tmp_path/'out')])
-    with pytest.raises(SystemExit):
-        from unifiedgroupgen.tests.legacy.evaluation_before_tasks.property_inference import main
-        main()
-
-
-def test_evaluation_rejects_changed_predictor_structure_file(tmp_path, monkeypatch):
-    from unifiedgroupgen.tests.legacy.evaluation_before_tasks import cli
-    samples = tmp_path/'samples.jsonl'; samples.write_text('{"index": 0, "status": "failed"}\n')
-    predictions = tmp_path/'predictions.csv'; predictions.write_text('index,formation_energy\n0,\n')
-    cif = tmp_path/'input.cif'; cif.write_text('changed')
-    metadata = tmp_path/'evaluator.json'
-    metadata.write_text(json.dumps({'structure_files_sha256': {str(cif): hashlib.sha256(b'original').hexdigest()}}))
-    monkeypatch.setattr(sys, 'argv', ['evaluate', '--samples', str(samples), '--task', 'dng', '--kind', 'space',
-        '--assessments', str(predictions), '--assessment-metadata', str(metadata), '--output', str(tmp_path/'evaluation')])
-    with pytest.raises(ValueError, match='input CIF changed'): cli.main()

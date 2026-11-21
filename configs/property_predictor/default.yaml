@@ -4,7 +4,7 @@ dataset: mp_20
 kind: space
 backend: matgl
 predictor_config: configs/predictors/matgl_mp.yaml
-model_cache: data/scr/pretrained/matgl
+model_cache: pretrained/property_predictors/matgl
 cgdit_root: null
 predictor_root: null
 predictor_seed: 123

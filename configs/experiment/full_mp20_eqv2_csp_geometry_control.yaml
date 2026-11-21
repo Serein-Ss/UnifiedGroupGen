@@ -1,0 +1,16 @@
+# @package _global_
+defaults:
+- full_mp20_eqv2_csp
+- _self_
+experiment_name: full_mp20_eqv2_csp_geometry_control
+initialize_from: outputs/full_mp20_eqv2_csp/jointflow_mp20_fp32_offline30_v2/best.ckpt
+logging:
+  mode: offline
+optim:
+  learning_rate: 0.00002
+train:
+  geometry_objective: legacy
+  early_stopping:
+    patience: 30
+runtime:
+  batch_size: 4

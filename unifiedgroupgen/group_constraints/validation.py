@@ -12,7 +12,13 @@ def to_structure(compiled, generated, vacuum=20.0):
     determinant=np.linalg.det(lattice)
     if not np.isfinite(determinant) or abs(determinant) < 1e-10:
         raise FloatingPointError('Degenerate lattice rejected before structure export')
-    if compiled.descriptor.kind != "space":
+    if compiled.descriptor.kind == 'rod':
+        for axis in (1, 2):
+            low, high = coordinates[:, axis].min(), coordinates[:, axis].max()
+            width = max(vacuum, high - low + 10)
+            lattice[:, axis] *= width
+            coordinates[:, axis] = (coordinates[:, axis] - (low + high)/2)/width + .5
+    elif compiled.descriptor.kind != "space":
         thickness = np.ptp(coordinates[:, 2])
         cell_height = max(vacuum, thickness+10)
         lattice[2, 2] = cell_height
@@ -48,7 +54,7 @@ def validate(compiled, generated, minimum_distance=0.6, isolate_identifier=False
               "no_coincident_orbits": closest is None or closest>1e-5,
               "chemistry_validated": False, "stability_validated": False, "properties_validated": False}
     if isolate_identifier and compiled.descriptor.kind in ('space', 'layer'):
-        from unifiedgroupgen.tests.native_identifier import identify_isolated
+        from unifiedgroupgen.group_constraints.native_identifier import identify_isolated
         identified = identify_isolated(structure, compiled.descriptor.kind)
         number = identified['number']
         report[f'recovered_{compiled.descriptor.kind}_group'] = number

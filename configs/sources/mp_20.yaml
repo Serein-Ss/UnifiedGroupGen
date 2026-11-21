@@ -1,0 +1,17 @@
+dataset: mp_20
+kind: space
+data_root: data/src/mp_20
+angle_tolerance: 5.0
+max_atoms: 192
+max_orbits: 32
+property_columns:
+  formation_energy: formation_energy_per_atom
+  band_gap: band_gap
+  energy_above_hull: e_above_hull
+coordinate_mode: fractional
+symmetry_tolerance: 0.1
+symmetry_protocol: single-pass-standard-orbits-v1
+cif_fractional_tolerance: 0
+niggli: false
+preprocessing:
+  workers: 4

@@ -1,0 +1,18 @@
+dataset: c2db_51
+kind: layer
+data_root: data/src/c2db_51
+group_column: lgnum
+layer_group_policy: identify
+max_atoms: 104
+max_orbits: 52
+property_columns:
+  formation_energy: hform
+  band_gap: gap
+  energy_above_hull: ehull
+coordinate_mode: fractional
+symmetry_tolerance: 0.1
+symmetry_protocol: single-pass-standard-orbits-v1
+cif_fractional_tolerance: 0
+niggli: false
+preprocessing:
+  workers: 4

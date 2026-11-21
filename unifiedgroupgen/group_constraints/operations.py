@@ -11,6 +11,7 @@ from math import lcm
 import numpy as np
 from sympy import Matrix
 from sympy.matrices.normalforms import hermite_normal_form
+from unifiedgroupgen.group_constraints.compiler import GROUP_PERIODIC, ROD_HEX_FRAME, catalog_operations
 from unifiedgroupgen.group_constraints.unified import Operation, OrbitTemplate, SymmetrySpec, _matrix
 
 
@@ -33,12 +34,30 @@ def _compose(a, b, rank):
     return r+tuple(x % 1 if i < rank else x for i, x in enumerate(t))
 
 
-def operation_closure(operations, kind, max_operations=384):
-    """Deterministic exact closure modulo the reference translation lattice."""
-    if kind not in ('space', 'layer', 'plane'):
-        raise ValueError('The automatic nonmagnetic compiler supports space, layer and plane')
-    rank = 3 if kind == 'space' else 2
-    supplied = []
+def _change_frame(operations, frame):
+    inverse = np.linalg.inv(frame)
+    return tuple(Operation(_matrix(frame @ np.asarray(op.rotation) @ inverse),
+                           tuple(frame @ op.translation)) for op in operations)
+
+
+def _rod_rationalization(operations):
+    """Find a rational chart for the supported Cartesian rod operations."""
+    for frame in (np.eye(3), np.asarray(ROD_HEX_FRAME)):
+        converted = _change_frame(operations, np.linalg.inv(frame))
+        try:
+            for op in converted:
+                _key(op, 1)
+        except ValueError:
+            continue
+        return frame, converted
+    raise ValueError('Rod operations must be rational in the Cartesian or standard 120-degree transverse frame')
+
+
+def _closure_in_chart(operations, kind, max_operations):
+    if kind not in GROUP_PERIODIC:
+        raise ValueError('The automatic nonmagnetic compiler supports space, layer, plane and rod')
+    rank = sum(GROUP_PERIODIC[kind])
+    validated = []
     for value in operations:
         op = value if isinstance(value, Operation) else Operation(**value)
         if op.spin is not None or op.time_reversal:
@@ -53,7 +72,11 @@ def operation_closure(operations, kind, max_operations=384):
             raise ValueError('Operations must preserve the adapted periodic lattice and nonperiodic metric')
         if kind == 'plane' and (not np.allclose(t[2], 0) or not np.allclose(r[2], [0, 0, 1])):
             raise ValueError('Plane operations must preserve z=0 with the identity normal action')
-        supplied.append(_key(op, rank))
+        validated.append(op)
+    frame = None
+    if kind == 'rod':
+        frame, validated = _rod_rationalization(validated)
+    supplied = [_key(op, rank) for op in validated]
     identity = tuple(Fraction(int(i == j)) for i in range(3) for j in range(3))+(Fraction(0),)*3
     members, generators = {identity}, []
     for candidate in sorted(set(supplied)):
@@ -68,8 +91,15 @@ def operation_closure(operations, kind, max_operations=384):
                     if len(members) >= max_operations:
                         raise ValueError('Operations do not close into a supported finite crystallographic quotient')
                     members.add(new); queue.append(new)
-    return tuple(Operation(_matrix(np.array(k[:9], float).reshape(3, 3)), tuple(float(x) for x in k[9:]))
-                 for k in sorted(members))
+    closed = tuple(Operation(_matrix(np.array(k[:9], float).reshape(3, 3)), tuple(float(x) for x in k[9:]))
+                   for k in sorted(members))
+    return closed, frame
+
+
+def operation_closure(operations, kind, max_operations=384):
+    """Deterministic exact closure modulo the reference translation lattice."""
+    closed, frame = _closure_in_chart(operations, kind, max_operations)
+    return _change_frame(closed, frame) if frame is not None else closed
 
 
 def _clean(values):
@@ -149,7 +179,7 @@ def _chart(flat):
 
 @lru_cache(maxsize=512)
 def _atlas(operations, kind):
-    rank = 3 if kind == 'space' else 2
+    rank = sum(GROUP_PERIODIC[kind])
     base_c = np.array([[0, 0, 1.]]) if kind == 'plane' else np.zeros((0, 3))
     base_d = np.zeros(len(base_c))
     base = _flat(base_c, base_d, rank)
@@ -203,9 +233,18 @@ def _atlas(operations, kind):
 
 def compile_operations(operations, kind='space'):
     """Compile generators or redundant operation sets without any orbit table."""
-    closed = operation_closure(operations, kind)
-    return SymmetrySpec(kind, 0, (True, True, kind == 'space'), 2 if kind == 'plane' else 3,
-                        closed, _atlas(closed, kind))
+    closed, frame = _closure_in_chart(operations, kind, 384)
+    templates = _atlas(closed, kind)
+    if frame is not None:
+        closed = _change_frame(closed, frame)
+        converted = []
+        for template in templates:
+            a, b = template.arrays()
+            converted.append(OrbitTemplate(template.letter,
+                             tuple(_matrix(block) for block in frame @ a), _matrix(b @ frame.T)))
+        templates = tuple(converted)
+    return SymmetrySpec(kind, 0, GROUP_PERIODIC[kind], 2 if kind == 'plane' else 3,
+                        closed, templates)
 
 
 def compile_request(data):
@@ -227,11 +266,5 @@ def compile_request(data):
 @lru_cache(maxsize=512)
 def operation_spec(kind, number):
     """Number is an adapter only: read general operations, discard all orbit rows."""
-    from unifiedgroupgen.group_constraints.compiler import group_table
-    operations = []
-    for value in group_table(kind, number)[0].ops:
-        r, t = value.rotation_matrix.copy(), value.translation_vector.copy()
-        if kind == 'plane':
-            r[2] = (0, 0, 1); t[2] = 0
-        operations.append(Operation(_matrix(r), tuple(t)))
+    operations = (Operation(_matrix(r), tuple(t)) for r, t in catalog_operations(kind, number))
     return compile_operations(operations, kind)

@@ -3,10 +3,10 @@ import math
 import numpy as np
 import pytest
 import torch
-import unifiedgroupgen.joint_flow.path as path
+import unifiedgroupgen.pl_data.unified.path as path
 from unifiedgroupgen.group_constraints.unified import catalog_spec
-from unifiedgroupgen.joint_flow.state import initial, apply, assign, JointAction
-from unifiedgroupgen.pl_data.joint_path import JointTarget
+from unifiedgroupgen.group_constraints.flow_state import initial, apply, assign, JointAction
+from unifiedgroupgen.common.data_utils import JointTarget
 
 
 @pytest.fixture(scope='module')
@@ -21,6 +21,58 @@ def target():
 def draw(target,seed,**options):
     return path.sample_path(target,seed,allowed_elements=[6,8],max_atoms=40,max_orbits=12,
                             budget=6,**options)
+
+
+def test_site_symmetry_priority_randomizes_equal_stabilizers():
+    from types import SimpleNamespace
+    from unifiedgroupgen.pl_data.orbit_order import endpoint_orbit_order
+    multiplicities = {'general': 8, 'special_a': 2, 'special_b': 2}
+    spec = SimpleNamespace(template=lambda letter: SimpleNamespace(multiplicity=multiplicities[letter]))
+    state = SimpleNamespace(letters=tuple(multiplicities), spec=spec)
+    precedences = set()
+    for seed in range(12):
+        order = endpoint_orbit_order(state, np.random.default_rng(seed), 'site_symmetry')
+        assert order[-1]==0
+        precedences.add(tuple(order[:2]))
+    assert precedences=={(1,2),(2,1)}
+
+
+@pytest.mark.parametrize('dataset',['mp_20','c2db_51'])
+@pytest.mark.parametrize('task',['dng','csp'])
+def test_orbit_order_preserves_endpoint_and_csp_inventory(dataset,task):
+    from unifiedgroupgen.tests.unit.test_joint_flow_v2 import config, record
+    from unifiedgroupgen.common.data_utils import target_from_record
+    from unifiedgroupgen.group_constraints.chemistry import orbit_counts
+    from unifiedgroupgen.pl_data.unified.tasks import task_target
+    cfg=config(task=task)
+    endpoint=task_target(target_from_record(record(dataset)),cfg,42)
+    options=dict(allowed_elements=cfg['allowed_elements'],augment=False,budget=24)
+    prior=path.sample_path(endpoint,42,time=1,**options)
+    for strategy in ('random','site_symmetry'):
+        final=path.sample_path(endpoint,42,time=1,orbit_order=strategy,**options)
+        assert [item['time'] for item in final.trajectory]==[item['time'] for item in prior.trajectory]
+        generated=final.state
+        assert generated.frozen and final.remaining==0
+        expected=endpoint.state
+        if strategy=='site_symmetry':
+            sizes=[generated.spec.template(letter).multiplicity for letter in generated.letters]
+            assert sizes==sorted(sizes)
+        torch.testing.assert_close(generated.metric,expected.metric)
+        assert orbit_counts(generated.spec,generated.letters,generated.elements)==orbit_counts(
+            expected.spec,expected.letters,expected.elements)
+        reference=list(zip(expected.letters,expected.elements,expected.coordinates.split(
+            [expected.spec.template(letter).multiplicity for letter in expected.letters])))
+        for letter,element,coords in zip(generated.letters,generated.elements,generated.coordinates.split(
+                [generated.spec.template(letter).multiplicity for letter in generated.letters])):
+            match=next(i for i,(name,z,original) in enumerate(reference)
+                       if (name,z)==(letter,element) and torch.allclose(coords,original))
+            reference.pop(match)
+        assert not reference
+        if task=='csp':
+            for time in (0.,*(event['time'] for event in final.trajectory),1.):
+                state=path.sample_path(endpoint,42,time=time,orbit_order=strategy,**options).state
+                assert all(count>=0 for _,count in state.chemistry.remaining(state.spec,state.letters,state.elements))
+                assert all(state.elements)
 
 
 def test_fallback_keeps_time_clock_and_initial_noise_independent(target,monkeypatch):
@@ -171,3 +223,40 @@ def test_repeated_seed_is_identical_and_terminal_is_data(target):
                 x=a.state.coordinates[[i for i,v in enumerate(a.state.elements) if v==z]]
                 y=target.state.coordinates[[i for i,v in enumerate(target.state.elements) if v==z]]
                 assert all(torch.cdist(x,y).min(1).values<1e-6)
+
+
+@pytest.mark.parametrize('dataset', ['mp_20', 'c2db_51'])
+def test_csp_teacher_checks_preserve_exact_inventory_trajectory(dataset, monkeypatch):
+    from unifiedgroupgen.group_constraints.state import JointState, legal_actions
+    from unifiedgroupgen.group_constraints.unified import compile_constraints
+    from unifiedgroupgen.pl_data import programs
+    from unifiedgroupgen.pl_data.unified.tasks import task_target
+    from unifiedgroupgen.tests.unit.test_joint_flow_v2 import config, record
+    from unifiedgroupgen.common.data_utils import target_from_record
+
+    options = config(task='csp')
+    endpoint = task_target(target_from_record(record(dataset)), options, 42)
+    draws = [(seed, order, time) for seed in range(4)
+             for order in ('random', 'site_symmetry') for time in (.67, 1.)]
+
+    def draw(case):
+        seed, order, time = case
+        return path.sample_path(endpoint, seed, time=time, orbit_order=order, budget=24,
+                                allowed_elements=options['allowed_elements'])
+
+    optimized = [draw(case) for case in draws]
+    def original_check(spec, letters, elements, control, allowed, max_atoms, max_orbits,
+                       remaining_events, action):
+        chart = compile_constraints(spec, letters)
+        state = JointState(spec, letters, elements, torch.zeros(chart.metric_dimension),
+                           torch.zeros((chart.num_atoms, 3)), chemistry=control, budget=remaining_events)
+        return action in legal_actions(state, allowed, max_atoms, max_orbits)
+
+    monkeypatch.setattr(programs, 'inventory_teacher_allows', original_check)
+    for actual, case in zip(optimized, draws):
+        expected = draw(case)
+        assert actual.trajectory == expected.trajectory
+        assert actual.remaining == expected.remaining and actual.next_action == expected.next_action
+        assert actual.state.letters == expected.state.letters and actual.state.elements == expected.state.elements
+        torch.testing.assert_close(actual.state.metric, expected.state.metric, atol=0, rtol=0)
+        torch.testing.assert_close(actual.state.coordinates, expected.state.coordinates, atol=0, rtol=0)

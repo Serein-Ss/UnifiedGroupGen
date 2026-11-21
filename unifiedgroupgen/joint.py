@@ -1,23 +1,21 @@
 """Opt-in command adapter: audited training, bounded smoke checks and joint sampling."""
 import argparse
-import itertools
 import json
 from pathlib import Path
 import torch
 from unifiedgroupgen.common.progress import track
 from unifiedgroupgen.common.configuration import (
-    project_root, resolve_path, artifact_path, compose_experiment, training_definition,
+    project_root, resolve_path, artifact_path,
 )
 
-
-def _head(path, count):
-    with resolve_path(path).open(encoding='utf-8') as stream:
-        return [json.loads(line) for line in itertools.islice((s for s in stream if s.strip()), count)]
+from unifiedgroupgen.experiment_config import compose_experiment, training_definition
 
 
-def sample_to_dict(sample):
+def sample_to_dict(sample, requested_group=None):
+    from unifiedgroupgen.group_constraints.wyckoff import orbit_labels
     state = sample.state
     result = dict(status=state.status, reason=sample.reason, time=sample.time,
+                  orbit_labels=orbit_labels(state.spec, state.letters, requested_group),
                   events=sample.events, integration_steps=sample.integration_steps,
                   epsilon=sample.epsilon, kind=state.spec.kind, group=state.spec.number,
                   letters=list(state.letters), orbit_elements=list(state.elements),
@@ -25,7 +23,7 @@ def sample_to_dict(sample):
                   metric_state=state.metric.detach().cpu().tolist() if torch.isfinite(state.metric).all() else None,
                   coordinate_state=state.coordinates.detach().cpu().tolist() if torch.isfinite(state.coordinates).all() else None)
     from unifiedgroupgen.group_constraints.unified import catalog_spec
-    builtin = (state.spec.kind in ('space','layer','plane') and state.spec.number > 0
+    builtin = (state.spec.kind in ('space','layer','plane','rod') and state.spec.number > 0
                and state.spec == catalog_spec(state.spec.kind,state.spec.number))
     if not builtin:
         result['symmetry'] = state.spec.to_dict()
@@ -44,20 +42,25 @@ def sample_to_dict(sample):
     return result
 
 
-def evaluation_record(sample, index, seed, exact=False, properties=None, requested_group=None):
+def evaluation_record(sample, index, seed, exact=False, properties=None, requested_group=None, *,
+                      label_group=None, verify_cif_operations=False):
     """Retain every attempt and export ordinary structures in the existing CIF ledger contract."""
     import hashlib
-    row = sample_to_dict(sample)
+    row = sample_to_dict(sample, requested_group if label_group is None else label_group)
     row.update(index=index, case_id=None, candidate=index, seed=seed,
                generation_status=row['status'], status='failed', accepted=False,
                requested_group=sample.state.spec.number, properties_requested=properties or {},
                precision='fp32', sampling_backend='joint_atom_graph', solver='event_heun')
     if requested_group is not None:
         row['requested_group'] = requested_group
-    if sample.state.status != 'done':
+    state = sample.state
+    verify_cif_operations = verify_cif_operations and state.spec.kind in ('space', 'layer')
+    if state.status != 'done':
+        if verify_cif_operations:
+            row['validation'] = {'structure_valid': False}
         return row
     from unifiedgroupgen.group_constraints.identification import validate_joint_state
-    row['validation'] = validate_joint_state(sample.state, exact=exact)
+    row['validation'] = validate_joint_state(state, exact=exact)
     if requested_group is not None:
         row['requested_group'] = requested_group
         if exact:
@@ -67,7 +70,7 @@ def evaluation_record(sample, index, seed, exact=False, properties=None, request
                            row['validation']['no_coincident_orbits'] and
                            row['validation']['distance_valid'] and
                            (not exact or row['validation']['exact_target_group'] is True))
-    if sample.state.spec.kind not in ('space', 'layer', 'plane'):
+    if sample.state.spec.kind not in ('space', 'layer', 'plane', 'rod'):
         row['status'] = 'generated_state' if row['accepted'] else 'rejected'
         return row
     from types import SimpleNamespace
@@ -89,8 +92,32 @@ def evaluation_record(sample, index, seed, exact=False, properties=None, request
         restored = load_structure(row, '.')
         if counts_of(restored) != counts_of(structure):
             raise ValueError('CIF readback changed composition')
+        if verify_cif_operations:
+            from unifiedgroupgen.evaluation.common import exported_operation_check
+            validation = row['validation']
+            operations = [dict(R=op.rotation, t=op.translation) for op in state.spec.operations]
+            origin = float(decoded['coordinates'][:, 2].double().mean()) if state.spec.kind == 'layer' else 0.
+            if (not restored.is_ordered or not np.isfinite(restored.frac_coords).all()
+                    or not np.isfinite(restored.lattice.matrix).all()
+                    or not np.isfinite(restored.volume) or restored.volume <= 1e-10):
+                raise ValueError('Invalid lattice or sites after CIF readback')
+            validation['structure_valid'] = bool(validation['no_coincident_orbits'] and validation['distance_valid'])
+            check = exported_operation_check(restored, state.spec.kind, row['requested_group'], operations,
+                                             layer_origin=origin)
+            validation['cif_operation_check'] = check
+            reasons = []
+            if not validation['satisfies_requested_operations'] or not check['target_operation_containment']:
+                reasons.append('operation_violation')
+            if not validation['structure_valid']:
+                reasons.append('structure_invalid')
+            if exact and validation['exact_target_group'] is not True:
+                reasons.append('exact_group_mismatch')
+            row['rejection_reasons'] = reasons
+            row['accepted'] = not reasons
         row['status'] = 'generated' if row['accepted'] else 'rejected'
     except (ValueError, FloatingPointError) as error:
+        if verify_cif_operations:
+            row['validation']['structure_valid'] = False
         row.update(status='failed',accepted=False,reason='cif_export: '+str(error))
     return row
 
@@ -100,35 +127,33 @@ def main(argv=None):
     commands = parser.add_subparsers(dest='command', required=True)
     compile_command = commands.add_parser('compile', help='Compute orbit constraints from operations, without supplied templates')
     compile_command.add_argument('--symmetry', help='JSON with kind and generators or operations')
-    compile_command.add_argument('--kind', choices=['space', 'layer', 'plane'])
+    compile_command.add_argument('--kind', choices=['space', 'layer', 'plane', 'rod'])
     compile_command.add_argument('--group', type=int, help='Optional catalog adapter; reads operations only')
     compile_command.add_argument('--output', required=True)
     audit = commands.add_parser('audit', help='Create a new data audit for a joint-model Hydra selector')
-    audit.add_argument('--experiment', default='joint_symmetry_joint')
+    audit.add_argument('--experiment', default='full_mp20_eqv2_dng')
+    audit.add_argument('--output', help='Audit output JSON path')
     audit.add_argument('--override', action='append', default=[], help='Matching Hydra definition override, repeatable')
-    smoke = commands.add_parser('smoke', help='Bounded real-data training; never rewrites data or old checkpoints')
-    smoke.add_argument('--datasets', nargs='+', choices=['mp_20', 'c2db_51'], default=['mp_20', 'c2db_51'])
-    smoke.add_argument('--records', type=int, default=2)
-    smoke.add_argument('--steps', type=int, default=4)
-    smoke.add_argument('--device', default='cpu')
-    smoke.add_argument('--operation-compiler', action='store_true', help='Enable computed orbit charts and network constraint layers')
-    smoke.add_argument('--output', default='intermediate/checks/joint_symmetry_v1/smoke/model.pt')
     sample = commands.add_parser('sample', help='Sample with a joint checkpoint and specified operators/group')
     sample.add_argument('--checkpoint', required=True)
-    sample.add_argument('--kind', choices=['space', 'layer', 'plane'])
+    sample.add_argument('--kind', choices=['space', 'layer', 'plane', 'rod'])
     sample.add_argument('--group', type=int)
     sample.add_argument('--symmetry', help='Explicit operator/template JSON for other families, MSGs and SSGs')
     sample.add_argument('--magnetic', action='store_true', help='Requires weights trained on aligned moment labels')
     sample.add_argument('--properties', default='{}', help='JSON conditions matching the checkpoint schema')
+    sample.add_argument('--guidance-scale', type=float,
+                        help='Property CFG: 0=null, 1=conditional, >1=extrapolate; default 1.5 for CFG-ready property requests')
     sample.add_argument('--chemical-system', nargs='+', help='Allowed symbols/numbers; any nonempty subset may occur')
     sample.add_argument('--composition', help='JSON exact per-cell counts, e.g. {"Ti":2,"O":4}')
     sample.add_argument('--formula', help='Integer formula; use --formula-units to choose cell size')
     sample.add_argument('--formula-units', type=int, default=1)
-    sample.add_argument('--count', type=int, default=1)
+    sample.add_argument('--count', type=int, help='Attempts for a single request; default 1')
     sample.add_argument('--batch-size', type=int, default=4, help='Packed joint_flow_v2 requests per forward')
     sample.add_argument('--trajectory-dir', help='Opt-in joint_flow_v2 JSONL trajectories, one file per selected attempt')
     sample.add_argument('--trajectory-indices', nargs='+', type=int,
                         help='Zero-based global sample indices to record; omit to record all attempts')
+    sample.add_argument('--repair-short-contacts', action='store_true',
+                        help='Try bounded terminal contact repair in the existing Wyckoff chart')
     sample.add_argument('--steps', type=int, default=128)
     sample.add_argument('--seed', type=int, default=42)
     sample.add_argument('--device', default='cpu')
@@ -136,12 +161,34 @@ def main(argv=None):
     sample.add_argument('--task-name', help='v2 generate/<task-name>; default: <kind>_<task>_seed<seed>')
     sample.add_argument('--exact-group', action='store_true', help='Require maximal group recovery, retaining rejected attempts in the ledger')
     sample.add_argument('--case-id', help='CSP evaluation identifier only; no reference geometry is read')
-    assess = commands.add_parser('evaluate-csp', help='Match a completed CSP ledger to held-out references')
+    sample.add_argument('--case-dataset', help='Source dataset of a single test case, separate from the training dataset')
+    sample.add_argument('--case-manifest', help='Geometry-free CSP case manifest produced by prepare-csp')
+    sample.add_argument('--csp-group-policy', choices=['prior', 'composition_ranked'],
+                        help='Override free group selection for a CSP checkpoint')
+    prepare = commands.add_parser('prepare-csp', help='Extract CSP case identities and per-cell inventories')
+    prepare.add_argument('--references', required=True, action='append')
+    prepare.add_argument('--candidates', required=True, type=int, help='Planned candidates per case')
+    prepare.add_argument('--output', required=True)
+    assess = commands.add_parser('evaluate-csp', help='Match a CSP ledger to held-out references')
     assess.add_argument('--samples', required=True)
-    assess.add_argument('--references', required=True)
+    assess.add_argument('--references', required=True, action='append')
+    assess.add_argument('--case-manifest', help='Use the same case and candidate denominator as generation')
     assess.add_argument('--output', required=True)
     assess.add_argument('--ks', nargs='+', type=int, default=[1])
     args = parser.parse_args(argv)
+    if args.command == 'sample':
+        if args.case_dataset is not None and (not args.case_id or not args.case_dataset.strip()):
+            parser.error('--case-dataset requires --case-id and a nonempty source dataset')
+        if args.case_manifest:
+            if (any(value is not None for value in (args.kind, args.group, args.symmetry, args.case_id,
+                    args.case_dataset, args.composition, args.formula, args.chemical_system, args.count))
+                    or args.formula_units != 1 or args.magnetic):
+                parser.error('--case-manifest supplies the kind, chemistry, count and case identity for each request')
+            from unifiedgroupgen.common.csp_cases import read_csp_manifest
+            args.case_manifest = read_csp_manifest(resolve_path(args.case_manifest))
+            args.count = len(args.case_manifest.cases) * args.case_manifest.candidates_per_case
+        elif args.count is None:
+            args.count = 1
     if args.command == 'sample' and args.trajectory_indices is not None:
         if not args.trajectory_dir:
             parser.error('--trajectory-indices requires --trajectory-dir')
@@ -150,13 +197,24 @@ def main(argv=None):
         args.trajectory_indices=sorted(set(args.trajectory_indices))
     torch.set_num_threads(1)
     root = project_root()
-    if args.command == 'evaluate-csp':
-        from unifiedgroupgen.evaluation.joint_csp import evaluate_csp
-        report = evaluate_csp(_head(args.samples, 10**9), _head(args.references, 10**9), tuple(args.ks))
+    if args.command in ('prepare-csp', 'evaluate-csp'):
+        from unifiedgroupgen.common.structures import iter_records
+        from unifiedgroupgen.common.csp_cases import read_csp_manifest
+        from unifiedgroupgen.evaluation.joint_csp import evaluate_csp, prepare_csp_manifest
+        references = [row for path in args.references for row in iter_records(path)]
+        if args.command == 'prepare-csp':
+            manifest = prepare_csp_manifest(references, args.candidates)
+            report = manifest.to_dict()
+            status = dict(cases=len(manifest.cases), candidates_per_case=manifest.candidates_per_case,
+                          case_manifest_sha256=manifest.digest)
+        else:
+            manifest = read_csp_manifest(resolve_path(args.case_manifest)) if args.case_manifest else None
+            report = evaluate_csp(iter_records(args.samples), references, tuple(args.ks), manifest)
+            status = report['summary']
         output = artifact_path(args.output)
         with output.open('x', encoding='utf-8') as stream:
             json.dump(report, stream, ensure_ascii=False, indent=2, allow_nan=False)
-        print(json.dumps(report['summary']))
+        print(json.dumps(status, ensure_ascii=False))
         return
     if args.command == 'compile':
         from unifiedgroupgen.group_constraints.operations import operation_spec, compile_request
@@ -175,66 +233,24 @@ def main(argv=None):
                               templates=len(spec.templates), source='computed_fixed_loci')))
         return
     if args.command == 'audit':
-        from unifiedgroupgen.tests.preflight import audit_files
-        config = training_definition(compose_experiment(args.experiment, root, args.override))
-        paths = {split: [resolve_path(p, root) for p in config[split+'_files']] for split in ('train', 'val', 'test')}
-        report = audit_files(paths, config, artifact_path(config['data_audit'], root))
-        print(json.dumps({'passed': report['passed'], 'audit': config['data_audit'],
+        from unifiedgroupgen.pl_data.validation import audit_files
+        config = training_definition(compose_experiment(args.experiment, overrides=args.override))
+        from unifiedgroupgen.pl_data.cache import cache_paths
+        paths = {split: cache_paths(config, split, root) for split in ('train', 'val', 'test')}
+        output = args.output or config.get('data_audit') or f'intermediate/data_audits/{args.experiment}.json'
+        report = audit_files(paths, config, artifact_path(output, root))
+        print(json.dumps({'passed': report['passed'], 'audit': output,
                           'errors': report['errors']}, ensure_ascii=False))
         if not report['passed']:
             raise SystemExit(1)
         return
-    if args.command == 'smoke':
-        if args.records < 1 or args.steps < 1:
-            parser.error('records and steps must be positive')
-        from unifiedgroupgen.pl_modules.joint_training import fit_joint
-        from unifiedgroupgen.tests.source_integrity import encoding_digest, PROTOCOL
-        from unifiedgroupgen.common.source import file_hash
-        train, val, vocabulary, hashes = [], [], set(), {}
-        for dataset in args.datasets:
-            base = root/'data/dataset/full_verified_v1'/dataset
-            train.extend(_head(base/'train.jsonl', args.records))
-            val.extend(_head(base/'val.jsonl', args.records))
-            hashes[dataset] = {split: file_hash(base/(split+'.jsonl')) for split in ('train','val')}
-            with (base/'train.jsonl').open(encoding='utf-8') as stream:
-                for line in stream:
-                    if line.strip():
-                        vocabulary.update(w['atomic_number'] for w in json.loads(line)['descriptor']['orbits'])
-        for record in train+val:
-            certification = record.get('provenance', {}).get('source_integrity', {})
-            if (certification.get('protocol') != PROTOCOL or not certification.get('composition_conserved')
-                    or not certification.get('geometry_equivalent') or certification.get('encoding_sha256') != encoding_digest(record)):
-                raise ValueError('Selected smoke record lacks valid source-integrity certification')
-        config = dict(model={'family': 'joint_symmetry_v1', 'hidden': 32, 'layers': 2, 'heads': 4},
-                      allowed_elements=sorted(vocabulary),
-                      properties={}, max_atoms=192, max_orbits=52, event_budget=256,
-                      birth_scale=.2, learning_rate=1e-3, cond_dropout=0.,
-                      validation_scope='bounded_smoke_not_full_data_audit')
-        if args.operation_compiler:
-            config['model'].update(operation_compiler=True, constraint_layers=True)
-        # Held-out unseen species remain visible failures, not silently filtered.
-        unseen = {w['atomic_number'] for r in val for w in r['descriptor']['orbits']}-set(config['allowed_elements'])
-        if unseen:
-            raise ValueError(f'Validation smoke subset has species outside selected TRAIN vocabulary: {sorted(unseen)}; increase --records')
-        pl = __import__('pytorch_lightning')
-        pl.seed_everything(42, workers=True)
-        trainer = fit_joint(config, train, val, artifact_path(args.output), args.device,
-                            epochs=max(1, args.steps), runtime={'batch_size': 2, 'edge_budget': 200000},
-                            split_hashes=hashes,max_steps=args.steps)
-        print(json.dumps({'output': str(artifact_path(args.output)), 'global_step': trainer.global_step,
-                          'datasets': args.datasets, 'scope': 'bounded real-data smoke'}))
-        return
-    from unifiedgroupgen.pl_modules.joint_training import load_joint_checkpoint
+    from unifiedgroupgen.pl_modules.unified.module import load_joint_checkpoint
     from unifiedgroupgen.pl_modules.factory import build_joint_model
     from unifiedgroupgen.group_constraints.unified import catalog_spec, SymmetrySpec
-    from unifiedgroupgen.generation.joint import sample_joint
     checkpoint = load_joint_checkpoint(resolve_path(args.checkpoint), args.device)
     model = build_joint_model(checkpoint['config'], args.device)
     model.load_state_dict(checkpoint['model'], strict=True)
-    if args.trajectory_dir and getattr(model,'flow_version',None) != 'joint_flow_v2':
-        parser.error('--trajectory-dir requires a joint_flow_v2 checkpoint; legacy sampling is unchanged')
     from unifiedgroupgen.group_constraints.chemistry import ChemicalControl
-    from unifiedgroupgen.group_constraints.group_prior import sample_group, NoFeasibleGroup
     if args.composition and args.formula:
         parser.error('Choose exact --composition or --formula, not both')
     if args.formula_units < 1 or (not args.formula and args.formula_units != 1):
@@ -247,11 +263,22 @@ def main(argv=None):
     if chemistry.mode != 'free' and not checkpoint['config']['model'].get('task_controls'):
         parser.error('This checkpoint does not have trained hard-task controls')
     chemistry.domain(model.allowed_elements)
-    task = checkpoint['config'].get('generation_task')
-    if task == 'csp' and not chemistry.counts:
-        parser.error('A CSP checkpoint requires --composition or --formula')
+    from unifiedgroupgen.conditional.tasks import generation_mode
+    task = generation_mode(checkpoint['config'])
+    if args.case_manifest and (task != 'csp' or not checkpoint['config']['model'].get('task_controls')):
+        parser.error('--case-manifest requires a CSP checkpoint with hard-task controls')
+    if task == 'csp' and not (chemistry.counts or args.case_manifest):
+        parser.error('A CSP checkpoint requires --composition, --formula or --case-manifest')
+    if (args.case_id and task == 'csp' and checkpoint['config'].get('dataset') == 'mp20_c2db51'
+            and not args.case_dataset):
+        parser.error('A single case from a mixed CSP checkpoint requires --case-dataset')
     if chemistry.counts and task != 'csp':
         parser.error('Exact inventory generation requires an independently trained CSP checkpoint')
+    if args.csp_group_policy and task != 'csp':
+        parser.error('--csp-group-policy requires a CSP checkpoint')
+    if (args.csp_group_policy == 'composition_ranked' and not (args.symmetry or args.group is not None)
+            and not checkpoint['config'].get('group_prior', {}).get('composition_counts')):
+        parser.error('This checkpoint has no TRAIN composition counts. Select --csp-group-policy prior.')
     provided_spec = None
     if args.symmetry:
         symmetry_data = json.loads(resolve_path(args.symmetry).read_text(encoding='utf-8'))
@@ -273,54 +300,30 @@ def main(argv=None):
     properties = json.loads(args.properties)
     if not isinstance(properties,dict) or set(properties)-set(checkpoint['config'].get('properties',{})):
         raise ValueError('Property requests must match the checkpoint conditioning schema')
-    if task == 'property' and not properties:
-        parser.error('A property checkpoint needs at least one target property')
+    schema = checkpoint['config'].get('properties', {})
+    if schema and not properties and not checkpoint['config'].get('cond_dropout', 0):
+        parser.error('This checkpoint was trained without property dropout; provide a target via --properties')
     import math
     if any(value is None or not math.isfinite(float(value)) for value in properties.values()):
         parser.error('Requested target properties must be finite numbers')
+    from unifiedgroupgen.conditional.guidance import validate_guidance
+    dropout = checkpoint['config'].get('cond_dropout', 0.)
+    if args.guidance_scale is None:
+        args.guidance_scale = 1.5 if properties and 0 < dropout < 1 else 1.
+    try:
+        validate_guidance(args.guidance_scale, bool(properties), dropout)
+    except ValueError as error:
+        parser.error(str(error))
     if not args.output:
-        if getattr(model,'flow_version',None) != 'joint_flow_v2':
-            parser.error('Legacy joint sampling requires --output')
         from unifiedgroupgen.common.configuration import model_result_directory
         name = args.task_name or f'{args.kind or "mixed"}_{task or "dng"}_seed{args.seed}'
         args.output = model_result_directory(args.checkpoint,'generate',name)/'samples.jsonl'
     output = artifact_path(args.output)
-    if getattr(model, 'flow_version', None) == 'joint_flow_v2':
-        if args.batch_size < 1 or args.count < 1: parser.error('count/batch-size must be positive')
-        from unifiedgroupgen.joint_flow.cli import generate
-        generate(args,checkpoint,model,provided_spec,chemistry,properties,output)
-        print(f'Output: {output}')
-        return
-    outcomes = {}
-    with output.open('x', encoding='utf-8') as stream:
-        for index in track(range(args.count),'Generate',log=output.with_name(output.name+'.progress.jsonl'),unit='structure'):
-            generator = torch.Generator(device=args.device).manual_seed(args.seed+index)
-            try:
-                spec = provided_spec or sample_group(checkpoint['config']['group_prior'], generator,
-                    kind=args.kind, chemistry=chemistry, budget=checkpoint['config'].get('event_budget', 256),
-                    max_atoms=model.max_atoms, max_orbits=model.max_orbits)
-                requested_number = args.group if spec.number == 0 else spec.number
-                if checkpoint['config']['model'].get('operation_compiler', False):
-                    from unifiedgroupgen.group_constraints.operations import compile_operations
-                    spec = compile_operations(spec.operations, spec.kind)
-                if args.exact_group and spec.number == 0 and requested_number is None:
-                    parser.error('Exact numbered-group comparison needs a numbered group')
-                result = sample_joint(model, spec, steps=args.steps, generator=generator,
-                         budget=checkpoint['config'].get('event_budget', 256),
-                         birth_scale=checkpoint['config'].get('birth_scale', .2), magnetic=args.magnetic,
-                         properties=properties, chemistry=chemistry)
-                row = evaluation_record(result,index,args.seed+index,args.exact_group,properties,
-                                        requested_group=requested_number)
-            except NoFeasibleGroup as error:
-                row = dict(index=index, seed=args.seed+index, status='failed', accepted=False,
-                           generation_status='failed', reason=str(error), chemical_control=chemistry.to_dict())
-            row['generation_task'] = task or 'legacy_joint'
-            row['dataset'] = checkpoint['config'].get('dataset', '')
-            row['case_id'] = args.case_id
-            row['candidate'] = index
-            outcomes[row['status']] = outcomes.get(row['status'],0)+1
-            stream.write(json.dumps(row, ensure_ascii=False, allow_nan=False)+'\n')
-    print(f'Generated | attempts={args.count} | outcomes={outcomes} | output={output}')
+    if args.batch_size < 1 or args.count < 1:
+        parser.error('count/batch-size must be positive')
+    from unifiedgroupgen.generation.unified.runner import generate
+    generate(args, checkpoint, model, provided_spec, chemistry, properties, output)
+    print(f'Output: {output}')
 
 
 if __name__ == '__main__':

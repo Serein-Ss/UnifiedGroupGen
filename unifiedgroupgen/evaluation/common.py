@@ -28,11 +28,12 @@ class EvaluationContext:
     samples: Path
 
 PROTOCOL = 'unified_raw_v2'
-BOOL_FIELDS = ('generation_success', 'parse_success', 'finite', 'lattice_valid', 'legacy_structural_valid',
+BOOL_FIELDS = ('generation_success', 'parse_success', 'finite', 'lattice_valid', 'pair_distance_volume_valid',
     'periodic_distance_valid', 'radius_distance_valid', 'chemical_valid', 'basic_valid', 'fingerprint_success',
-    'legacy_joint_valid', 'composition_satisfied', 'formula_satisfied', 'atom_count_satisfied',
+    'pair_distance_chemical_valid', 'composition_satisfied', 'formula_satisfied', 'atom_count_satisfied',
     'element_set_satisfied', 'descriptor_composition_satisfied', 'target_operation_containment', 'exact_target_group',
-    'orbit_multiplicity_regular', 'no_coincident_orbits', 'observation_satisfied')
+    'orbit_multiplicity_regular', 'no_coincident_orbits', 'observation_satisfied',
+    'strict_supergroup', 'valid_operation_containment')
 
 
 def geometry(structure, kind):
@@ -83,7 +84,7 @@ def geometry(structure, kind):
     return result
 
 
-def identify(structure, kind, tolerances):
+def identify(structure, kind, tolerances, *, operations=False):
     cell = [structure.lattice.matrix.tolist(), structure.frac_coords.tolist(), list(structure.atomic_numbers)]
     # One fresh native process handles all tolerances. No fork after CUDA/OpenMP.
     worker = """import json,sys,spglib
@@ -92,10 +93,12 @@ for t in r['tolerances']:
  try:
   d=(spglib.get_symmetry_dataset(tuple(r['cell']),symprec=t) if r['kind']=='space' else spglib.get_layergroup(tuple(r['cell']),aperiodic_dir=2,symprec=t))
   out[str(t)]={'number':int(d.number) if d is not None else None,'error':None if d is not None else 'No group'}
+  if d is not None and r['operations']:
+   out[str(t)].update(rotations=d.rotations.tolist(),translations=d.translations.tolist())
  except (ValueError,RuntimeError,AttributeError) as e: out[str(t)]={'number':None,'error':str(e)}
 print(json.dumps(out))"""
     try:
-        process = subprocess.run([sys.executable, '-c', worker], input=json.dumps({'cell': cell, 'kind': kind, 'tolerances': tolerances}),
+        process = subprocess.run([sys.executable, '-c', worker], input=json.dumps({'cell': cell, 'kind': kind, 'tolerances': tolerances, 'operations': operations}),
             text=True, capture_output=True, timeout=30,
             creationflags=subprocess.CREATE_NO_WINDOW if sys.platform=='win32' else 0)
         if process.returncode:
@@ -105,7 +108,7 @@ print(json.dumps(out))"""
         return {str(t): {'number': None, 'error': str(error)} for t in tolerances}
 
 
-def operation_check(structure, kind, number, operations=None):
+def operation_check(structure, kind, number, operations=None, *, layer_origin=0.):
     """Fractional standard SG setting; centered mixed (fractional x,y; Cartesian z) LG setting."""
     if operations is None:
         from unifiedgroupgen.group_constraints.compiler import group_table
@@ -114,7 +117,7 @@ def operation_check(structure, kind, number, operations=None):
     if kind=='layer':
         structure = layer_structure(structure)
         cell = structure.lattice.matrix.copy(); cell[2] = [0, 0, 1]
-        coords = structure.frac_coords.copy(); coords[:, 2] = structure.cart_coords[:, 2]-structure.cart_coords[:, 2].mean()
+        coords = structure.frac_coords.copy(); coords[:, 2] = structure.cart_coords[:, 2]-structure.cart_coords[:, 2].mean() + layer_origin
         from pymatgen.core import Lattice
         lattice = Lattice(cell, pbc=(True, True, False))
     else:
@@ -128,7 +131,14 @@ def operation_check(structure, kind, number, operations=None):
         metric_error = max(metric_error, float(np.linalg.norm(rotation.T @ metric @ rotation-metric)/np.linalg.norm(metric)))
         for z in set(numbers):
             indices = np.flatnonzero(numbers==z)
-            distances = lattice.get_all_distances(mapped[indices], coords[indices])
+            if kind == 'layer':
+                from ase.geometry import find_mic
+
+                delta = (mapped[indices, None] - coords[indices][None]) @ lattice.matrix
+                _, lengths = find_mic(delta.reshape(-1, 3), lattice.matrix, pbc=lattice.pbc)
+                distances = lengths.reshape(delta.shape[:2])
+            else:
+                distances = lattice.get_all_distances(mapped[indices], coords[indices])
             i, j = linear_sum_assignment(distances)
             residual = max(residual, float(distances[i, j].max()))
     return residual, metric_error
@@ -155,7 +165,7 @@ def check_declared_orbits(row, record, structure, samples, counts):
         declared=record_counts(record,samples.parent)
         row['descriptor_composition_satisfied']=counts==declared
         if record.get('state') is not None:
-            from unifiedgroupgen.tests.representation import compiled_chart, expand_numpy
+            from unifiedgroupgen.group_constraints.representation import compiled_chart, expand_numpy
             from unifiedgroupgen.group_constraints.compiler import Descriptor
             chart=compiled_chart(Descriptor.from_dict(record['descriptor']))
             ll,ff,_=expand_numpy(chart,record['state'])
@@ -187,22 +197,115 @@ def check_requested_chemistry(row, record, request, refs, task, counts):
     return reference_record
 
 
+SYMMETRY_TOLERANCES = (1e-4, 1e-3, 1e-2)
+SYMMETRY_FIELDS = ('exact_target_group', 'strict_supergroup', 'target_operation_containment',
+                   'valid_operation_containment')
+
+
+def requested_operations(record, request, kind, number):
+    from unifiedgroupgen.group_constraints.operations import operation_closure
+    from unifiedgroupgen.group_constraints.compiler import catalog_operations
+
+    if 'operations' in request and request['operations'] is not None:
+        supplied = [
+            dict(rotation=op['R'], translation=op['t']) if 'R' in op else op
+            for op in request['operations']
+        ]
+        operations = operation_closure(supplied, kind)
+        return [dict(R=op.rotation, t=op.translation) for op in operations]
+    if (spec := record.get('symmetry')) and spec.get('operations'):
+        return [dict(R=op['rotation'], t=op['translation']) for op in spec['operations']]
+    if number is not None:
+        return [dict(R=r, t=t) for r, t in catalog_operations(kind, number)]
+    return None
+
+
+def operation_relation(working, kind, operations, detected, tolerance, layer_origin=0., target_group=None):
+    """Compare affine operations in the input cell, modulo periodic translations."""
+    if detected.get('number') is None or 'rotations' not in detected:
+        return 'unresolved'
+    rotations = np.asarray([op['R'] for op in operations], float)
+    shifts = np.asarray([op['t'] for op in operations], float)
+    if kind == 'layer':
+        height = working.lattice.matrix[2, 2]
+        scale = np.diag([1., 1., 1./height])
+        origin = np.array([0., 0., .5-layer_origin/height])
+        rotations = scale @ rotations @ np.linalg.inv(scale)
+        shifts = shifts @ scale.T + origin - (rotations @ origin)
+    same_rotation = np.isclose(rotations[:, None], detected['rotations'], atol=1e-8, rtol=0).all(axis=(-1, -2))
+    translations = np.asarray(detected['translations'])
+    differences = shifts[:, None] - translations[None]
+    periodic = np.array([True, True, kind=='space'])
+    differences -= periodic * differences.round()
+    within = np.linalg.norm(differences @ working.lattice.matrix, axis=-1) <= tolerance
+    compatible = same_rotation & within
+    left, right = linear_sum_assignment(~compatible)
+    if len(left) != len(operations) or not compatible[left, right].all():
+        return 'unresolved'
+    if len(translations) > len(operations):
+        return 'strict_supergroup'
+    if target_group is not None and detected['number'] != target_group:
+        return 'unresolved'
+    return 'exact'
+
+
+def exported_operation_check(structure, kind, number, operations, *, layer_origin=0.):
+    residual, metric = operation_check(structure, kind, number, operations, layer_origin=layer_origin)
+    return dict(operation_residual_angstrom=residual, metric_relative_residual=metric,
+                target_operation_containment=bool(residual <= 1e-4 and metric <= 1e-5))
+
+
 def check_symmetry(row, record, request, structure, kind, reidentify):
     target_group = row['target_group']
-    row['target_group'] = target_group
+    operations = requested_operations(record, request, kind, target_group)
+    if operations is None:
+        if reidentify:
+            working = layer_structure(structure) if kind=='layer' else structure
+            row['recovered_group'] = identify(working, kind, [1e-3])['0.001']['number']
+        return
+
+    # Export centers the nonperiodic coordinate. Restore the request chart origin
+    # using only its scalar shift; all distances are checked on the exported CIF.
+    origin = 0.
+    if kind == 'layer' and record.get('coordinates') and (record.get('symmetry') or 'cif_operation_check' in record.get('validation', {})):
+        origin = float(np.asarray(record['coordinates'])[:, 2].mean())
+    row.update(exported_operation_check(structure, kind, target_group, operations, layer_origin=origin))
+    contained = row['target_operation_containment']
+    row.update(valid_operation_containment=logical_and(contained, row.get('basic_valid')),
+        operation_check_frame='request chart reconstructed from exported CIF')
+    if not reidentify:
+        return
     working = layer_structure(structure) if kind=='layer' else structure
-    if reidentify:
-        identified = identify(working, kind, [1e-4, 1e-3, 1e-2])
-        row['recovered_group'] = identified['0.001']['number']
-        row['identifier_error'] = identified['0.001'].get('error')
-        for tolerance, value in identified.items():
-            row['exact_group_'+tolerance] = value['number']==target_group if value['number'] is not None and target_group is not None else None
-        row['exact_target_group'] = row.get('exact_group_0.001')
-    if target_group is not None and (record.get('descriptor') or request.get('operations')):
-        residual, metric = operation_check(structure, kind, target_group, request.get('operations'))
-        row.update(operation_residual_angstrom=residual, metric_relative_residual=metric,
-            target_operation_containment=bool(residual<=1e-4 and metric<=1e-5),
-            operation_check_frame='standard fractional SG / centered mixed-coordinate LG')
+    identified = identify(working, kind, SYMMETRY_TOLERANCES, operations=True)
+    relations = {}
+    for threshold in SYMMETRY_TOLERANCES:
+        tolerance = str(threshold)
+        result = identified[tolerance]
+        relation = (operation_relation(working, kind, operations, result, threshold, origin, target_group)
+                    if contained else 'violated')
+        relations[tolerance] = relation
+        row['exact_group_'+tolerance] = None if relation=='unresolved' else relation=='exact'
+    relation = relations['0.001']
+    row.update(recovered_group=identified['0.001']['number'], identifier_error=identified['0.001'].get('error'),
+               operation_relation=relation, strict_supergroup=None if relation=='unresolved' else relation=='strict_supergroup',
+               exact_target_group=None if relation=='unresolved' else relation=='exact',
+               operation_relation_by_tolerance=relations)
+
+
+def specified_symmetry_summary(rows, reidentify):
+    requested = [r for r in rows if r.get('symmetry_requested')]
+    fields = SYMMETRY_FIELDS
+    if any('structure_valid' in row for row in requested):
+        fields += ('structure_valid',)
+    return {
+        'attempts': len(requested),
+        'rates': {name: rate((r.get(name) for r in requested),
+                             bool(requested) and (reidentify or name not in ('exact_target_group', 'strict_supergroup')))
+                  for name in fields},
+        'unresolved': sum(r.get('operation_relation') == 'unresolved' for r in requested),
+        'denominator': 'all attempts with a symmetry request, including generation and evaluation failures',
+    }
+
 
 def group_summary(rows, requested_fields, reidentify):
     report = {}
@@ -212,6 +315,8 @@ def group_summary(rows, requested_fields, reidentify):
             groups[row['target_group']].append(row)
     report['groups'] = [{'group':g,'requested':len(v),'exact':rate((r.get('exact_target_group') for r in v),reidentify),
         'containment':rate((r.get('target_operation_containment') for r in v),'target_operation_containment' in requested_fields),
+        'strict_supergroup':rate((r.get('strict_supergroup') for r in v),reidentify),
+        'valid_containment':rate((r.get('valid_operation_containment') for r in v),'valid_operation_containment' in requested_fields),
         'basic_valid':rate(r.get('basic_valid') for r in v),
         'multi_tolerance':{str(t):rate((r.get('exact_group_'+str(t)) for r in v),reidentify) for t in (1e-4,1e-3,1e-2)}} for g,v in sorted(groups.items())]
     group_values = [g['exact']['rate'] for g in report['groups'] if g['exact']['rate'] is not None]
@@ -241,7 +346,7 @@ def build_summary(rows, features, reference, properties, context, embeddings):
     refs, train, use_fingerprints = context.refs, context.train, context.use_fingerprints
     reidentify, novelty_files, samples = context.reidentify, context.novelty_files, context.samples
     generated_rows=[r for r in rows if r['generation_success']]
-    requested_fields=set(('generation_success','legacy_structural_valid','periodic_distance_valid','chemical_valid','basic_valid','legacy_joint_valid'))
+    requested_fields=set(('generation_success','pair_distance_volume_valid','periodic_distance_valid','chemical_valid','basic_valid','pair_distance_chemical_valid'))
     if use_fingerprints: requested_fields.add('fingerprint_success')
     if reidentify and any(r.get('target_group') is not None for r in rows): requested_fields.add('exact_target_group')
     if task=='csp': requested_fields.update(('composition_satisfied','formula_satisfied','atom_count_satisfied'))
@@ -267,7 +372,7 @@ def build_summary(rows, features, reference, properties, context, embeddings):
         'matching_profiles': PROFILES,'matching_profile_labels':{p:label.replace('scale=True (3D)','scale=False (2D adaptation)') if kind=='layer' else label
             for p,label in PROFILE_LABELS.items()}, 'protocol': {'basic_valid':'periodic-distance>=0.5 A AND SMACT; fingerprint independent',
             'denominators':'Generation success: requested count. Structure validity: generated structures. DNG yields and property hits: requested count. CSP match: test cases.',
-            'legacy_joint_valid':'unchanged legacy pair-distance / volume AND SMACT AND fingerprint when enabled',
+            'pair_distance_chemical_valid':'unchanged pair-distance / volume AND SMACT AND fingerprint when enabled',
             'layer_matching':'physical 2D displacement / sqrt(area/atoms), unscaled; diffcsp_v1 label is a 2D adaptation',
             'reference_group_labels':'audited descriptor labels when supplied', 'fingerprints_enabled':use_fingerprints,
             'uniqueness_scope':'within each CSP case' if task=='csp' else 'whole DNG population',
@@ -282,6 +387,7 @@ def build_summary(rows, features, reference, properties, context, embeddings):
         report['csp']['matching_profile_labels']=report['matching_profile_labels']
     else:
         report['dng'] = dng_summary(rows, reference, features, refs, train, kind, novelty_files)
+    report['specified_symmetry'] = specified_symmetry_summary(rows, reidentify)
     report.update(group_summary(rows, requested_fields, reidentify))
     report['embedding_distance'] = embedding_summary(rows, reference, refs, samples, embeddings)
     return report
@@ -301,19 +407,30 @@ def evaluate_records(records, context, *, progress_log=None):
         if reference_record:
             row['reference_coordinate_dof'] = descriptor_metadata(reference_record[0], kind).get('coordinate_dof')
         row['target_group'] = request.get('group') or record.get('requested_group') or row.get('declared_group')
+        row['symmetry_input'] = record.get('symmetry_input') or request.get('symmetry_input')
+        row['symmetry_requested'] = (row['target_group'] is not None or row['symmetry_input'] in ('number', 'operations')
+                                     or request.get('operations') is not None or bool(record.get('symmetry')))
         row['property_targets'] = request.get('properties', {k:v for k,v in record.get('properties_requested', {}).items() if k!='source_domain' and v is not None})
         validation = record.get('validation', {})
         for name in ('orbit_multiplicity_regular','no_coincident_orbits'):
             row[name] = validation.get(name)
+        if 'structure_valid' in validation:
+            row['structure_valid'] = validation['structure_valid']
         if 'observation_max_residual' in validation:
             row['observation_max_residual'] = validation['observation_max_residual']
             row['observation_satisfied'] = validation['observation_max_residual']<=request.get('observation_tolerance', 1e-5)
         if not row['generation_success']:
-            row.update(basic_valid=False,legacy_joint_valid=False,unique=False)
+            row.update(basic_valid=False,pair_distance_chemical_valid=False,unique=False)
             if task=='csp': row.update(composition_satisfied=False,formula_satisfied=False,atom_count_satisfied=False)
-            if row['target_group'] is not None: row.update(exact_target_group=False,target_operation_containment=False)
+            if row['symmetry_requested']:
+                row.update(dict.fromkeys(SYMMETRY_FIELDS, False))
+                if 'cif_operation_check' in validation:
+                    row.update(validation['cif_operation_check'])
             if novelty_files: row['novel_against_reference']=False
-            row['failure_reason'] = record.get('reason'); rows.append(row); continue
+            row['failure_reason'] = record.get('reason')
+            if 'rejection_reasons' in record:
+                row['rejection_reasons'] = record['rejection_reasons']
+            rows.append(row); continue
         try:
             with warnings.catch_warnings():
                 warnings.simplefilter('ignore')
@@ -326,7 +443,7 @@ def evaluate_records(records, context, *, progress_log=None):
             row.update(geometry(structure, kind))
             row['chemical_valid'], row['chemical_error'] = composition_validity(structure)
             row['basic_valid'] = logical_and(row['periodic_distance_valid'], row['chemical_valid'])
-            row['legacy_joint_valid'] = (bool(row['legacy_structural_valid'] and row['chemical_valid']) if row['chemical_valid'] is not None else None)
+            row['pair_distance_chemical_valid'] = (bool(row['pair_distance_volume_valid'] and row['chemical_valid']) if row['chemical_valid'] is not None else None)
             counts = counts_of(structure)
             row['elements'] = sorted(counts)
             check_declared_orbits(row, record, structure, samples, counts)
@@ -341,7 +458,7 @@ def evaluate_records(records, context, *, progress_log=None):
                         features.append([p.tolist() for p in pair])
                 except (ValueError, TypeError, KeyError, RuntimeError, ZeroDivisionError, np.linalg.LinAlgError) as error:
                     row['fingerprint_success'] = False; row['fingerprint_error'] = str(error)
-                row['legacy_joint_valid'] = bool(row.get('legacy_joint_valid') and row.get('fingerprint_success')) if row['chemical_valid'] is not None else None
+                row['pair_distance_chemical_valid'] = bool(row.get('pair_distance_chemical_valid') and row.get('fingerprint_success')) if row['chemical_valid'] is not None else None
             if row.get('basic_valid'):
                 key = formula_key(counts)
                 bucket = (row['case_id'], key) if task=='csp' else key
@@ -357,7 +474,7 @@ def evaluate_records(records, context, *, progress_log=None):
             row['evaluation_error'] = str(error)
             if row['parse_success'] is None:
                 row['parse_success'] = False
-                row.update(generation_success=False,basic_valid=False,legacy_joint_valid=False,unique=False,
+                row.update(generation_success=False,basic_valid=False,pair_distance_chemical_valid=False,unique=False,
                            failure_stage='structure_readback',error_type=type(error).__name__)
         rows.append(row)
     return rows, features

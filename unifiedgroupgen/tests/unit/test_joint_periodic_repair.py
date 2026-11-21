@@ -9,8 +9,8 @@ from pathlib import Path
 import pytest
 import torch
 
-from unifiedgroupgen.joint_flow.periodic import EquiformerFeatures
-from unifiedgroupgen.pl_modules.backbones import periodic_graph as graphs
+from unifiedgroupgen.pl_modules.unified.periodic import EquiformerFeatures
+from unifiedgroupgen.common import data_utils as graphs
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -326,7 +326,7 @@ def test_large_image_rotation_and_atom_permutation():
 def test_full_joint_model_mixed_states_match_single(kind, task):
     from unifiedgroupgen.group_constraints.chemistry import ChemicalControl
     from unifiedgroupgen.group_constraints.unified import catalog_spec
-    from unifiedgroupgen.joint_flow.state import initial,apply,assign,JointAction
+    from unifiedgroupgen.group_constraints.flow_state import initial,apply,assign,JointAction
     from unifiedgroupgen.pl_modules.factory import build_joint_model
     control = ChemicalControl.from_inputs(counts={8:1}) if task=='csp' else ChemicalControl()
     empty = initial(catalog_spec(kind,1),generator=torch.Generator().manual_seed(2),budget=12,chemistry=control)
@@ -353,47 +353,31 @@ def test_full_joint_model_mixed_states_match_single(kind, task):
         assert a['actions']==b['actions']
 
 
-@pytest.mark.parametrize('dataset', ['mp_20','c2db_51'])
-@pytest.mark.parametrize('task', ['dng','csp'])
-def test_historical_native_checkpoint_strict_load_and_optimizer_restore(dataset, task):
-    import hashlib
-    import random
-    import numpy as np
-    from unifiedgroupgen.pl_modules.joint_training import JointGeneratorModule
-    path = ROOT/'intermediate/checks/joint_flow_v2_20261113/runs'/dataset/task/'equiformer_v2/last.ckpt'
-    if not path.is_file():
-        pytest.skip('Local historical short-run checkpoint not supplied')
-    before = hashlib.sha256(path.read_bytes()).hexdigest()
-    saved = torch.load(path,map_location='cpu',weights_only=False)
-    assert all(torch.isfinite(v).all() for v in saved['state_dict'].values() if torch.is_tensor(v))
-    j = saved['joint_state']
-    module = JointGeneratorModule(j['config'],j['runtime'],j['split_hashes'])
-    module.load_state_dict(saved['state_dict'],strict=True)
-    module.on_load_checkpoint(saved)
-    assert module._pending_rng is j['rng']
-    result = module.configure_optimizers()
-    optimizer = result['optimizer'] if isinstance(result,dict) else result
-    optimizer.load_state_dict(saved['optimizer_states'][0])
-    assert len(optimizer.state) == len(saved['optimizer_states'][0]['state']) > 0
-    assert all(torch.isfinite(v).all() for s in optimizer.state.values() for v in s.values() if torch.is_tensor(v))
-    if isinstance(result,dict):
-        result['lr_scheduler']['scheduler'].load_state_dict(saved['lr_schedulers'][0])
-    rng = j['rng']
-    torch.Generator().set_state(rng['torch'])
-    np.random.RandomState().set_state(rng['numpy'])
-    random.Random().setstate(rng['python'])
-    # Corrupt copies must still fail the pre-existing strict resume checks.
-    for key in ('config','runtime','split_hashes'):
-        altered = dict(saved,joint_state=dict(j,**{key:{}}))
-        with pytest.raises(ValueError,match='differs|differ'):
-            module.on_load_checkpoint(altered)
-    assert hashlib.sha256(path.read_bytes()).hexdigest() == before
+def test_current_native_checkpoint_strictly_checks_resume_identity():
+    from unifiedgroupgen.pl_modules.unified.module import FLOW_FORMAT, JointGeneratorModule
+    from unifiedgroupgen.experiment_config import compose_experiment, training_definition
+    config = training_definition(compose_experiment('flow_mp20_dng'))
+    config['allowed_elements'] = [8, 22]
+    config['model'].update(hidden=16, layers=1, channels=8, lmax=2, mmax=1)
+    runtime = {'precision': 'fp32', 'batch_size': 2}
+    hashes = {'train': {'train.pt': 'digest'}}
+    module = JointGeneratorModule(config, runtime, hashes)
+    rng = torch.Generator().manual_seed(7).get_state()
+    state = dict(format=FLOW_FORMAT, config=config, runtime=runtime, split_hashes=hashes,
+                 rng={'torch': rng}, pending_lr_metric=.25)
+    module.on_load_checkpoint({'joint_state': state})
+    assert module._pending_rng is state['rng']
+    assert module._pending_lr_metric == .25
+    for key in ('config', 'runtime', 'split_hashes'):
+        with pytest.raises(ValueError, match='differs|differ'):
+            module.on_load_checkpoint({'joint_state': {**state, key: {}}})
 
 
 def test_full_recipe_backbone_parameter_schema_matches_unchanged_base():
     from unifiedgroupgen.pl_modules.backbones.equiformer_v2 import EquiformerV2Backbone
-    from unifiedgroupgen.common.configuration import compose_experiment,training_definition
-    cfg = training_definition(compose_experiment('full_mp20_eqv2_dng'))
+    from unifiedgroupgen.experiment_config import compose_experiment,training_definition
+    experiment = compose_experiment('full_mp20_eqv2_dng')
+    cfg = training_definition(experiment)
     a = cfg['model']
     options = dict(hidden=a['hidden'],layers=a['layers'],channels=a['channels'],lmax=a['lmax'],mmax=a['mmax'],
                    cutoff=a['cutoff'],max_neighbors=a['max_neighbors'],max_images=a['max_images'],use_gate_act=a['use_gate_act'])
@@ -402,4 +386,4 @@ def test_full_recipe_backbone_parameter_schema_matches_unchanged_base():
     repaired.load_state_dict(reference.state_dict(),strict=True)
     assert {k:tuple(v.shape) for k,v in reference.state_dict().items()} == {
         k:tuple(v.shape) for k,v in repaired.state_dict().items()}
-    assert cfg['precision']=='fp32' and cfg['epochs']==1000
+    assert experiment.runtime.precision=='fp32' and cfg['epochs']==1000

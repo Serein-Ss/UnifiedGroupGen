@@ -1,8 +1,9 @@
 defaults:
-- joint_flow_fast
+- local
 - _self_
 # Fallback defaults; the server calibrator supplies the measured batch/edge pair.
 precision: fp32
 strict_fp32: true
+fused_adamw: true
+log_every_n_steps: 25
 batch_size: 8
-edge_budget: 40000

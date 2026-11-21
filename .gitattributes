@@ -7,3 +7,5 @@ unifiedgroupgen/pl_modules/backbones/official/**/*.json text eol=lf
 unifiedgroupgen/pl_modules/backbones/official/**/*.pt -text
 # Preserve audited input bytes, including on Windows checkouts.
 data/** -text
+# Historical snapshots retain their audited original bytes across checkouts.
+unifiedgroupgen/tests/legacy_code/** -text

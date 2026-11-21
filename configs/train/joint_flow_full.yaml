@@ -1,12 +1,7 @@
 defaults:
-- joint_symmetry
+- joint_flow
 - _self_
-# Full-data, independent tasks; no bounded-smoke limits or chemical-set mixing.
-batch_size: 8
-edge_budget: 40000
 epochs: 1000
-validation_monitor: val/loss
-validation_seed: 918
 lr_schedule:
   factor: 0.5
   patience: 10
@@ -15,8 +10,3 @@ lr_schedule:
 early_stopping:
   patience: 60
   min_delta: 0.0001
-event_budget: 96
-chemical_set_probability: 0.0
-joint_train_limit: null
-joint_val_limit: null
-joint_max_steps: -1

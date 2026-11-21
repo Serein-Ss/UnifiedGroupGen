@@ -238,7 +238,7 @@ class TrainingProgress(Callback):
             self._step_log.write('train', epoch=trainer.current_epoch, batch=batch_idx+1,
                            batches=trainer.num_training_batches, global_step=trainer.global_step,
                            loss=scalar(loss), lr=trainer.optimizers[0].param_groups[0]['lr'],
-                           batch_size=_batch_size(pl_module), actual_batch_size=len(batch),
+                           batch_size=_batch_size(pl_module), actual_batch_size=batch.num_graphs if hasattr(batch,'num_graphs') else len(batch),
                            phase_seconds=self.train_clock.elapsed, **_parts(pl_module,'train'))
 
     def on_validation_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx=0):
@@ -246,7 +246,7 @@ class TrainingProgress(Callback):
             loss = outputs.get('loss') if isinstance(outputs, dict) else outputs
             self._step_log.write('validation', epoch=trainer.current_epoch, batch=batch_idx+1,
                            dataloader=dataloader_idx, global_step=trainer.global_step, loss=scalar(loss),
-                           batch_size=_batch_size(pl_module), actual_batch_size=len(batch),
+                           batch_size=_batch_size(pl_module), actual_batch_size=batch.num_graphs if hasattr(batch,'num_graphs') else len(batch),
                            phase_seconds=self.validation_clock.elapsed, **_parts(pl_module,'validation'))
 
     def on_train_epoch_end(self, trainer, pl_module):

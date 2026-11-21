@@ -9,8 +9,8 @@ from omegaconf import OmegaConf
 from unifiedgroupgen.common.configuration import sampling_files
 from unifiedgroupgen.common.structures import write_json
 from unifiedgroupgen.group_constraints.chemistry import ChemicalControl
-from unifiedgroupgen.joint_flow import cli
-from unifiedgroupgen.pl_modules import joint_training as training
+from unifiedgroupgen.generation.unified import runner as cli
+from unifiedgroupgen.pl_modules.unified import module as training
 
 
 def read(path):
@@ -128,6 +128,8 @@ def joint_entry(tmp_path,monkeypatch):
     monkeypatch.setattr(training,'load_joint_checkpoint',lambda *a,**k:checkpoint)
     monkeypatch.setattr(factory,'build_joint_model',lambda *a,**k:model)
     import unifiedgroupgen.common.configuration as configuration
+    monkeypatch.setattr(configuration,'package_parent',lambda:tmp_path)
+    (tmp_path/'.env').write_text(f'PROJECT_ROOT="{tmp_path.as_posix()}"\nHYDRA_JOBS="outputs"\nWANDB_DIR="wandb"\nUSE_WANDB_LOGGING="0"\n',encoding='utf-8')
     monkeypatch.setattr(configuration,'project_root',lambda:tmp_path)
     captured={}
     monkeypatch.setattr(cli,'generate',lambda *a:captured.update(output=a[-1]) or {'fixture':True})
@@ -149,15 +151,20 @@ def test_explicit_output_path_remains_exact(tmp_path,joint_entry):
     assert captured['output']==output
 
 
-@pytest.mark.parametrize('task,flags',[('csp',['--formula','O2']),('property',['--properties','{"band_gap":1.5}'])])
-def test_other_tasks_use_the_same_directory_contract(tmp_path,joint_entry,monkeypatch,task,flags):
+@pytest.mark.parametrize('task,conditioned',[('csp',False),('csp',True),('dng',True)])
+def test_chemistry_and_property_requests_can_coexist(tmp_path,joint_entry,monkeypatch,task,conditioned):
     from unifiedgroupgen.joint import main
     model,captured,args=joint_entry
     config=dict(model={'family':'joint_flow_v2','task_controls':True},generation_task=task,
-        group_prior={},properties={'band_gap':{'type':'scalar'}} if task=='property' else {})
+        group_prior={},properties={'band_gap':{'type':'scalar'}} if conditioned else {})
     monkeypatch.setattr(training,'load_joint_checkpoint',lambda *a,**k:dict(config=config,model={}))
+    monkeypatch.setattr(cli,'generate',lambda *a:captured.update(chemistry=a[-3],properties=a[-2],output=a[-1]))
+    flags=(['--formula','O2'] if task=='csp' else [])+(['--properties','{"band_gap":1.5}'] if conditioned else [])
     main(args+flags)
-    assert captured['output']==tmp_path/f'run/generate/space_{task}_seed42/samples.jsonl'
+    assert dict(captured['chemistry'].counts)==({8:2} if task=='csp' else {})
+    assert captured['properties']==({'band_gap':1.5} if conditioned else {})
+    mode='csp' if task=='csp' else 'dng'
+    assert captured['output']==tmp_path/f'run/generate/space_{mode}_seed42/samples.jsonl'
 
 
 def test_unsafe_task_name_cannot_escape_run(tmp_path,joint_entry):
@@ -166,22 +173,8 @@ def test_unsafe_task_name_cannot_escape_run(tmp_path,joint_entry):
     assert not (tmp_path/'escape').exists()
 
 
-def test_legacy_joint_still_requires_explicit_output(joint_entry):
-    from unifiedgroupgen.joint import main
-    model,_,args=joint_entry;model.flow_version='joint_symmetry_v1'
-    with pytest.raises(SystemExit):main(args)
 
 
-def test_legacy_explicit_generation_does_not_gain_v2_sidecars(tmp_path,joint_entry,monkeypatch):
-    import unifiedgroupgen.joint as joint
-    import unifiedgroupgen.generation.joint as legacy
-    model,_,args=joint_entry;model.flow_version='joint_symmetry_v1'
-    monkeypatch.setattr(legacy,'sample_joint',lambda *a,**k:object())
-    monkeypatch.setattr(joint,'evaluation_record',lambda *a,**k:dict(status='generated'))
-    output=tmp_path/'legacy/samples.jsonl'
-    joint.main(args+['--group','1','--output',str(output)])
-    assert len(output.read_text().splitlines())==1
-    assert not any(p.exists() for p in sampling_files(output))
 
 
 @pytest.fixture
@@ -191,7 +184,7 @@ def metric_config(tmp_path):
     samples=tmp_path/'run/generate/fixture/samples.jsonl'
     samples.parent.mkdir(parents=True);samples.write_text('{"index":0,"status":"failed"}\n')
     options.samples=str(samples)
-    return OmegaConf.create(dict(task='evaluate',device='cpu',threads=1,evaluation=options))
+    return OmegaConf.create(dict(task='evaluate',device='cpu',seed=142,threads=1,evaluation=options))
 
 
 def test_evaluation_uses_matching_task_directory_and_preserves_inputs(metric_config,monkeypatch):
@@ -212,6 +205,11 @@ def test_evaluation_uses_matching_task_directory_and_preserves_inputs(metric_con
     preserved={p.name:p.read_bytes() for p in output.iterdir()}
     with pytest.raises(ValueError,match='already exist'):evaluate.execute(metric_config)
     assert preserved=={p.name:p.read_bytes() for p in output.iterdir()}
+
+
+def test_metric_identity_only_names_existing_production_files():
+    from unifiedgroupgen.evaluate import metric_sources
+    assert all(path.is_file() and 'tests' not in path.parts for path in metric_sources())
 
 
 @pytest.mark.parametrize('error',[RuntimeError('fixture'),KeyboardInterrupt()])
@@ -289,10 +287,3 @@ def test_programmatic_custom_training_name_preserves_sidecars(tmp_path,monkeypat
     with pytest.raises(FileExistsError):
         training.fit_joint({'model':{'family':'joint_flow_v2'}},[{'id':'train'}],[{'id':'val'}],output)
     assert existing.read_bytes()==b'existing custom result' and not output.exists()
-
-
-def test_legacy_lifecycle_does_not_add_initialization_files(tmp_path):
-    output=tmp_path/'model.pt'
-    with training._flow_status(output,{'model':{'family':'joint_symmetry_v1'}}) as progress:
-        progress('preparing_targets')
-        assert not list(tmp_path.iterdir())

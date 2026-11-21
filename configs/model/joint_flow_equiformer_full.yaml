@@ -1,0 +1,4 @@
+defaults:
+- joint_flow_equiformer
+- _self_
+heads: 8
