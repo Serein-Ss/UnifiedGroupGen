@@ -44,7 +44,7 @@ def test_backbone_plan_has_the_same_runtime_batch_size():
     names = catalog()['backbone_comparison']['models']
     result = plan(names)
     assert result['jobs'] == 4
-    assert result['calibration']['candidates'] == [4]
+    assert result['calibration']['candidates'] == [32]
     assert len(plan()['selected']) == 2
     assert {(result['available'][n]['backbone'], result['available'][n]['task']) for n in names} == {
         (backbone, task) for backbone in ('equiformer_v2', 'cspnet') for task in ('dng', 'csp')
@@ -58,7 +58,7 @@ def test_real_backbone_joint_geometry_gradients(name):
     definition = training_definition(cfg)
     assert cfg.initialize_from is None and cfg.resume is None
     assert cfg.train.early_stopping.patience == 30
-    assert cfg.runtime.batch_size == 4 and cfg.runtime.strict_fp32
+    assert cfg.runtime.batch_size == 32 and cfg.runtime.strict_fp32
     task = definition['generation_task']
     assert definition.get('csp_group_policy', 'prior') == ('composition_ranked' if task == 'csp' else 'prior')
     model = build_joint_model({**definition, 'allowed_elements': [8, 14]}, 'cpu')
