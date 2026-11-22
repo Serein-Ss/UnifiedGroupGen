@@ -14,10 +14,16 @@ sys.path.insert(0,str(ROOT))
 from submit_files.common import read,write
 
 
+def model_policy(campaign, model):
+    policy = campaign['calibration']
+    batch_size = campaign['entries'][model].get('batch_size')
+    return {**policy, 'candidates': [batch_size]} if batch_size is not None else policy
+
+
 def identity(campaign,model,audit):
     return dict(revision=campaign['revision'],experiment=campaign['entries'][model]['experiment'],
                 config_sha256=audit['config_sha256'],train_inputs=audit['inputs']['train'],
-                policy=campaign['calibration'],precision='fp32')
+                policy=model_policy(campaign,model),precision='fp32')
 
 
 def validate_profile(profile,expected):
@@ -72,9 +78,10 @@ def prepare_inputs(campaign,model,folder):
     if not records:raise ValueError('No eligible TRAIN records for calibration')
     sizes=[sum(catalog_spec(r['descriptor']['kind'],r['descriptor']['number']).template(w['letter']).multiplicity
                for w in r['descriptor']['orbits']) for r in records]
+    policy=model_policy(campaign,model)
     candidates=[];needed=set()
-    for batch in campaign['calibration']['candidates']:
-        cases=workloads(sizes,batch,campaign['calibration'])
+    for batch in policy['candidates']:
+        cases=workloads(sizes,batch,policy)
         needed.update(i for c in cases for i in c['indices'])
         candidates.append(dict(batch_size=batch,cases=cases))
     selected=sorted(needed);mapping={i:j for j,i in enumerate(selected)}
@@ -82,7 +89,7 @@ def prepare_inputs(campaign,model,folder):
         for case in candidate['cases']:case['indices']=[mapping[i] for i in case['indices']]
     value=dict(config=config,records=[records[i] for i in selected],candidates=candidates,
                expected_atoms=[sizes[i] for i in selected],
-               policy=campaign['calibration'],source_split='train',eligible_train_records=len(records))
+               policy=policy,source_split='train',eligible_train_records=len(records))
     write(folder/'inputs.json',value)
 
 
@@ -98,7 +105,7 @@ def calibrate(campaign_path,model):
     prepare_inputs(campaign,model,folder)
     result=dict(state='running',identity=expected,trials=[],trial_directory=str(folder),temporary_weights_discarded=True,
                 scope='Finite TRAIN forward/backward/optimizer probes, not convergence or quality validation')
-    for i,_ in enumerate(campaign['calibration']['candidates']):
+    for i,_ in enumerate(expected['policy']['candidates']):
         output=folder/('trial_'+str(i)+'.json')
         with (folder/('trial_'+str(i)+'.log')).open('w',encoding='utf-8') as log:
             subprocess.run([sys.executable,'-u',str(ROOT/'submit_files/joint_flow5090_calibrate.py'),

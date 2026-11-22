@@ -3,7 +3,9 @@ default_models:
 - full_mp20_eqv2_dng
 - full_mp20_eqv2_csp
 backbone_comparison:
-  batch_size: 32
+  batch_sizes:
+    equiformer_v2: 16
+    cspnet: 32
   models:
   - full_mp20_eqv2_dng_improved
   - full_mp20_eqv2_csp_improved

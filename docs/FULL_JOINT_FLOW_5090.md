@@ -126,7 +126,7 @@ python submit_files/joint_flow5090.py submit --name jointflow_mp20_fp32_v2 --ret
 python -B submit_files/joint_flow5090.py plan --backbones
 ~~~
 
-四组均采用随机初始化、MP-20 全量数据、seed 42、严格 FP32、batch size 32 和 AdamW。上限为 1000 轮，验证损失连续 30 轮无改善时早停。四组分别在 5090 上对 batch size 32 做显存和有限梯度检查。CSPNet 沿用速度测试中的 288 通道配置，EquiformerV2 沿用 128 通道和 8 个注意力头的全量配置。两种主干的参数量不同。
+四组均采用随机初始化、MP-20 全量数据、seed 42、严格 FP32 和 AdamW。上限为 1000 轮，验证损失连续 30 轮无改善时早停。EquiformerV2 的 DNG、CSP 固定 batch size 16，CSPNet 的 DNG、CSP 固定 batch size 32。每组在 5090 上只对各自批大小做显存和有限梯度检查。CSPNet 沿用速度测试中的 288 通道配置，EquiformerV2 沿用 128 通道和 8 个注意力头的全量配置。两种主干的参数量不同。
 
 四组共用晶格形状、各向同性体积和轨道位点分项损失，以及显式群约束和整轨道规则。CSP 的组分排序使用训练集拟合的频次，也可通过 --csp-group-policy prior 运行原先的抽群方式。显式输入群编号或操作集时，直接使用指定条件。DNG 继续使用训练集群先验。
 

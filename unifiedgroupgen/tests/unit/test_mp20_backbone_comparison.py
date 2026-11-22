@@ -6,6 +6,7 @@ import pytest
 import torch
 
 from submit_files.joint_flow5090 import catalog, plan
+from submit_files.joint_flow5090_calibrate import model_policy
 from unifiedgroupgen.experiment_config import compose_experiment, training_definition
 from unifiedgroupgen.group_constraints.chemistry import ChemicalControl
 from unifiedgroupgen.group_constraints.compiler import group_table
@@ -40,11 +41,18 @@ def test_composition_ranking_uses_train_counts_and_keeps_prior_rng():
         sample_group(legacy, other, **args, composition_rank=0)
 
 
-def test_backbone_plan_has_the_same_runtime_batch_size():
+def test_backbone_plan_preserves_each_models_fixed_batch_size():
     names = catalog()['backbone_comparison']['models']
     result = plan(names)
     assert result['jobs'] == 4
-    assert result['calibration']['candidates'] == [32]
+    assert result['calibration']['candidates'] == [16, 32]
+    sizes = {'equiformer_v2': 16, 'cspnet': 32}
+    for backbone, batch_size in sizes.items():
+        selected = [name for name in names if result['entries'][name]['backbone'] == backbone]
+        assert len(selected) == 2
+        assert plan(selected)['calibration']['candidates'] == [batch_size]
+        for name in selected:
+            assert model_policy(result, name)['candidates'] == [batch_size]
     assert len(plan()['selected']) == 2
     assert {(result['available'][n]['backbone'], result['available'][n]['task']) for n in names} == {
         (backbone, task) for backbone in ('equiformer_v2', 'cspnet') for task in ('dng', 'csp')
@@ -58,7 +66,8 @@ def test_real_backbone_joint_geometry_gradients(name):
     definition = training_definition(cfg)
     assert cfg.initialize_from is None and cfg.resume is None
     assert cfg.train.early_stopping.patience == 30
-    assert cfg.runtime.batch_size == 32 and cfg.runtime.strict_fp32
+    batch_size = {'equiformer_v2': 16, 'cspnet': 32}[definition['model']['backbone']]
+    assert cfg.runtime.batch_size == batch_size and cfg.runtime.strict_fp32
     task = definition['generation_task']
     assert definition.get('csp_group_policy', 'prior') == ('composition_ranked' if task == 'csp' else 'prior')
     model = build_joint_model({**definition, 'allowed_elements': [8, 14]}, 'cpu')

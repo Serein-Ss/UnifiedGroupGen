@@ -43,8 +43,13 @@ def planned_entries(data, models=None, paper=None):
         paired = set(chosen) & set(comparison['models'])
         if paired and paired != set(chosen):
             raise ValueError('Select the backbone comparison and the other models in separate campaigns')
-        policy = {**data['calibration'], 'candidates': [comparison['batch_size']]} if paired else data['calibration']
-        return {name: data['experiments'][name] for name in chosen}, policy
+        entries = {name: data['experiments'][name] for name in chosen}
+        if not paired:
+            return entries, data['calibration']
+        sizes = comparison['batch_sizes']
+        entries = {name: {**entry, 'batch_size': sizes[entry['backbone']]} for name, entry in entries.items()}
+        candidates = sorted({entry['batch_size'] for entry in entries.values()})
+        return entries, {**data['calibration'], 'candidates': candidates}
     settings = data['paper']
     chosen = selection(data, settings['models'] if models is None else models)
     if set(chosen) - set(settings['models']):
@@ -80,7 +85,7 @@ def plan(models=None, paper=None):
     data=catalog();entries,policy=planned_entries(data,models,paper)
     result = dict(selected=list(entries),jobs=len(entries),phase='audit_calibrate_train',calibration=policy,
                   resources=data['resources'],available=data['experiments'],local_training_started=False)
-    if paper is not None:
+    if paper is not None or any('batch_size' in entry for entry in entries.values()):
         result['entries'] = entries
     return result
 

@@ -32,7 +32,8 @@ def test_full_configuration_has_correct_task_data_backbone_and_no_limits(name,en
     assert set(c['properties'])==({entry['property_conditioning']} if 'property_conditioning' in entry else set())
     assert not any(p.get('context') for p in c['properties'].values())
     assert cfg.runtime.precision=='fp32' and cfg.runtime.strict_fp32 and cfg.runtime.fused_adamw
-    assert cfg.runtime.batch_size==(DATA['backbone_comparison']['batch_size'] if is_comparison else 8) and 'batch_size' not in c
+    sizes = DATA['backbone_comparison']['batch_sizes']
+    assert cfg.runtime.batch_size==(sizes[entry['backbone']] if is_comparison else 8) and 'batch_size' not in c
     assert c['model']['hidden']==128 and c['model']['layers']==4 and not c['model']['checkpoint_layers']
     assert c['model']['heads']==(8 if entry['backbone']=='equiformer_v2' else 4)
     expected = ['mp_20', 'c2db_51'] if entry['dataset'] == 'mp20_c2db51' else [entry['dataset']]

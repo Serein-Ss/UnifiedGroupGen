@@ -44,22 +44,27 @@ def test_profile_reuse_requires_exact_identity_and_memory_criteria():
     with pytest.raises(ValueError):calibration.validate_profile(changed,expected)
 
 
-def test_each_candidate_runs_in_a_separate_mock_subprocess_and_completed_profile_reuses(tmp_path,monkeypatch):
-    campaign=dict(name='test',revision='a',entries={'model':{'experiment':'fixture'}},calibration=POLICY)
+@pytest.mark.parametrize('fixed_batch', [None, 16])
+def test_each_candidate_runs_in_a_separate_mock_subprocess_and_completed_profile_reuses(tmp_path,monkeypatch,fixed_batch):
+    entry = {'experiment': 'fixture'}
+    if fixed_batch is not None:
+        entry['batch_size'] = fixed_batch
+    candidates = [fixed_batch] if fixed_batch is not None else POLICY['candidates']
+    campaign=dict(name='test',revision='a',entries={'model':entry},calibration=POLICY)
     manifest=tmp_path/'campaign.json';calibration.write(manifest,campaign)
     calibration.write(tmp_path/'audits/model.json',dict(config_sha256='hash',inputs={'train':[]}))
     monkeypatch.setattr(calibration,'prepare_inputs',lambda c,m,folder:calibration.write(folder/'inputs.json',{}))
     calls=[]
     def subprocess_only(command,**kwargs):
-        calls.append(command);index=int(command[command.index('--index')+1]);batch=POLICY['candidates'][index]
+        calls.append(command);index=int(command[command.index('--index')+1]);batch=candidates[index]
         calibration.write(command[command.index('--output')+1],passed(batch,[1.,8.,5.][index]))
     monkeypatch.setattr(calibration.subprocess,'run',subprocess_only)
     calibration.calibrate(manifest,'model')
-    assert len(calls)==3 and all('trial' in c for c in calls)
-    assert len({c[c.index('--index')+1] for c in calls})==3
+    assert len(calls)==len(candidates) and all('trial' in c for c in calls)
+    assert len({c[c.index('--index')+1] for c in calls})==len(candidates)
     saved=calibration.read(tmp_path/'profiles/model.json')
-    assert saved['selected']['batch_size']==8 and saved['temporary_weights_discarded']
-    calibration.calibrate(manifest,'model');assert len(calls)==3
+    assert saved['selected']['batch_size']==(fixed_batch or 8) and saved['temporary_weights_discarded']
+    calibration.calibrate(manifest,'model');assert len(calls)==len(candidates)
     calibration.write(tmp_path/'audits/model.json',dict(config_sha256='changed',inputs={'train':[]}))
     with pytest.raises(ValueError):calibration.calibrate(manifest,'model')
 
@@ -72,16 +77,22 @@ def test_cli_refuses_unallocated_local_calibration(monkeypatch):
 
 
 @pytest.mark.parametrize('task',['dng','csp','property'])
-def test_input_preparation_remaps_all_workloads_and_uses_only_eligible_train(tmp_path,monkeypatch,task):
+@pytest.mark.parametrize('fixed_batch', [None, 4])
+def test_input_preparation_remaps_all_workloads_and_uses_only_eligible_train(tmp_path,monkeypatch,task,fixed_batch):
     from unifiedgroupgen.pl_data import dataset
     rows=[dict(id=str(i),dataset='mp_20',descriptor=dict(kind='space',number=1,
           orbits=[dict(letter='a',atomic_number=6)]*(i+1)),properties={'band_gap':i/10 if i%2 else None}) for i in range(12)]
     monkeypatch.setattr(dataset,'load_training_splits',lambda *args:(rows,[],{}))
-    c=dict(name='test',entries={'model':{'experiment':'full_mp20_eqv2_'+task}},calibration=POLICY)
+    entry = {'experiment': 'full_mp20_eqv2_'+task}
+    if fixed_batch is not None:
+        entry['batch_size'] = fixed_batch
+    c=dict(name='test',entries={'model':entry},calibration=POLICY)
     calibration.prepare_inputs(c,'model',tmp_path)
     value=calibration.read(tmp_path/'inputs.json')
     assert value['source_split']=='train' and value['eligible_train_records']==(6 if task=='property' else 12)
     assert value['config']['allowed_elements']==[6]
+    candidates = [fixed_batch] if fixed_batch is not None else POLICY['candidates']
+    assert value['policy']['candidates'] == [item['batch_size'] for item in value['candidates']] == candidates
     assert len(value['records'])==len(value['expected_atoms'])
     if task=='property':assert all(r['properties']['band_gap'] is not None for r in value['records'])
     for candidate in value['candidates']:
