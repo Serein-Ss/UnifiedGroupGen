@@ -14,4 +14,4 @@ train:
   early_stopping:
     patience: 30
 runtime:
-  batch_size: 16
+  batch_size: 8
