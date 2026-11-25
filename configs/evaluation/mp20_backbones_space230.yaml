@@ -1,0 +1,26 @@
+# MP-20 generation and specified-space-group evaluation on a frozen training campaign.
+name: mp20_train1024_k10_dng1024_space230_x32_s42
+campaign: mp20_fp32_backbones_c1eb9165
+frozen_revision: c1eb9165e2b61fdcbbf48d469a68720fc8d5fb72
+seed: 42
+sampling:
+  steps: 128
+  batch_size: 4
+csp:
+  cases: 1024
+  ks: [1, 5, 10]
+  group_policy: composition_ranked
+dng:
+  attempts: 1024
+specified_symmetry:
+  first_group: 1
+  last_group: 230
+  attempts_per_group: 32
+  groups_per_job: 46
+  synthetic_element: 14
+slurm:
+  partition: "5090"
+  cpus: 8
+  memory: 64G
+  time: "72:00:00"
+
