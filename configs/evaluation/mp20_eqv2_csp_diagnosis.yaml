@@ -1,0 +1,12 @@
+# Paired diagnostic on held-out MP-20 cases using the frozen EquiformerV2 CSP checkpoint.
+campaign: mp20_fp32_backbones_c1eb9165
+revision: c1eb9165e2b61fdcbbf48d469a68720fc8d5fb72
+model: full_mp20_eqv2_csp_improved
+checkpoint_sha256: 4224d190ee4548c9b96288a774b52d955d99cf077c06f675383ef8775136c601
+frozen_sampler_text_sha256: 0641244782d05095945f6dbc892b906b2eba1527b0098ed403dc545d1df7bef3
+seed: 42
+cases: 256
+candidates: 20
+top_groups: 4
+steps: 128
+batch_size: 4

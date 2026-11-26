@@ -308,7 +308,8 @@ def fit_joint(config, records, validation, output, device='cpu', epochs=1, runti
     coverage.update(train_labelled=len(records), val_labelled=len(validation))
     if config.get('generation_task') and 'group_prior' not in config:
         from unifiedgroupgen.group_constraints.group_prior import fit_group_prior
-        config = {**config, 'group_prior': fit_group_prior(prior_records, composition_ranked=config.get('csp_group_policy')=='composition_ranked')}
+        config = {**config, 'group_prior': fit_group_prior(
+            prior_records, composition_ranked=config.get('csp_group_policy', 'prior') != 'prior')}
     config = {**config, 'magnetic_training': any(r.get('magnetic_moments') is not None for r in records)}
     actual_device = torch.device(device)
     device_name = 'cuda:'+str(actual_device.index or 0) if actual_device.type == 'cuda' else str(actual_device)
@@ -384,7 +385,8 @@ def run_joint_training(args, config, records, validation, paths):
     print(f'Training | {checkpoint_format(config)} | output={output}',flush=True)
     if config.get('generation_task') and 'group_prior' not in config:
         from unifiedgroupgen.group_constraints.group_prior import fit_group_prior
-        config = {**config, 'group_prior': fit_group_prior(records, composition_ranked=config.get('csp_group_policy')=='composition_ranked')}
+        config = {**config, 'group_prior': fit_group_prior(
+            records, composition_ranked=config.get('csp_group_policy', 'prior') != 'prior')}
     previous_runtime = load_joint_checkpoint(args.resume)['runtime'] if args.resume else {}
     train_limit = getattr(args, 'joint_train_limit', None)
     val_limit = getattr(args, 'joint_val_limit', None)

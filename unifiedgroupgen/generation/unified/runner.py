@@ -9,13 +9,16 @@ from unifiedgroupgen.common.configuration import sampling_files
 from unifiedgroupgen.common.structures import write_json
 from unifiedgroupgen.common.progress import Progress
 from unifiedgroupgen.conditional.tasks import generation_mode
-from unifiedgroupgen.group_constraints.group_prior import sample_group,NoFeasibleGroup
+from unifiedgroupgen.group_constraints.group_prior import CompositionNeighbors, sample_group, NoFeasibleGroup
 from unifiedgroupgen.group_constraints.operations import compile_operations
 from unifiedgroupgen.joint import evaluation_record
 from .sampling import sample_batch
 
 def generate(args,checkpoint,model,provided_spec,chemistry,properties,output):
     config=checkpoint['config'];outcomes={}
+    repair_contacts = getattr(args, 'repair_short_contacts', None)
+    if repair_contacts is None:
+        repair_contacts = config.get('terminal_contact_repair', False)
     guidance_scale=getattr(args,'guidance_scale',1.)
     if args.count<1 or args.batch_size<1:raise ValueError('count/batch-size must be positive')
     output=Path(output)
@@ -36,7 +39,7 @@ def generate(args,checkpoint,model,provided_spec,chemistry,properties,output):
                         event_budget=config.get('event_budget',96),birth_scale=config.get('birth_scale',.2)))
     manifest = getattr(args, 'case_manifest', None)
     policy = getattr(args, 'csp_group_policy', None) or config.get('csp_group_policy', 'prior')
-    if provided_spec is None and policy == 'composition_ranked' and not config.get('group_prior', {}).get('composition_counts'):
+    if provided_spec is None and policy != 'prior' and not config.get('group_prior', {}).get('composition_counts'):
         raise ValueError('Composition ranking requires fitted TRAIN composition counts')
     started=time.time()
     symmetry_input = ('operations' if getattr(args, 'symmetry', None) else
@@ -52,7 +55,7 @@ def generate(args,checkpoint,model,provided_spec,chemistry,properties,output):
                      properties=properties,guidance_scale=guidance_scale,
                      chemical_control=chemistry.to_dict(),exact_group=args.exact_group),
         started=started,outcomes=outcomes)
-    if getattr(args, 'repair_short_contacts', False):
+    if repair_contacts:
         result['request']['repair_short_contacts'] = True
     if manifest:
         result['request'].update(case_manifest_sha256=manifest.digest, cases=len(manifest.cases),
@@ -76,7 +79,8 @@ def generate(args,checkpoint,model,provided_spec,chemistry,properties,output):
         report('running',final=True)
         try:
             with Progress('Generate',args.count,log=progress_log,unit='structure') as display, (recorder if recorder is not None else nullcontext()):
-                _generate_batches(args,config,model,provided_spec,chemistry,properties,recorder,stream,outcomes,report,display)
+                _generate_batches(args,config,model,provided_spec,chemistry,properties,recorder,stream,outcomes,report,
+                                  display, repair_contacts=repair_contacts)
                 if sum(outcomes.values())!=args.count:
                     raise RuntimeError('Sampler did not return every requested attempt')
         except BaseException as error:
@@ -88,13 +92,16 @@ def generate(args,checkpoint,model,provided_spec,chemistry,properties,output):
     return result
 
 
-def _generate_batches(args,config,model,provided_spec,chemistry,properties,recorder,stream,outcomes,report,display=None):
+def _generate_batches(args,config,model,provided_spec,chemistry,properties,recorder,stream,outcomes,report,display=None,
+                      *, repair_contacts=False):
     labels={'label_group':0} if getattr(args,'symmetry',None) else {}
     symmetry_input = ('operations' if labels else 'number' if args.group is not None else 'prior')
     acceptance = {**labels, 'verify_cif_operations': True} if symmetry_input != 'prior' else labels
     manifest = getattr(args, 'case_manifest', None)
     training_dataset = config.get('dataset', '')
     policy = getattr(args, 'csp_group_policy', None) or config.get('csp_group_policy', 'prior')
+    neighbors = (CompositionNeighbors(config['group_prior'])
+                 if provided_spec is None and policy == 'composition_neighbors' else None)
     manifest_digest = manifest.digest if manifest else None
     for start in range(0,args.count,args.batch_size):
         requests, rows, identities = [], {}, {}
@@ -117,7 +124,8 @@ def _generate_batches(args,config,model,provided_spec,chemistry,properties,recor
                     raise NoFeasibleGroup('CSP case contains elements outside the TRAIN vocabulary')
                 spec=provided_spec or sample_group(config['group_prior'],generator,kind=kind,chemistry=control,
                     budget=config.get('event_budget',96),max_atoms=model.max_atoms,max_orbits=model.max_orbits,
-                    **({'composition_rank': identity['candidate']} if policy == 'composition_ranked' else {}))
+                    **({'composition_rank': identity['candidate'], 'neighbors': neighbors}
+                       if policy != 'prior' else {}))
                 requested=args.group if spec.number==0 else spec.number
                 if config['model'].get('operation_compiler'):
                     spec=compile_operations(spec.operations,spec.kind)
@@ -146,7 +154,7 @@ def _generate_batches(args,config,model,provided_spec,chemistry,properties,recor
             for request,sample in zip(requests,samples):
                 i,_,requested,_,_=request
                 repair = None
-                if (getattr(args, 'repair_short_contacts', False) and sample.state.status == 'done'
+                if (repair_contacts and sample.state.status == 'done'
                         and sample.state.spec.kind in ('space', 'layer')):
                     from .contact_repair import repair_short_contacts
                     state, repair = repair_short_contacts(sample.state)
@@ -154,7 +162,8 @@ def _generate_batches(args,config,model,provided_spec,chemistry,properties,recor
                         sample = replace(sample, state=state)
                         if recorder is not None:
                             recorder.record(i, 'contact_repair', state, sample.time, sample.integration_steps)
-                row=evaluation_record(sample,i,args.seed+i,args.exact_group,properties,requested,**acceptance)
+                checks = {**acceptance, 'verify_cif_operations': True} if repair and repair['applied'] else acceptance
+                row=evaluation_record(sample,i,args.seed+i,args.exact_group,properties,requested,**checks)
                 if repair is not None:
                     row['contact_repair'] = repair
                 row['sampling_backend']='joint_flow_v2/'+model.backend

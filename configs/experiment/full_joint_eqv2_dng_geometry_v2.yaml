@@ -1,0 +1,18 @@
+# @package _global_
+defaults:
+- override /data: joint_unified
+- override /model: joint_flow_equiformer_full
+- override /conditioning: none
+- override /train: joint_flow_full
+- override /runtime: joint_flow_5090
+experiment_name: full_joint_eqv2_dng_geometry_v2
+logging:
+  mode: offline
+train:
+  generation_task: dng
+  geometry_objective: decomposed
+  terminal_contact_repair: true
+  early_stopping:
+    patience: 30
+runtime:
+  batch_size: 4

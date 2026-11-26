@@ -129,3 +129,27 @@ experiments:
     dataset: mp_20
     backbone: cspnet
     task: csp
+  full_mp20_eqv2_dng_geometry_v2:
+    experiment: full_mp20_eqv2_dng_geometry_v2
+    dataset: mp_20
+    backbone: equiformer_v2
+    task: dng
+    batch_size: 8
+  full_mp20_eqv2_csp_geometry_v2:
+    experiment: full_mp20_eqv2_csp_geometry_v2
+    dataset: mp_20
+    backbone: equiformer_v2
+    task: csp
+    batch_size: 8
+  full_joint_eqv2_dng_geometry_v2:
+    experiment: full_joint_eqv2_dng_geometry_v2
+    dataset: mp20_c2db51
+    backbone: equiformer_v2
+    task: dng
+    batch_size: 4
+  full_joint_eqv2_csp_geometry_v2:
+    experiment: full_joint_eqv2_csp_geometry_v2
+    dataset: mp20_c2db51
+    backbone: equiformer_v2
+    task: csp
+    batch_size: 4

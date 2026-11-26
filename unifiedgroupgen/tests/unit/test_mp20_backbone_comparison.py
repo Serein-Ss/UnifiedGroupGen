@@ -11,7 +11,7 @@ from unifiedgroupgen.experiment_config import compose_experiment, training_defin
 from unifiedgroupgen.group_constraints.chemistry import ChemicalControl
 from unifiedgroupgen.group_constraints.compiler import group_table
 from unifiedgroupgen.group_constraints.flow_state import JointAction, apply, initial
-from unifiedgroupgen.group_constraints.group_prior import fit_group_prior, sample_group
+from unifiedgroupgen.group_constraints.group_prior import CompositionNeighbors, fit_group_prior, sample_group
 from unifiedgroupgen.group_constraints.operations import operation_spec
 from unifiedgroupgen.pl_data.unified.path import FlowSample
 from unifiedgroupgen.pl_modules.factory import build_joint_model
@@ -57,6 +57,26 @@ def test_backbone_plan_preserves_each_models_fixed_batch_size():
     assert {(result['available'][n]['backbone'], result['available'][n]['task']) for n in names} == {
         (backbone, task) for backbone in ('equiformer_v2', 'cspnet') for task in ('dng', 'csp')
     }
+
+
+def test_neighbor_prior_keeps_kinds_and_sampler_rng_separate():
+    prior = dict(source_split='train', train_records=410,
+                 entries=[dict(kind='space', number=1, count=10),
+                          dict(kind='space', number=2, count=200),
+                          dict(kind='layer', number=1, count=200)],
+                 composition_counts={
+                     'space': [{}, {}, {'8:2': {'1': 10}, '14:1': {'2': 200}}],
+                     'layer': [{}, {}, {'8:2': {'1': 200}}],
+                 })
+    neighbors = CompositionNeighbors(json.loads(json.dumps(prior)))
+    chemistry = ChemicalControl.from_inputs(counts={8: 2})
+    assert neighbors.votes('space', chemistry.counts)[1] > neighbors.votes('space', chemistry.counts)[2]
+    assert set(neighbors.votes('layer', chemistry.counts)) == {1}
+    plain, reranked = [torch.Generator().manual_seed(199) for _ in range(2)]
+    args = dict(kind='space', chemistry=chemistry, budget=8, composition_rank=0)
+    sample_group(prior, plain, **args)
+    sample_group(prior, reranked, neighbors=neighbors, **args)
+    assert torch.equal(plain.get_state(), reranked.get_state())
 
 
 @pytest.mark.parametrize('name', catalog()['backbone_comparison']['models'])

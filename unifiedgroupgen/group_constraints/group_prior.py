@@ -1,11 +1,13 @@
 """TRAIN-only empirical group initialization, with deterministic chemical support."""
 from collections import Counter, defaultdict
+from functools import lru_cache
+import numpy as np
 import torch
 from unifiedgroupgen.common.structures import formula_key, record_counts
 from unifiedgroupgen.group_constraints.unified import catalog_spec
 from unifiedgroupgen.group_constraints.chemistry import ChemicalControl, can_complete
 
-GROUP_POLICIES = ('prior', 'composition_ranked')
+GROUP_POLICIES = ('prior', 'composition_ranked', 'composition_neighbors')
 
 
 class NoFeasibleGroup(ValueError):
@@ -43,7 +45,49 @@ def fit_group_prior(train_records, *, composition_ranked=False):
     return prior
 
 
-def _rank_candidates(prior, candidates, weights, chemistry):
+def _composition_features(counts):
+    features = np.zeros(121, dtype=np.float32)
+    total = sum(counts.values())
+    for element, count in counts.items():
+        features[element] = (count / total) ** .5
+    features[-2] = .1 * len(counts)
+    features[-1] = .2 * np.log1p(total)
+    return features
+
+
+class CompositionNeighbors:
+    """Use only the checkpoint's exact TRAIN composition histogram within each group kind."""
+
+    def __init__(self, prior):
+        self.banks = {}
+        for kind, (_, _, exact) in prior['composition_counts'].items():
+            keys = sorted(exact)
+            counts = [{int(z): int(n) for z, n in (item.split(':') for item in key.split(','))}
+                      for key in keys]
+            labels = sorted({int(number) for group_counts in exact.values() for number in group_counts})
+            votes = np.array([[exact[key].get(str(group), 0) for group in labels]
+                              for key in keys], dtype=np.int32)
+            features = np.stack([_composition_features(count) for count in counts])
+            self.banks[kind] = features, votes, votes.sum(axis=1), labels
+        self.votes = lru_cache(maxsize=4096)(self._votes)
+
+    def _votes(self, kind, counts):
+        features, votes, frequency, labels = self.banks[kind]
+        difference = features - _composition_features(dict(counts))
+        distance = (difference * difference).sum(axis=1)
+        order = np.argsort(distance, kind='stable')
+        cumulative = np.cumsum(frequency[order])
+        limit = min(128, int(cumulative[-1]))
+        boundary = distance[order[np.searchsorted(cumulative, limit)]]
+        inside, tied = distance < boundary, distance == boundary
+        remaining = limit - frequency[inside].sum()
+        weights = np.exp(-12 * distance[inside])
+        scores = (weights @ votes[inside]
+                  + np.exp(-12 * boundary) * remaining / frequency[tied].sum() * votes[tied].sum(axis=0))
+        return dict(zip(labels, scores))
+
+
+def _rank_candidates(prior, candidates, weights, chemistry, neighbors=None):
     total = sum(weights)
     scores = [weight / total for weight in weights]
     keys = _composition_keys(dict(chemistry.counts))
@@ -54,12 +98,23 @@ def _rank_candidates(prior, candidates, weights, chemistry):
         count = sum(evidence)
         scores = [(n + strength * score) / (count + strength)
                   for n, score in zip(evidence, scores)]
+    if neighbors is not None:
+        kinds = {c.kind for c in candidates}
+        for kind in kinds & neighbors.banks.keys():
+            indices = [i for i, c in enumerate(candidates) if c.kind == kind]
+            local = neighbors.votes(kind, chemistry.counts)
+            votes = [local.get(candidates[i].number, 0.) for i in indices]
+            mass = sum(scores[i] for i in indices)
+            if sum(votes):
+                scale = .25 * mass / sum(votes)
+                for i, vote in zip(indices, votes):
+                    scores[i] = .75 * scores[i] + scale * vote
     return [candidate for _, candidate in sorted(zip(scores, candidates),
             key=lambda item: (-item[0], item[1].kind, item[1].number))]
 
 
 def sample_group(prior, generator, kind=None, chemistry=None, budget=256, max_atoms=192, max_orbits=52,
-                 *, composition_rank=None):
+                 *, composition_rank=None, neighbors=None):
     if prior.get('source_split') != 'train':
         raise ValueError('Group frequencies must be explicitly fitted on TRAIN')
     chemistry = chemistry or ChemicalControl()
@@ -84,5 +139,5 @@ def sample_group(prior, generator, kind=None, chemistry=None, budget=256, max_at
     if composition_rank is None:
         return candidates[index]
     # Consume the same prior draw in both modes, so downstream birth noise is paired.
-    ranked = _rank_candidates(prior, candidates, weights, chemistry)
+    ranked = _rank_candidates(prior, candidates, weights, chemistry, neighbors)
     return ranked[composition_rank % len(ranked)]

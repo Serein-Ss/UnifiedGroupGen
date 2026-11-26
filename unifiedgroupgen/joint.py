@@ -152,7 +152,7 @@ def main(argv=None):
     sample.add_argument('--trajectory-dir', help='Opt-in joint_flow_v2 JSONL trajectories, one file per selected attempt')
     sample.add_argument('--trajectory-indices', nargs='+', type=int,
                         help='Zero-based global sample indices to record; omit to record all attempts')
-    sample.add_argument('--repair-short-contacts', action='store_true',
+    sample.add_argument('--repair-short-contacts', action=argparse.BooleanOptionalAction,
                         help='Try bounded terminal contact repair in the existing Wyckoff chart')
     sample.add_argument('--steps', type=int, default=128)
     sample.add_argument('--seed', type=int, default=42)
@@ -163,7 +163,8 @@ def main(argv=None):
     sample.add_argument('--case-id', help='CSP evaluation identifier only; no reference geometry is read')
     sample.add_argument('--case-dataset', help='Source dataset of a single test case, separate from the training dataset')
     sample.add_argument('--case-manifest', help='Geometry-free CSP case manifest produced by prepare-csp')
-    sample.add_argument('--csp-group-policy', choices=['prior', 'composition_ranked'],
+    from unifiedgroupgen.group_constraints.group_prior import GROUP_POLICIES
+    sample.add_argument('--csp-group-policy', choices=GROUP_POLICIES,
                         help='Override free group selection for a CSP checkpoint')
     prepare = commands.add_parser('prepare-csp', help='Extract CSP case identities and per-cell inventories')
     prepare.add_argument('--references', required=True, action='append')
@@ -276,7 +277,8 @@ def main(argv=None):
         parser.error('Exact inventory generation requires an independently trained CSP checkpoint')
     if args.csp_group_policy and task != 'csp':
         parser.error('--csp-group-policy requires a CSP checkpoint')
-    if (args.csp_group_policy == 'composition_ranked' and not (args.symmetry or args.group is not None)
+    if (args.csp_group_policy in ('composition_ranked', 'composition_neighbors')
+            and not (args.symmetry or args.group is not None)
             and not checkpoint['config'].get('group_prior', {}).get('composition_counts')):
         parser.error('This checkpoint has no TRAIN composition counts. Select --csp-group-policy prior.')
     provided_spec = None

@@ -23,7 +23,8 @@ def test_full_configuration_has_correct_task_data_backbone_and_no_limits(name,en
     assert c['epochs']==1000 and c['joint_max_steps']==-1
     assert c['lr_schedule']==dict(factor=.5,patience=10,threshold=.0001,min_lr=.000001)
     is_comparison = name in DATA['backbone_comparison']['models']
-    assert c['early_stopping']==dict(patience=30 if is_comparison else 60,min_delta=.0001)
+    is_geometry_v2 = name.endswith('_geometry_v2')
+    assert c['early_stopping']==dict(patience=30 if is_comparison or is_geometry_v2 else 60,min_delta=.0001)
     assert c['validation_seed']==918
     assert c['joint_train_limit'] is c['joint_val_limit'] is None
     assert cfg.runtime.joint_train_limit is cfg.runtime.joint_val_limit is cfg.runtime.joint_max_steps is None
@@ -33,17 +34,22 @@ def test_full_configuration_has_correct_task_data_backbone_and_no_limits(name,en
     assert not any(p.get('context') for p in c['properties'].values())
     assert cfg.runtime.precision=='fp32' and cfg.runtime.strict_fp32 and cfg.runtime.fused_adamw
     sizes = DATA['backbone_comparison']['batch_sizes']
-    assert cfg.runtime.batch_size==(sizes[entry['backbone']] if is_comparison else 8) and 'batch_size' not in c
+    default_batch = sizes[entry['backbone']] if is_comparison else 8
+    assert cfg.runtime.batch_size == entry.get('batch_size', default_batch) and 'batch_size' not in c
     assert c['model']['hidden']==128 and c['model']['layers']==4 and not c['model']['checkpoint_layers']
     assert c['model']['heads']==(8 if entry['backbone']=='equiformer_v2' else 4)
     expected = ['mp_20', 'c2db_51'] if entry['dataset'] == 'mp20_c2db51' else [entry['dataset']]
     assert c['source_configs'] == {name: f'configs/sources/{name}.yaml' for name in expected}
     assert c['data_audit'] is None
     assert cfg.resume is None and cfg.initialize_from is None
+    if is_geometry_v2:
+        assert cfg.logging.mode == 'offline' and c['terminal_contact_repair'] is True
+        assert c['geometry_objective'] == 'decomposed' and 'short_contact_weight' not in c
+        assert c.get('csp_group_policy', 'prior') == ('composition_neighbors' if entry['task'] == 'csp' else 'prior')
 
 
 def test_matrix_and_default_plan_are_exactly_requested():
-    assert len(DATA['experiments'])==16
+    assert len(DATA['experiments'])==20
     combinations={(e['dataset'],e['backbone'],e['task'],e.get('property_conditioning')) for e in DATA['experiments'].values()}
     variants=(('dng',None),('csp',None),('dng','band_gap'))
     expected={(d,'equiformer_v2',t,p) for d in ('mp_20','c2db_51','mp20_c2db51') for t,p in variants}
@@ -56,6 +62,12 @@ def test_matrix_and_default_plan_are_exactly_requested():
     assert plan['calibration']['candidates'] == [1,2,4,8,16,32,64,128]
     assert plan['resources']==dict(partition='5090',gpus=1,cpus=8,memory='64G',hours=72)
     assert jobs.plan(['full_joint_eqv2_property'])['jobs']==1
+    geometry = [f'full_{scope}_eqv2_{task}_geometry_v2'
+                for scope in ('mp20', 'joint') for task in ('dng', 'csp')]
+    geometry_plan = jobs.plan(geometry)
+    assert geometry_plan['selected'] == geometry
+    assert [calibration.model_policy(geometry_plan, name)['candidates'] for name in geometry] == [
+        [8], [8], [4], [4]]
 
 
 @pytest.mark.parametrize('models',[[],['missing'],['full_mp20_eqv2_dng']*2])

@@ -17,7 +17,7 @@ def training_definition(cfg):
         groups['train'].pop('orbit_recovery_weight')
     if groups['train'].get('geometry_objective') is None:
         groups['train'].pop('geometry_objective', None)
-    for key in ('short_contact_weight', 'layer_log_area_weight', 'layer_height_weight'):
+    for key in ('short_contact_weight', 'layer_log_area_weight', 'layer_height_weight', 'terminal_contact_repair'):
         if groups['train'].get(key) is None:
             groups['train'].pop(key, None)
     name = groups['experiment_name']

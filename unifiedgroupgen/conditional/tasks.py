@@ -15,6 +15,9 @@ def validate_task_config(config):
         raise ValueError('orbit_order must be random or site_symmetry')
     if config.get('geometry_objective') not in (None, 'legacy', 'decomposed'):
         raise ValueError('geometry_objective must be legacy or decomposed')
+    repair = config.get('terminal_contact_repair')
+    if repair is not None and type(repair) is not bool:
+        raise ValueError('terminal_contact_repair must be a boolean')
     for key in ('short_contact_weight', 'layer_log_area_weight', 'layer_height_weight'):
         weight = config.get(key)
         if weight is not None and (not isinstance(weight, (int, float)) or not math.isfinite(weight) or weight < 0):

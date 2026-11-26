@@ -73,7 +73,8 @@ def prepare_inputs(campaign,model,folder):
                                                    overrides=run_overrides(campaign,model)))
     records,_,_=load_training_splits(config,project_root())
     config=fit_training_config(config,records)
-    config={**config,'group_prior':fit_group_prior(records, composition_ranked=config.get('csp_group_policy')=='composition_ranked')}
+    config={**config,'group_prior':fit_group_prior(
+        records, composition_ranked=config.get('csp_group_policy', 'prior') != 'prior')}
     records=eligible_records(records,config)
     if not records:raise ValueError('No eligible TRAIN records for calibration')
     sizes=[sum(catalog_spec(r['descriptor']['kind'],r['descriptor']['number']).template(w['letter']).multiplicity

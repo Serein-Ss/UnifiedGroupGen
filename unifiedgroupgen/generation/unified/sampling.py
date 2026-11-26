@@ -9,11 +9,12 @@ from unifiedgroupgen.conditional.guidance import guided_forward, validate_guidan
 @torch.no_grad()
 def sample_batch(model,specs,steps=64,epsilon=1e-4,budget=None,birth_scale=None,
                  properties=None,chemistries=None,seeds=None,generators=None,frames=None,
-                 trajectory_callback=None,guidance_scale=1.):
+                 trajectory_callback=None,guidance_scale=1.,initial_states=None,lock_metric=False):
     """Optionally report committed states, not Heun predictors or root-search trials.
 
     callback(local_index, stage, state, time, integration_step, event, reason)
     observes initial, continuous, event and final states without consuming RNG.
+    Diagnostic interventions may supply starting states and hold the lattice metric fixed.
     """
     if steps<1 or not 0<epsilon<.1:raise ValueError('Invalid integration controls')
     n=len(specs)
@@ -24,7 +25,19 @@ def sample_batch(model,specs,steps=64,epsilon=1e-4,budget=None,birth_scale=None,
     validate_guidance(guidance_scale, any(properties), getattr(getattr(model,'property_encoder',None),'dropout',0.))
     frames=frames or [None]*n;seeds=seeds or list(range(n))
     generators=generators or [torch.Generator(device=like.device).manual_seed(seed) for seed in seeds]
-    states=[initial(g,generators[i],budget,chemistries[i],like.device,like.dtype,frames[i]) for i,g in enumerate(specs)]
+    if initial_states is None:
+        if lock_metric:
+            raise ValueError('Locking the metric requires explicit initial states')
+        states=[initial(g,generators[i],budget,chemistries[i],like.device,like.dtype,frames[i]) for i,g in enumerate(specs)]
+    else:
+        if len(initial_states)!=n or any(s.spec!=g or s.status!='active' for s,g in zip(initial_states,specs)):
+            raise ValueError('Initial states must be active and aligned with the requested specs')
+        states=list(initial_states)
+
+    def move(state,metric,coordinate,dt):
+        if lock_metric:
+            metric=torch.zeros_like(state.metric)
+        return advance(state,metric,coordinate,dt)
     times=[0.]*n;events=[[] for _ in specs];iterations=[0]*n;reason=[None]*n
     if trajectory_callback is not None:
         for i,s in enumerate(states):trajectory_callback(i,'initial',s,0.,0,None,None)
@@ -59,7 +72,7 @@ def sample_batch(model,specs,steps=64,epsilon=1e-4,budget=None,birth_scale=None,
             if not ids:continue
             p=[properties[i] for i in ids]
             velocity=[(o['metric_velocity_scaled']/(1-v),o['coordinate_velocity_scaled']/(1-v)) for o,v in zip(out,t)]
-            predicted=[advance(s,*v,d) for s,v,d in zip(active,velocity,dt)]
+            predicted=[move(s,*v,d) for s,v,d in zip(active,velocity,dt)]
             end=evaluate(ids,predicted,[v+d for v,d in zip(t,dt)])
             end=[o if o is not None else out[k] for k,o in enumerate(end)]
             v1=[(o['metric_velocity_scaled']/(1-v-d),o['coordinate_velocity_scaled']/(1-v-d)) for o,v,d in zip(end,t,dt)]
@@ -81,7 +94,7 @@ def sample_batch(model,specs,steps=64,epsilon=1e-4,budget=None,birth_scale=None,
                 else:thresholds[i]-=integrated
                 a,b=velocity[k],v1[k]
                 vm=a[0]+.5*fraction*(b[0]-a[0]);vx=a[1]+.5*fraction*(b[1]-a[1])
-                states[i]=advance(s,vm,vx,d*fraction);times[i]=v+d*fraction
+                states[i]=move(s,vm,vx,d*fraction);times[i]=v+d*fraction
                 if not torch.isfinite(states[i].metric).all() or not torch.isfinite(states[i].coordinates).all():
                     reason[i]='nonfinite_continuous_state'
                 if trajectory_callback is not None:

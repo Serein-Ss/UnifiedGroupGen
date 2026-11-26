@@ -10,6 +10,7 @@ chemical_set_probability: 0.0
 jump_weight: 1.0
 geometry_objective: null
 short_contact_weight: null
+terminal_contact_repair: null
 layer_log_area_weight: null
 layer_height_weight: null
 orbit_recovery_weight: 0.0
